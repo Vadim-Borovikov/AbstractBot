@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Vadim-Borovikov</Authors>
+    <Company>Vadim-Borovikov</Company>
+    <Description>Telegram Bot with some common functionality included.</Description>
+    <RepositoryUrl>https://github.com/Vadim-Borovikov/AbstractBot</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Telegram.Bot" Version="15.7.1" />
+  </ItemGroup>
+
+</Project>
