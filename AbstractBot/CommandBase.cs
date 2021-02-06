@@ -12,9 +12,12 @@ namespace AbstractBot
         protected internal abstract string Name { get; }
         protected internal abstract string Description { get; }
 
+        protected virtual string Alias => null;
+
         protected internal virtual bool IsInvokingBy(string text, bool fromChat, string botName)
         {
-            return text == (fromChat ? $"/{Name}@{botName}" : $"/{Name}");
+            return (fromChat && (text == $"/{Name}@{botName}"))
+                   || (!fromChat && ((text == $"/{Name}") || (!string.IsNullOrWhiteSpace(Alias) && (text == Alias))));
         }
 
         public abstract Task ExecuteAsync(ChatId chatId, ITelegramBotClient client, int replyToMessageId = 0,
