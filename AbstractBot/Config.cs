@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 
 namespace AbstractBot
 {
-    [SuppressMessage("ReSharper", "ClassCanBeSealed.Global")]
     public class Config
     {
         [JsonProperty]

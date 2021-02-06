@@ -15,6 +15,7 @@ namespace AbstractBot
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "UnusedParameter.Global")]
     [SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
+    [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global")]
     public abstract class BotBase<TConfig> : IDescriptionProvider
         where TConfig: Config
     {
