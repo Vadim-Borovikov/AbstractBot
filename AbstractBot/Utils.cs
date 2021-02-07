@@ -18,7 +18,7 @@ namespace AbstractBot
                 : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _timeZoneInfo);
         }
 
-        internal static Task<Message> SendStickerAsync(this ITelegramBotClient client, Message message,
+        public static Task<Message> SendStickerAsync(this ITelegramBotClient client, Message message,
             InputOnlineFile sticker)
         {
             return client.SendStickerAsync(message.Chat, sticker, replyToMessageId: message.MessageId);

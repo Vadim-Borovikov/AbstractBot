@@ -12,6 +12,7 @@ using Telegram.Bot.Types.InputFiles;
 namespace AbstractBot
 {
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [SuppressMessage("ReSharper", "MemberCanBeProtected.Global")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "UnusedParameter.Global")]
     [SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
@@ -46,6 +47,11 @@ namespace AbstractBot
         }
 
         public Task<User> GetUserAsunc() => Client.GetMeAsync();
+
+        public bool FromAdmin(Message message)
+        {
+            return (Config.AdminIds != null) && Config.AdminIds.Contains(message.From.Id);
+        }
 
         public string GetDescription()
         {
@@ -113,13 +119,8 @@ namespace AbstractBot
             await UpdateAsync(message, command, fromChat);
         }
 
-        private bool FromAdmin(Message message)
-        {
-            return (Config.AdminIds != null) && Config.AdminIds.Contains(message.From.Id);
-        }
-
-        protected readonly TConfig Config;
-        protected readonly TelegramBotClient Client;
+        public readonly TelegramBotClient Client;
+        public readonly TConfig Config;
 
         protected readonly List<CommandBase> Commands;
         protected readonly InputOnlineFile DontUnderstandSticker;

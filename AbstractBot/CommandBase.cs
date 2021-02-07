@@ -16,7 +16,7 @@ namespace AbstractBot
 
         protected internal virtual bool AdminsOnly => false;
 
-        protected internal virtual bool IsInvokingBy(string text, bool fromChat, string botName)
+        public virtual bool IsInvokingBy(string text, bool fromChat = false, string botName = null)
         {
             return (fromChat && (text == $"/{Name}@{botName}"))
                    || (!fromChat && ((text == $"/{Name}") || (!string.IsNullOrWhiteSpace(Alias) && (text == Alias))));
