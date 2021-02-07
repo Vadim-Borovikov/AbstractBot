@@ -9,13 +9,16 @@ namespace AbstractBot
 {
     [SuppressMessage("ReSharper", "MemberCanBeInternal")]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public static class Utils
     {
-        public static DateTime Now()
+        public static DateTime Now() => DateTime.UtcNow.ToLocal();
+
+        public static DateTime ToLocal(this DateTime utc)
         {
             return _timeZoneInfo == null
-                ? DateTime.UtcNow
-                : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _timeZoneInfo);
+                ? utc.ToLocalTime()
+                : TimeZoneInfo.ConvertTimeFromUtc(utc, _timeZoneInfo);
         }
 
         public static Task<Message> SendStickerAsync(this ITelegramBotClient client, Message message,
