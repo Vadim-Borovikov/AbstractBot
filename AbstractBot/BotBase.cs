@@ -94,7 +94,7 @@ namespace AbstractBot
             return command.ExecuteAsync(message.Chat, Client);
         }
 
-        private async Task UpdateAsync(Message message)
+        protected virtual async Task UpdateAsync(Message message)
         {
             if (message.Type != MessageType.Text)
             {
