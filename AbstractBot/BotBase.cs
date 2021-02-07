@@ -28,6 +28,7 @@ namespace AbstractBot
             Commands = new List<CommandBase>();
 
             DontUnderstandSticker = new InputOnlineFile(Config.DontUnderstandStickerFileId);
+            ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
 
             Utils.SetupTimeZoneInfo(Config.SystemTimeZoneId);
         }
@@ -80,9 +81,17 @@ namespace AbstractBot
 
         protected virtual Task UpdateAsync(Message message, CommandBase command, bool fromChat = false)
         {
-            return command == null
-                ? Client.SendStickerAsync(message, DontUnderstandSticker)
-                : command.ExecuteAsync(message.Chat, Client);
+            if (command == null)
+            {
+                return Client.SendStickerAsync(message, DontUnderstandSticker);
+            }
+
+            if (command.AdminsOnly && !FromAdmin(message))
+            {
+                return Client.SendStickerAsync(message, ForbiddenSticker);
+            }
+
+            return command.ExecuteAsync(message.Chat, Client);
         }
 
         private async Task UpdateAsync(Message message)
@@ -104,10 +113,16 @@ namespace AbstractBot
             await UpdateAsync(message, command, fromChat);
         }
 
+        private bool FromAdmin(Message message)
+        {
+            return (Config.AdminIds != null) && Config.AdminIds.Contains(message.From.Id);
+        }
+
         protected readonly TConfig Config;
         protected readonly TelegramBotClient Client;
 
         protected readonly List<CommandBase> Commands;
         protected readonly InputOnlineFile DontUnderstandSticker;
+        protected readonly InputOnlineFile ForbiddenSticker;
     }
 }
