@@ -147,6 +147,6 @@ namespace AbstractBot
 
         protected readonly List<CommandBase<TBot, TConfig>> Commands;
         protected readonly InputOnlineFile DontUnderstandSticker;
-        public readonly InputOnlineFile ForbiddenSticker;
+        protected readonly InputOnlineFile ForbiddenSticker;
     }
 }
