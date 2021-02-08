@@ -16,7 +16,6 @@ namespace AbstractBot
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
     [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global")]
-    [SuppressMessage("ReSharper", "UnassignedReadonlyField")]
     [SuppressMessage("ReSharper", "NotAccessedField.Global")]
     public abstract class BotBase<TBot, TConfig>
         where TBot: BotBase<TBot, TConfig>
