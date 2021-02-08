@@ -7,7 +7,8 @@ namespace AbstractBot
     [SuppressMessage("ReSharper", "MemberCanBeInternal")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "NotAccessedField.Global")]
-    public abstract class CommandBase<TConfig>
+    public abstract class CommandBase<TBot, TConfig>
+        where TBot : BotBase<TBot, TConfig>
         where TConfig : Config
     {
         protected internal abstract string Name { get; }
@@ -17,7 +18,7 @@ namespace AbstractBot
 
         public virtual bool AdminsOnly => false;
 
-        protected CommandBase(BotBase<TConfig> bot) => Bot = bot;
+        protected CommandBase(TBot bot) => Bot = bot;
 
         public virtual bool IsInvokingBy(string text, bool fromChat = false, string botName = null)
         {
@@ -27,6 +28,6 @@ namespace AbstractBot
 
         public abstract Task ExecuteAsync(Message message, bool fromChat = false);
 
-        protected readonly BotBase<TConfig> Bot;
+        protected readonly TBot Bot;
     }
 }

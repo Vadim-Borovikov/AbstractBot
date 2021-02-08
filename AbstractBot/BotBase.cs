@@ -16,7 +16,9 @@ namespace AbstractBot
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
     [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global")]
-    public abstract class BotBase<TConfig>
+    [SuppressMessage("ReSharper", "UnassignedReadonlyField")]
+    public abstract class BotBase<TBot, TConfig>
+        where TBot: BotBase<TBot, TConfig>
         where TConfig: Config
     {
         protected BotBase(TConfig config)
@@ -25,7 +27,7 @@ namespace AbstractBot
 
             Client = new TelegramBotClient(Config.Token);
 
-            Commands = new List<CommandBase<TConfig>>();
+            Commands = new List<CommandBase<TBot, TConfig>>();
 
             DontUnderstandSticker = new InputOnlineFile(Config.DontUnderstandStickerFileId);
             ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
@@ -67,14 +69,14 @@ namespace AbstractBot
                 }
             }
 
-            List<CommandBase<TConfig>> userCommands = Commands.Where(c => !c.AdminsOnly).ToList();
+            List<CommandBase<TBot, TConfig>> userCommands = Commands.Where(c => !c.AdminsOnly).ToList();
             if (fromAdmin)
             {
-                List<CommandBase<TConfig>> adminCommands = Commands.Where(c => c.AdminsOnly).ToList();
+                List<CommandBase<TBot, TConfig>> adminCommands = Commands.Where(c => c.AdminsOnly).ToList();
                 if (adminCommands.Count > 0)
                 {
                     builder.AppendLine(adminCommands.Count > 1 ? "Админские команды:" : "Админская команда:");
-                    foreach (CommandBase<TConfig> command in adminCommands)
+                    foreach (CommandBase<TBot, TConfig> command in adminCommands)
                     {
                         builder.AppendLine($"/{command.Name} – {command.Description}");
                     }
@@ -88,7 +90,7 @@ namespace AbstractBot
             if (userCommands.Count > 0)
             {
                 builder.AppendLine(userCommands.Count > 1 ? "Команды:" : "Команда:");
-                foreach (CommandBase<TConfig> command in userCommands)
+                foreach (CommandBase<TBot, TConfig> command in userCommands)
                 {
                     builder.AppendLine($"/{command.Name} – {command.Description}");
                 }
@@ -105,7 +107,7 @@ namespace AbstractBot
             return builder.ToString();
         }
 
-        protected virtual Task UpdateAsync(Message message, CommandBase<TConfig> command, bool fromChat = false)
+        protected virtual Task UpdateAsync(Message message, CommandBase<TBot, TConfig> command, bool fromChat = false)
         {
             if (command == null)
             {
@@ -135,7 +137,7 @@ namespace AbstractBot
                 User user = await GetUserAsunc();
                 botName = user.Username;
             }
-            CommandBase<TConfig> command =
+            CommandBase<TBot, TConfig> command =
                 Commands.FirstOrDefault(c => c.IsInvokingBy(message.Text, fromChat, botName));
             await UpdateAsync(message, command, fromChat);
         }
@@ -143,7 +145,7 @@ namespace AbstractBot
         public readonly TelegramBotClient Client;
         public readonly TConfig Config;
 
-        protected readonly List<CommandBase<TConfig>> Commands;
+        protected readonly List<CommandBase<TBot, TConfig>> Commands;
         protected readonly InputOnlineFile DontUnderstandSticker;
         public readonly InputOnlineFile ForbiddenSticker;
     }

@@ -6,8 +6,9 @@ namespace AbstractBot
 {
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    public abstract class BotBaseGoogleSheets<TConfig> : BotBase<TConfig>, IDisposable
-        where TConfig: ConfigGoogleSheets
+    public abstract class BotBaseGoogleSheets<TBot, TConfig> : BotBase<TBot, TConfig>, IDisposable
+        where TBot: BotBaseGoogleSheets<TBot, TConfig>
+        where TConfig : ConfigGoogleSheets
     {
         protected BotBaseGoogleSheets(TConfig config) : base(config)
         {
