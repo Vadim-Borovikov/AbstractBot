@@ -17,6 +17,7 @@ namespace AbstractBot
     [SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
     [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global")]
     [SuppressMessage("ReSharper", "UnassignedReadonlyField")]
+    [SuppressMessage("ReSharper", "NotAccessedField.Global")]
     public abstract class BotBase<TBot, TConfig>
         where TBot: BotBase<TBot, TConfig>
         where TConfig: Config
@@ -32,7 +33,7 @@ namespace AbstractBot
             DontUnderstandSticker = new InputOnlineFile(Config.DontUnderstandStickerFileId);
             ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
 
-            Utils.SetupTimeZoneInfo(Config.SystemTimeZoneId);
+            TimeManager = new TimeManager(Config.SystemTimeZoneId);
         }
 
         public virtual Task StartAsync(CancellationToken cancellationToken)
@@ -144,6 +145,7 @@ namespace AbstractBot
 
         public readonly TelegramBotClient Client;
         public readonly TConfig Config;
+        public readonly TimeManager TimeManager;
 
         protected readonly List<CommandBase<TBot, TConfig>> Commands;
         protected readonly InputOnlineFile DontUnderstandSticker;
