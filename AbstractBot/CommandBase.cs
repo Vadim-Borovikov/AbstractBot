@@ -1,20 +1,23 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AbstractBot
 {
     [SuppressMessage("ReSharper", "MemberCanBeInternal")]
-    public abstract class CommandBase
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [SuppressMessage("ReSharper", "NotAccessedField.Global")]
+    public abstract class CommandBase<TConfig>
+        where TConfig : Config
     {
         protected internal abstract string Name { get; }
         protected internal abstract string Description { get; }
 
         protected virtual string Alias => null;
 
-        protected internal virtual bool AdminsOnly => false;
+        public virtual bool AdminsOnly => false;
+
+        protected CommandBase(BotBase<TConfig> bot) => Bot = bot;
 
         public virtual bool IsInvokingBy(string text, bool fromChat = false, string botName = null)
         {
@@ -22,7 +25,8 @@ namespace AbstractBot
                    || (!fromChat && ((text == $"/{Name}") || (!string.IsNullOrWhiteSpace(Alias) && (text == Alias))));
         }
 
-        public abstract Task ExecuteAsync(ChatId chatId, ITelegramBotClient client, int replyToMessageId = 0,
-            IReplyMarkup replyMarkup = null);
+        public abstract Task ExecuteAsync(Message message, bool fromChat = false);
+
+        protected readonly BotBase<TConfig> Bot;
     }
 }

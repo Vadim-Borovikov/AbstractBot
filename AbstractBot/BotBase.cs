@@ -14,10 +14,9 @@ namespace AbstractBot
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     [SuppressMessage("ReSharper", "MemberCanBeProtected.Global")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-    [SuppressMessage("ReSharper", "UnusedParameter.Global")]
     [SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
     [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global")]
-    public abstract class BotBase<TConfig> : IDescriptionProvider
+    public abstract class BotBase<TConfig>
         where TConfig: Config
     {
         protected BotBase(TConfig config)
@@ -26,7 +25,7 @@ namespace AbstractBot
 
             Client = new TelegramBotClient(Config.Token);
 
-            Commands = new List<CommandBase>();
+            Commands = new List<CommandBase<TConfig>>();
 
             DontUnderstandSticker = new InputOnlineFile(Config.DontUnderstandStickerFileId);
             ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
@@ -34,12 +33,15 @@ namespace AbstractBot
             Utils.SetupTimeZoneInfo(Config.SystemTimeZoneId);
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public virtual Task StartAsync(CancellationToken cancellationToken)
         {
             return Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken);
         }
 
-        public Task StopAsync(CancellationToken cancellationToken) => Client.DeleteWebhookAsync(cancellationToken);
+        public virtual Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Client.DeleteWebhookAsync(cancellationToken);
+        }
 
         public Task UpdateAsync(Update update)
         {
@@ -53,7 +55,7 @@ namespace AbstractBot
             return (Config.AdminIds != null) && Config.AdminIds.Contains(message.From.Id);
         }
 
-        public string GetDescription()
+        public string GetDescription(bool fromAdmin = false)
         {
             var builder = new StringBuilder();
 
@@ -65,10 +67,28 @@ namespace AbstractBot
                 }
             }
 
-            if (Commands.Count > 0)
+            List<CommandBase<TConfig>> userCommands = Commands.Where(c => !c.AdminsOnly).ToList();
+            if (fromAdmin)
             {
-                builder.AppendLine(Commands.Count > 1 ? "Команды:" : "Команда:");
-                foreach (CommandBase command in Commands)
+                List<CommandBase<TConfig>> adminCommands = Commands.Where(c => c.AdminsOnly).ToList();
+                if (adminCommands.Count > 0)
+                {
+                    builder.AppendLine(adminCommands.Count > 1 ? "Админские команды:" : "Админская команда:");
+                    foreach (CommandBase<TConfig> command in adminCommands)
+                    {
+                        builder.AppendLine($"/{command.Name} – {command.Description}");
+                    }
+                    if (userCommands.Count > 0)
+                    {
+                        builder.AppendLine();
+                    }
+                }
+            }
+
+            if (userCommands.Count > 0)
+            {
+                builder.AppendLine(userCommands.Count > 1 ? "Команды:" : "Команда:");
+                foreach (CommandBase<TConfig> command in userCommands)
                 {
                     builder.AppendLine($"/{command.Name} – {command.Description}");
                 }
@@ -85,26 +105,26 @@ namespace AbstractBot
             return builder.ToString();
         }
 
-        protected virtual Task UpdateAsync(Message message, CommandBase command, bool fromChat = false)
+        protected virtual Task UpdateAsync(Message message, CommandBase<TConfig> command, bool fromChat = false)
         {
             if (command == null)
             {
-                return Client.SendStickerAsync(message, DontUnderstandSticker);
+                return Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
             }
 
             if (command.AdminsOnly && !FromAdmin(message))
             {
-                return Client.SendStickerAsync(message, ForbiddenSticker);
+                return Client.SendStickerAsync(message.Chat, ForbiddenSticker);
             }
 
-            return command.ExecuteAsync(message.Chat, Client);
+            return command.ExecuteAsync(message, fromChat);
         }
 
         protected virtual async Task UpdateAsync(Message message)
         {
             if (message.Type != MessageType.Text)
             {
-                await Client.SendStickerAsync(message, DontUnderstandSticker);
+                await Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
                 return;
             }
 
@@ -115,15 +135,16 @@ namespace AbstractBot
                 User user = await GetUserAsunc();
                 botName = user.Username;
             }
-            CommandBase command = Commands.FirstOrDefault(c => c.IsInvokingBy(message.Text, fromChat, botName));
+            CommandBase<TConfig> command =
+                Commands.FirstOrDefault(c => c.IsInvokingBy(message.Text, fromChat, botName));
             await UpdateAsync(message, command, fromChat);
         }
 
         public readonly TelegramBotClient Client;
         public readonly TConfig Config;
 
-        protected readonly List<CommandBase> Commands;
+        protected readonly List<CommandBase<TConfig>> Commands;
         protected readonly InputOnlineFile DontUnderstandSticker;
-        protected readonly InputOnlineFile ForbiddenSticker;
+        public readonly InputOnlineFile ForbiddenSticker;
     }
 }

@@ -15,8 +15,8 @@ namespace AbstractBot
             GoogleSheetsProvider = new Provider(googleCredentialJson, Config.ApplicationName, Config.GoogleSheetId);
         }
 
-        public void Dispose() => GoogleSheetsProvider?.Dispose();
+        public virtual void Dispose() => GoogleSheetsProvider?.Dispose();
 
-        protected readonly Provider GoogleSheetsProvider;
+        public readonly Provider GoogleSheetsProvider;
     }
 }
