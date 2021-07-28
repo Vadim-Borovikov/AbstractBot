@@ -26,7 +26,7 @@ namespace AbstractBot
         public string SystemTimeZoneId { get; set; }
 
         [JsonProperty]
-        public List<int> AdminIds { get; set; }
+        public List<long> AdminIds { get; set; }
 
         [JsonProperty]
         public string DontUnderstandStickerFileId { get; set; }

@@ -42,7 +42,7 @@ namespace AbstractBot
 
         public virtual Task StopAsync(CancellationToken cancellationToken)
         {
-            return Client.DeleteWebhookAsync(cancellationToken);
+            return Client.DeleteWebhookAsync(false, cancellationToken);
         }
 
         public Task UpdateAsync(Update update)
