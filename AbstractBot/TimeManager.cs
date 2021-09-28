@@ -22,6 +22,13 @@ namespace AbstractBot
                 : TimeZoneInfo.ConvertTimeFromUtc(utc, _timeZoneInfo);
         }
 
+        public DateTime ToUtc(DateTime local)
+        {
+            return _timeZoneInfo == null
+                ? local.ToUniversalTime()
+                : TimeZoneInfo.ConvertTimeToUtc(local, _timeZoneInfo);
+        }
+
         private readonly TimeZoneInfo _timeZoneInfo;
     }
 }
