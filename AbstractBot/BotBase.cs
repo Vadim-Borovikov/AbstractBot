@@ -53,10 +53,8 @@ namespace AbstractBot
 
         public Task<User> GetUserAsunc() => Client.GetMeAsync();
 
-        public bool FromAdmin(Message message)
-        {
-            return (Config.AdminIds != null) && Config.AdminIds.Contains(message.From.Id);
-        }
+        public bool IsFromAdmin(Message message) => IsAdmin(message.From.Id);
+        public bool IsAdmin(long userId) => (Config.AdminIds != null) && Config.AdminIds.Contains(userId);
 
         public string GetDescription(bool fromAdmin = false)
         {
@@ -115,7 +113,7 @@ namespace AbstractBot
                 return Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
             }
 
-            if (command.AdminsOnly && !FromAdmin(message))
+            if (command.AdminsOnly && !IsFromAdmin(message))
             {
                 return Client.SendStickerAsync(message.Chat, ForbiddenSticker);
             }
