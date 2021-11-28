@@ -16,7 +16,7 @@ namespace AbstractBot
 
         protected virtual string Alias => null;
 
-        public virtual bool AdminsOnly => false;
+        public virtual BotBase<TBot, TConfig>.AccessType Access => BotBase<TBot, TConfig>.AccessType.Users;
 
         protected CommandBase(TBot bot) => Bot = bot;
 

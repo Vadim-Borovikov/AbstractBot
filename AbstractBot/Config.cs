@@ -26,6 +26,9 @@ namespace AbstractBot
         public string SystemTimeZoneId { get; set; }
 
         [JsonProperty]
+        public long? SuperAdminId { get; set; }
+
+        [JsonProperty]
         public List<long> AdminIds { get; set; }
 
         [JsonProperty]

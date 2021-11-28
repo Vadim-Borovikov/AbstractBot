@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -21,6 +22,13 @@ namespace AbstractBot
         where TBot: BotBase<TBot, TConfig>
         where TConfig: Config
     {
+        public enum AccessType
+        {
+            SuperAdmin,
+            Admins,
+            Users
+        }
+
         protected BotBase(TConfig config)
         {
             Config = config;
@@ -53,10 +61,10 @@ namespace AbstractBot
 
         public Task<User> GetUserAsunc() => Client.GetMeAsync();
 
-        public bool IsFromAdmin(Message message) => IsAdmin(message.From.Id);
         public bool IsAdmin(long userId) => (Config.AdminIds != null) && Config.AdminIds.Contains(userId);
+        public bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
 
-        public string GetDescription(bool fromAdmin = false)
+        public string GetDescription(AccessType access = AccessType.Users)
         {
             var builder = new StringBuilder();
 
@@ -68,10 +76,28 @@ namespace AbstractBot
                 }
             }
 
-            List<CommandBase<TBot, TConfig>> userCommands = Commands.Where(c => !c.AdminsOnly).ToList();
-            if (fromAdmin)
+            List<CommandBase<TBot, TConfig>> userCommands = Commands.Where(c => c.Access == AccessType.Users).ToList();
+            if (access != AccessType.Users)
             {
-                List<CommandBase<TBot, TConfig>> adminCommands = Commands.Where(c => c.AdminsOnly).ToList();
+                List<CommandBase<TBot, TConfig>> adminCommands = Commands.Where(c => c.Access == AccessType.Admins).ToList();
+                if (access == AccessType.SuperAdmin)
+                {
+                    List<CommandBase<TBot, TConfig>> superAdminCommands =
+                        Commands.Where(c => c.Access == AccessType.SuperAdmin).ToList();
+                    if (superAdminCommands.Any())
+                    {
+                        builder.AppendLine(superAdminCommands.Count > 1 ? "Команды суперадмина:" : "Команда суперадмина:");
+                        foreach (CommandBase<TBot, TConfig> command in superAdminCommands)
+                        {
+                            builder.AppendLine($"/{command.Name} – {command.Description}");
+                        }
+                        if (adminCommands.Any() || userCommands.Any())
+                        {
+                            builder.AppendLine();
+                        }
+                    }
+                }
+
                 if (adminCommands.Any())
                 {
                     builder.AppendLine(adminCommands.Count > 1 ? "Админские команды:" : "Админская команда:");
@@ -108,17 +134,20 @@ namespace AbstractBot
 
         protected virtual Task UpdateAsync(Message message, CommandBase<TBot, TConfig> command, bool fromChat = false)
         {
-            if (command == null)
+            long userId = message.From.Id;
+            switch (command?.Access)
             {
-                return Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
+                case null:
+                    return Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
+                case AccessType.SuperAdmin when !IsSuperAdmin(userId):
+                case AccessType.Admins when !IsAdmin(userId) && !IsSuperAdmin(userId):
+                    return Client.SendStickerAsync(message.Chat, ForbiddenSticker);
+                case AccessType.SuperAdmin:
+                case AccessType.Admins:
+                case AccessType.Users:
+                    return command.ExecuteAsync(message, fromChat);
+                default: throw new ArgumentOutOfRangeException();
             }
-
-            if (command.AdminsOnly && !IsFromAdmin(message))
-            {
-                return Client.SendStickerAsync(message.Chat, ForbiddenSticker);
-            }
-
-            return command.ExecuteAsync(message, fromChat);
         }
 
         protected virtual async Task UpdateAsync(Message message)
