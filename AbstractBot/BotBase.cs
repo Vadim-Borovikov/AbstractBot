@@ -72,21 +72,21 @@ namespace AbstractBot
             if (fromAdmin)
             {
                 List<CommandBase<TBot, TConfig>> adminCommands = Commands.Where(c => c.AdminsOnly).ToList();
-                if (adminCommands.Count > 0)
+                if (adminCommands.Any())
                 {
                     builder.AppendLine(adminCommands.Count > 1 ? "Админские команды:" : "Админская команда:");
                     foreach (CommandBase<TBot, TConfig> command in adminCommands)
                     {
                         builder.AppendLine($"/{command.Name} – {command.Description}");
                     }
-                    if (userCommands.Count > 0)
+                    if (userCommands.Any())
                     {
                         builder.AppendLine();
                     }
                 }
             }
 
-            if (userCommands.Count > 0)
+            if (userCommands.Any())
             {
                 builder.AppendLine(userCommands.Count > 1 ? "Команды:" : "Команда:");
                 foreach (CommandBase<TBot, TConfig> command in userCommands)
@@ -136,8 +136,7 @@ namespace AbstractBot
                 User user = await GetUserAsunc();
                 botName = user.Username;
             }
-            CommandBase<TBot, TConfig> command =
-                Commands.FirstOrDefault(c => c.IsInvokingBy(message.Text, fromChat, botName));
+            CommandBase<TBot, TConfig> command = Commands.FirstOrDefault(c => c.IsInvokingBy(message.Text, fromChat, botName));
             await UpdateAsync(message, command, fromChat);
         }
 
