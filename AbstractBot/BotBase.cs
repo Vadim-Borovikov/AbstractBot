@@ -61,10 +61,23 @@ namespace AbstractBot
 
         public Task<User> GetUserAsunc() => Client.GetMeAsync();
 
-        public bool IsAdmin(long userId) => (Config.AdminIds != null) && Config.AdminIds.Contains(userId);
-        public bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
+        public string GetDescriptionFor(long userId)
+        {
+            AccessType access = GetMaximumAccessFor(userId);
+            return GetDescription(access);
+        }
 
-        public string GetDescription(AccessType access = AccessType.Users)
+        private AccessType GetMaximumAccessFor(long userId)
+        {
+            return IsSuperAdmin(userId)
+                ? AccessType.SuperAdmin
+                : (IsAdmin(userId) ? AccessType.Admins : AccessType.Users);
+        }
+
+        private bool IsAdmin(long userId) => (Config.AdminIds != null) && Config.AdminIds.Contains(userId);
+        private bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
+
+        private string GetDescription(AccessType access)
         {
             var builder = new StringBuilder();
 
