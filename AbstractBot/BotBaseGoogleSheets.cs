@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using GoogleSheetsManager;
+using GoogleSheetsManager.Providers;
 using Newtonsoft.Json;
 namespace AbstractBot
 {
@@ -13,11 +13,11 @@ namespace AbstractBot
         protected BotBaseGoogleSheets(TConfig config) : base(config)
         {
             string googleCredentialJson = JsonConvert.SerializeObject(Config.GoogleCredential);
-            GoogleSheetsProvider = new Provider(googleCredentialJson, Config.ApplicationName, Config.GoogleSheetId);
+            GoogleSheetsProvider = new SheetsProvider(googleCredentialJson, Config.ApplicationName, Config.GoogleSheetId);
         }
 
         public virtual void Dispose() => GoogleSheetsProvider?.Dispose();
 
-        public readonly Provider GoogleSheetsProvider;
+        public readonly SheetsProvider GoogleSheetsProvider;
     }
 }
