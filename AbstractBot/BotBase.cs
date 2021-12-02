@@ -67,6 +67,14 @@ namespace AbstractBot
             return GetDescription(access);
         }
 
+        public string GetAbout() => string.Join(Environment.NewLine, Config.About);
+
+        public string GetCommandsDescriptionFor(long userId)
+        {
+            AccessType access = GetMaximumAccessFor(userId);
+            return GetCommandsDescription(access);
+        }
+
         public bool IsAdmin(long userId) => (Config.AdminIds != null) && Config.AdminIds.Contains(userId);
         public bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
 
@@ -79,16 +87,25 @@ namespace AbstractBot
 
         private string GetDescription(AccessType access)
         {
-            var builder = new StringBuilder();
+            string about = GetAbout();
+            string commandsDescription = GetCommandsDescription(access);
 
-            if (Config.DescriptionStart?.Count > 0)
+            if (string.IsNullOrWhiteSpace(about))
             {
-                foreach (string line in Config.DescriptionStart)
-                {
-                    builder.AppendLine(line);
-                }
+                return commandsDescription;
             }
 
+            if (string.IsNullOrWhiteSpace(commandsDescription))
+            {
+                return about;
+            }
+
+            return $"{about}{Environment.NewLine}{Environment.NewLine}{commandsDescription}";
+        }
+
+        private string GetCommandsDescription(AccessType access)
+        {
+            var builder = new StringBuilder();
             List<CommandBase<TBot, TConfig>> userCommands = Commands.Where(c => c.Access == AccessType.Users).ToList();
             if (access != AccessType.Users)
             {
@@ -134,9 +151,9 @@ namespace AbstractBot
                 }
             }
 
-            if (Config.DescriptionEnd?.Count > 0)
+            if (Config.ExtraCommands?.Count > 0)
             {
-                foreach (string line in Config.DescriptionEnd)
+                foreach (string line in Config.ExtraCommands)
                 {
                     builder.AppendLine(line);
                 }

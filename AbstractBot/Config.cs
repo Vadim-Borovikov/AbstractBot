@@ -17,10 +17,10 @@ namespace AbstractBot
         internal string Url => $"{Host}:{Port}/{Token}";
 
         [JsonProperty]
-        public List<string> DescriptionStart { get; set; }
+        public List<string> About { get; set; }
 
         [JsonProperty]
-        public List<string> DescriptionEnd { get; set; }
+        public List<string> ExtraCommands { get; set; }
 
         [JsonProperty]
         public string SystemTimeZoneId { get; set; }
