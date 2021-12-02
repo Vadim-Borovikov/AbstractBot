@@ -67,15 +67,15 @@ namespace AbstractBot
             return GetDescription(access);
         }
 
+        protected bool IsAdmin(long userId) => (Config.AdminIds != null) && Config.AdminIds.Contains(userId);
+        protected bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
+
         private AccessType GetMaximumAccessFor(long userId)
         {
             return IsSuperAdmin(userId)
                 ? AccessType.SuperAdmin
                 : (IsAdmin(userId) ? AccessType.Admins : AccessType.Users);
         }
-
-        private bool IsAdmin(long userId) => (Config.AdminIds != null) && Config.AdminIds.Contains(userId);
-        private bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
 
         private string GetDescription(AccessType access)
         {
