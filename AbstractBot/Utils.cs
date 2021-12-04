@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -36,6 +37,15 @@ namespace AbstractBot
                     .Replace("}", "\\}")
                     .Replace(".", "\\.")
                     .Replace("!", "\\!");
+        }
+
+        public static string GetPostfix(string text, string prefix)
+        {
+            if (text == null)
+            {
+                return null;
+            }
+            return text.StartsWith(prefix, StringComparison.Ordinal) ? text.Substring(prefix.Length) : null;
         }
     }
 }

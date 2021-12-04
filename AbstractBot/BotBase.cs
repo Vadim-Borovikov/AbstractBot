@@ -18,6 +18,7 @@ namespace AbstractBot
     [SuppressMessage("ReSharper", "CollectionNeverUpdated.Global")]
     [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global")]
     [SuppressMessage("ReSharper", "NotAccessedField.Global")]
+    [SuppressMessage("ReSharper", "MemberCanBeInternal")]
     public abstract class BotBase<TBot, TConfig>
         where TBot: BotBase<TBot, TConfig>
         where TConfig: Config
@@ -162,8 +163,14 @@ namespace AbstractBot
             return builder.ToString();
         }
 
-        protected virtual Task UpdateAsync(Message message, CommandBase<TBot, TConfig> command, bool fromChat = false)
+        protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig> command = null,
+            string payload = null)
         {
+            if (message.Type != MessageType.Text)
+            {
+                return Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
+            }
+
             long userId = message.From.Id;
             switch (command?.Access)
             {
@@ -175,19 +182,13 @@ namespace AbstractBot
                 case AccessType.SuperAdmin:
                 case AccessType.Admins:
                 case AccessType.Users:
-                    return command.ExecuteAsync(message, fromChat);
+                    return command.ExecuteAsync(message, fromChat, payload);
                 default: throw new ArgumentOutOfRangeException();
             }
         }
 
-        protected virtual async Task UpdateAsync(Message message)
+        private async Task UpdateAsync(Message message)
         {
-            if (message.Type != MessageType.Text)
-            {
-                await Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
-                return;
-            }
-
             bool fromChat = message.Chat.Id != message.From.Id;
             string botName = null;
             if (fromChat)
@@ -195,8 +196,17 @@ namespace AbstractBot
                 User user = await GetUserAsunc();
                 botName = user.Username;
             }
-            CommandBase<TBot, TConfig> command = Commands.FirstOrDefault(c => c.IsInvokingBy(message.Text, fromChat, botName));
-            await UpdateAsync(message, command, fromChat);
+
+            foreach (CommandBase<TBot, TConfig> command in Commands)
+            {
+                if (command.IsInvokingBy(message.Text, out string payload, fromChat, botName))
+                {
+                    await UpdateAsync(message, fromChat, command, payload);
+                    return;
+                }
+            }
+
+            await UpdateAsync(message, fromChat);
         }
 
         public readonly TelegramBotClient Client;
