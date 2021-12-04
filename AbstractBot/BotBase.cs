@@ -9,9 +9,11 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
+using Telegram.Bot.Types.Payments;
 
 namespace AbstractBot
 {
+    [SuppressMessage("ReSharper", "UnusedParameter.Global")]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     [SuppressMessage("ReSharper", "MemberCanBeProtected.Global")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
@@ -29,6 +31,14 @@ namespace AbstractBot
             Admins,
             Users
         }
+
+        public readonly TelegramBotClient Client;
+        public readonly TConfig Config;
+        public readonly TimeManager TimeManager;
+
+        protected readonly List<CommandBase<TBot, TConfig>> Commands;
+        protected readonly InputOnlineFile DontUnderstandSticker;
+        protected readonly InputOnlineFile ForbiddenSticker;
 
         protected BotBase(TConfig config)
         {
@@ -57,7 +67,14 @@ namespace AbstractBot
 
         public Task UpdateAsync(Update update)
         {
-            return update?.Type == UpdateType.Message ? UpdateAsync(update.Message) : Task.CompletedTask;
+            switch (update?.Type)
+            {
+                case UpdateType.Message: return UpdateAsync(update.Message);
+                case UpdateType.CallbackQuery: return ProcessCallbackAsync(update.CallbackQuery);
+                case UpdateType.PreCheckoutQuery: return ProcessPreCheckoutAsync(update.PreCheckoutQuery);
+                case null: throw new ArgumentNullException();
+                default: return Task.CompletedTask;
+            }
         }
 
         public Task<User> GetUserAsunc() => Client.GetMeAsync();
@@ -78,6 +95,67 @@ namespace AbstractBot
 
         public bool IsAdmin(long userId) => (Config.AdminIds != null) && Config.AdminIds.Contains(userId);
         public bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
+
+        protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig> command = null,
+            string payload = null)
+        {
+            switch (message.Type)
+            {
+                case MessageType.Text: return ProcessTextMessageAsync(message, fromChat, command, payload);
+                case MessageType.SuccessfulPayment: return ProcessSuccessfulPaymentMessageAsync(message, fromChat);
+                default: return Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
+            }
+        }
+
+        protected virtual Task ProcessTextMessageAsync(Message textMessage, bool fromChat,
+            CommandBase<TBot, TConfig> command = null, string payload = null)
+        {
+            long userId = textMessage.From.Id;
+            switch (command?.Access)
+            {
+                case null:
+                    return Client.SendStickerAsync(textMessage.Chat, DontUnderstandSticker);
+                case AccessType.SuperAdmin when !IsSuperAdmin(userId):
+                case AccessType.Admins when !IsAdmin(userId) && !IsSuperAdmin(userId):
+                    return Client.SendStickerAsync(textMessage.Chat, ForbiddenSticker);
+                case AccessType.SuperAdmin:
+                case AccessType.Admins:
+                case AccessType.Users:
+                    return command.ExecuteAsync(textMessage, fromChat, payload);
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        protected virtual Task ProcessCallbackAsync(CallbackQuery callback) => Task.CompletedTask;
+
+        protected virtual Task ProcessPreCheckoutAsync(PreCheckoutQuery preCheckout) => Task.CompletedTask;
+
+        protected virtual Task ProcessSuccessfulPaymentMessageAsync(Message successfulPaymentMessage, bool fromChat)
+        {
+            return Task.CompletedTask;
+        }
+
+        private async Task UpdateAsync(Message message)
+        {
+            bool fromChat = message.Chat.Id != message.From.Id;
+            string botName = null;
+            if (fromChat)
+            {
+                User user = await GetUserAsunc();
+                botName = user.Username;
+            }
+
+            foreach (CommandBase<TBot, TConfig> command in Commands)
+            {
+                if (command.IsInvokingBy(message.Text, out string payload, fromChat, botName))
+                {
+                    await UpdateAsync(message, fromChat, command, payload);
+                    return;
+                }
+            }
+
+            await UpdateAsync(message, fromChat);
+        }
 
         private AccessType GetMaximumAccessFor(long userId)
         {
@@ -162,59 +240,5 @@ namespace AbstractBot
 
             return builder.ToString();
         }
-
-        protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig> command = null,
-            string payload = null)
-        {
-            if (message.Type != MessageType.Text)
-            {
-                return Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
-            }
-
-            long userId = message.From.Id;
-            switch (command?.Access)
-            {
-                case null:
-                    return Client.SendStickerAsync(message.Chat, DontUnderstandSticker);
-                case AccessType.SuperAdmin when !IsSuperAdmin(userId):
-                case AccessType.Admins when !IsAdmin(userId) && !IsSuperAdmin(userId):
-                    return Client.SendStickerAsync(message.Chat, ForbiddenSticker);
-                case AccessType.SuperAdmin:
-                case AccessType.Admins:
-                case AccessType.Users:
-                    return command.ExecuteAsync(message, fromChat, payload);
-                default: throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        private async Task UpdateAsync(Message message)
-        {
-            bool fromChat = message.Chat.Id != message.From.Id;
-            string botName = null;
-            if (fromChat)
-            {
-                User user = await GetUserAsunc();
-                botName = user.Username;
-            }
-
-            foreach (CommandBase<TBot, TConfig> command in Commands)
-            {
-                if (command.IsInvokingBy(message.Text, out string payload, fromChat, botName))
-                {
-                    await UpdateAsync(message, fromChat, command, payload);
-                    return;
-                }
-            }
-
-            await UpdateAsync(message, fromChat);
-        }
-
-        public readonly TelegramBotClient Client;
-        public readonly TConfig Config;
-        public readonly TimeManager TimeManager;
-
-        protected readonly List<CommandBase<TBot, TConfig>> Commands;
-        protected readonly InputOnlineFile DontUnderstandSticker;
-        protected readonly InputOnlineFile ForbiddenSticker;
     }
 }

@@ -7,7 +7,7 @@
     <Company>Vadim-Borovikov</Company>
     <Description>Telegram Bot with some common functionality included.</Description>
     <RepositoryUrl>https://github.com/Vadim-Borovikov/AbstractBot</RepositoryUrl>
-    <Version>15.0.0</Version>
+    <Version>15.1.0</Version>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
