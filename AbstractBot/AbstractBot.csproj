@@ -7,12 +7,12 @@
     <Company>Vadim-Borovikov</Company>
     <Description>Telegram Bot with some common functionality included.</Description>
     <RepositoryUrl>https://github.com/Vadim-Borovikov/AbstractBot</RepositoryUrl>
-    <Version>15.1.0</Version>
+    <Version>15.1.1</Version>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GoogleSheetsManager" Version="8.3.0" />
+    <PackageReference Include="GoogleSheetsManager" Version="8.4.1" />
     <PackageReference Include="Telegram.Bot" Version="17.0.0" />
   </ItemGroup>
 
