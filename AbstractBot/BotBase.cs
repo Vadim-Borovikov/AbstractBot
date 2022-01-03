@@ -96,6 +96,18 @@ namespace AbstractBot
         public bool IsAdmin(long userId) => (Config.AdminIds != null) && Config.AdminIds.Contains(userId);
         public bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
 
+        public bool IsAccessSuffice(long userId, AccessType against)
+        {
+            switch (against)
+            {
+                case AccessType.SuperAdmin when IsSuperAdmin(userId):
+                case AccessType.Admins when IsAdmin(userId) || IsSuperAdmin(userId):
+                case AccessType.Users:
+                    return true;
+                default: return false;
+            }
+        }
+
         protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig> command = null,
             string payload = null)
         {
@@ -110,20 +122,14 @@ namespace AbstractBot
         protected virtual Task ProcessTextMessageAsync(Message textMessage, bool fromChat,
             CommandBase<TBot, TConfig> command = null, string payload = null)
         {
-            long userId = textMessage.From.Id;
-            switch (command?.Access)
+            if (command == null)
             {
-                case null:
-                    return Client.SendStickerAsync(textMessage.Chat, DontUnderstandSticker);
-                case AccessType.SuperAdmin when !IsSuperAdmin(userId):
-                case AccessType.Admins when !IsAdmin(userId) && !IsSuperAdmin(userId):
-                    return Client.SendStickerAsync(textMessage.Chat, ForbiddenSticker);
-                case AccessType.SuperAdmin:
-                case AccessType.Admins:
-                case AccessType.Users:
-                    return command.ExecuteAsync(textMessage, fromChat, payload);
-                default: throw new ArgumentOutOfRangeException();
+                return Client.SendStickerAsync(textMessage.Chat, DontUnderstandSticker);
             }
+            bool shouldExecute = IsAccessSuffice(textMessage.From.Id, command.Access);
+            return shouldExecute
+                ? command.ExecuteAsync(textMessage, fromChat, payload)
+                : Client.SendStickerAsync(textMessage.Chat, ForbiddenSticker);
         }
 
         protected virtual Task ProcessCallbackAsync(CallbackQuery callback) => Task.CompletedTask;
