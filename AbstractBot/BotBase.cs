@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AbstractBot.Ngrok;
 using JetBrains.Annotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -51,9 +52,18 @@ public abstract class BotBase<TBot, TConfig>
         TimeManager = new TimeManager(Config.SystemTimeZoneId);
     }
 
-    public virtual Task StartAsync(CancellationToken cancellationToken)
+    public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
-        return Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken,
+        if (string.IsNullOrWhiteSpace(Config.Host))
+        {
+            string? ngrokHost = await GetNgrokHost();
+            if (string.IsNullOrWhiteSpace(ngrokHost))
+            {
+                throw new NullReferenceException(nameof(ngrokHost));
+            }
+            Config.Host = ngrokHost;
+        }
+        await Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
     }
 
@@ -140,6 +150,12 @@ public abstract class BotBase<TBot, TConfig>
     protected virtual Task ProcessSuccessfulPaymentMessageAsync(Message successfulPaymentMessage, bool fromChat)
     {
         return Task.CompletedTask;
+    }
+
+    private async Task<string?> GetNgrokHost()
+    {
+        ListTunnelsResult? listTunnels = await Provider.ListTunnels();
+        return listTunnels?.Tunnels?.Where(t => t.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
     }
 
     private async Task UpdateAsync(Message message)
@@ -248,4 +264,6 @@ public abstract class BotBase<TBot, TConfig>
 
         return builder.ToString();
     }
+
+    private const string DesiredNgrokProto = "https";
 }
