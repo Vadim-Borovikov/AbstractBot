@@ -1,19 +1,34 @@
+<!--EXTERNAL_PROPERTIES: PackageVersion-->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+    <Version>16.0.0</Version>
+    <Authors>Vadim Borovikov</Authors>
+    <Company>Care Space</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Vadim-Borovikov</Authors>
-    <Company>Vadim-Borovikov</Company>
-    <Description>Telegram Bot with some common functionality included.</Description>
     <RepositoryUrl>https://github.com/Vadim-Borovikov/AbstractBot</RepositoryUrl>
-    <Version>15.2.0</Version>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <Description>Telegram Bot with some common functionality included.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+    <Nullable>enable</Nullable>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="GoogleSheetsManager" Version="8.4.1" />
     <PackageReference Include="Telegram.Bot" Version="17.0.0" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="GenerateNuspec">
+    <Exec Command="if exist postBuild.bat if $(ConfigurationName) == Release call postBuild.bat $(OutDir)..\$(AssemblyName).$(PackageVersion).nupkg" />
+  </Target>
 
 </Project>
