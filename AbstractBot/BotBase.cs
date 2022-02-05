@@ -48,14 +48,13 @@ public abstract class BotBase<TBot, TConfig>
             new InputOnlineFile(Config.ForbiddenStickerFileId
                                 ?? throw new NullReferenceException(nameof(Config.ForbiddenStickerFileId)));
 
-        TimeManager = new TimeManager(Config.SystemTimeZoneId
-                                      ?? throw new NullReferenceException(nameof(Config.SystemTimeZoneId)));
+        TimeManager = new TimeManager(Config.SystemTimeZoneId);
     }
 
     public virtual Task StartAsync(CancellationToken cancellationToken)
     {
         return Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken,
-            allowedUpdates: new List<UpdateType>());
+            allowedUpdates: Array.Empty<UpdateType>());
     }
 
     public virtual Task StopAsync(CancellationToken cancellationToken)

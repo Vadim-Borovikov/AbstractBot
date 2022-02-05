@@ -6,7 +6,7 @@ namespace AbstractBot;
 [PublicAPI]
 public sealed class TimeManager
 {
-    internal TimeManager(string timeZoneId)
+    internal TimeManager(string? timeZoneId)
     {
         _timeZoneInfo = string.IsNullOrWhiteSpace(timeZoneId) ? null : TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
     }

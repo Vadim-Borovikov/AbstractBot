@@ -11,10 +11,7 @@ public class Config
     [JsonProperty]
     public string? Host { get; set; }
 
-    [JsonProperty]
-    public int? Port { get; set; }
-
-    internal string Url => $"{Host}:{Port}/{Token}";
+    internal string Url => $"{Host}/{Token}";
 
     [JsonProperty]
     public List<string>? About { get; set; }
