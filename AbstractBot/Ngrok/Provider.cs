@@ -4,7 +4,7 @@ namespace AbstractBot.Ngrok;
 
 internal static class Provider
 {
-    public static Task<ListTunnelsResult?> ListTunnels()
+    public static Task<ListTunnelsResult> ListTunnels()
     {
         return RestHelper.CallGetMethodAsync<ListTunnelsResult>(ApiProvider, Method);
     }

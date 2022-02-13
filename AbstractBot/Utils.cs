@@ -10,6 +10,13 @@ namespace AbstractBot;
 [PublicAPI]
 public static class Utils
 {
+    public static void DeleteExceptionLog() => System.IO.File.Delete(ExceptionsLogPath);
+
+    public static Task LogExceptionAsync(Exception ex)
+    {
+        return System.IO.File.AppendAllTextAsync(ExceptionsLogPath, $"{ex}{Environment.NewLine}");
+    }
+
     public static Task<Message> FinalizeStatusMessageAsync(this ITelegramBotClient client, Message message,
         string postfix = "")
     {
@@ -43,4 +50,6 @@ public static class Utils
     {
         return text.StartsWith(prefix, StringComparison.Ordinal) ? text[prefix.Length..] : null;
     }
+
+    private const string ExceptionsLogPath = "errors.txt";
 }

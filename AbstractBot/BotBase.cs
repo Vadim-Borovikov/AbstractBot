@@ -56,12 +56,7 @@ public abstract class BotBase<TBot, TConfig>
     {
         if (string.IsNullOrWhiteSpace(Config.Host))
         {
-            string? ngrokHost = await GetNgrokHost();
-            if (string.IsNullOrWhiteSpace(ngrokHost))
-            {
-                throw new NullReferenceException(nameof(ngrokHost));
-            }
-            Config.Host = ngrokHost;
+            Config.Host = await GetNgrokHost();
         }
         await Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
@@ -152,10 +147,11 @@ public abstract class BotBase<TBot, TConfig>
         return Task.CompletedTask;
     }
 
-    private async Task<string?> GetNgrokHost()
+    private async Task<string> GetNgrokHost()
     {
-        ListTunnelsResult? listTunnels = await Provider.ListTunnels();
-        return listTunnels?.Tunnels?.Where(t => t.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
+        ListTunnelsResult listTunnels = await Provider.ListTunnels();
+        return listTunnels.Tunnels?.Where(t => t.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl
+               ?? throw new NullReferenceException("Can't retrieve NGrok host");
     }
 
     private async Task UpdateAsync(Message message)

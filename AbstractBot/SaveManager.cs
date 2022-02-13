@@ -8,12 +8,13 @@ namespace AbstractBot;
 public class SaveManager<TData>
     where TData: class, new()
 {
-    public TData? Data { get; private set; }
+    public TData Data { get; private set; }
 
     public SaveManager(string path)
     {
         _path = path;
         _locker = new object();
+        Data = new TData();
     }
 
     public void Save()
@@ -29,14 +30,13 @@ public class SaveManager<TData>
     {
         lock (_locker)
         {
-            if (File.Exists(_path))
+            if (!File.Exists(_path))
             {
-                string json = File.ReadAllText(_path);
-                Data = JsonConvert.DeserializeObject<TData>(json);
+                return;
             }
+            string json = File.ReadAllText(_path);
+            Data = JsonConvert.DeserializeObject<TData>(json) ?? new TData();
         }
-
-        Data ??= new TData();
     }
 
     private readonly string _path;
