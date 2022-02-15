@@ -1,5 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using GoogleSheetsManager;
 using RestSharp;
 
 namespace AbstractBot;
@@ -11,7 +11,8 @@ internal static class RestHelper
         using (RestClient client = new(apiProvider))
         {
             RestRequest request = new(method);
-            return await client.GetAsync<T>(request) ?? throw new NullReferenceException("REST method returned null");
+            T? result = await client.GetAsync<T>(request);
+            return result.GetValue("REST method returned null");
         }
     }
 }

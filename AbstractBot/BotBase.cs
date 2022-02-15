@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Ngrok;
+using GoogleSheetsManager;
 using JetBrains.Annotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -38,16 +39,17 @@ public abstract class BotBase<TBot, TConfig>
     {
         Config = config;
 
-        Client = new TelegramBotClient(Config.Token ?? throw new NullReferenceException(nameof(Config.Token)));
+        string token = Config.Token.GetValue(nameof(Config.Token));
+        string dontUnderstandStickerFileId =
+            Config.DontUnderstandStickerFileId.GetValue(nameof(Config.DontUnderstandStickerFileId));
+        string forbiddenStickerFileId = Config.ForbiddenStickerFileId.GetValue(nameof(Config.ForbiddenStickerFileId));
+
+        Client = new TelegramBotClient(token);
 
         Commands = new List<CommandBase<TBot, TConfig>>();
 
-        DontUnderstandSticker =
-            new InputOnlineFile(Config.DontUnderstandStickerFileId
-                                ?? throw new NullReferenceException(nameof(Config.DontUnderstandStickerFileId)));
-        ForbiddenSticker =
-            new InputOnlineFile(Config.ForbiddenStickerFileId
-                                ?? throw new NullReferenceException(nameof(Config.ForbiddenStickerFileId)));
+        DontUnderstandSticker = new InputOnlineFile(dontUnderstandStickerFileId);
+        ForbiddenSticker = new InputOnlineFile(forbiddenStickerFileId);
 
         TimeManager = new TimeManager(Config.SystemTimeZoneId);
     }
@@ -71,12 +73,11 @@ public abstract class BotBase<TBot, TConfig>
     {
         return update.Type switch
         {
-            UpdateType.Message          => UpdateAsync(update.Message
-                                                       ?? throw new NullReferenceException(nameof(update.Message))),
-            UpdateType.CallbackQuery    => ProcessCallbackAsync(update.CallbackQuery
-                                                                ?? throw new NullReferenceException(nameof(update.CallbackQuery))),
-            UpdateType.PreCheckoutQuery => ProcessPreCheckoutAsync(update.PreCheckoutQuery
-                                                                   ?? throw new NullReferenceException(nameof(update.PreCheckoutQuery))),
+            UpdateType.Message          => UpdateAsync(update.Message.GetValue(nameof(update.Message))),
+            UpdateType.CallbackQuery    =>
+                ProcessCallbackAsync(update.CallbackQuery.GetValue(nameof(update.CallbackQuery))),
+            UpdateType.PreCheckoutQuery =>
+                ProcessPreCheckoutAsync(update.PreCheckoutQuery.GetValue(nameof(update.PreCheckoutQuery))),
             _                           => Task.CompletedTask
         };
     }
@@ -131,11 +132,10 @@ public abstract class BotBase<TBot, TConfig>
             return Client.SendStickerAsync(textMessage.Chat.Id, DontUnderstandSticker);
         }
 
-        long userId = textMessage.From?.Id ?? throw new NullReferenceException(nameof(textMessage.From));
-        bool shouldExecute = IsAccessSuffice(userId, command.Access);
-        return shouldExecute
-            ? command.ExecuteAsync(textMessage, fromChat, payload)
-            : Client.SendStickerAsync(textMessage.Chat.Id, ForbiddenSticker);
+        User user = textMessage.From.GetValue(nameof(textMessage.From));
+        bool shouldExecute = IsAccessSuffice(user.Id, command.Access);
+        return shouldExecute ? command.ExecuteAsync(textMessage, fromChat, payload)
+                             : Client.SendStickerAsync(textMessage.Chat.Id, ForbiddenSticker);
     }
 
     protected virtual Task ProcessCallbackAsync(CallbackQuery callback) => Task.CompletedTask;
@@ -150,19 +150,19 @@ public abstract class BotBase<TBot, TConfig>
     private async Task<string> GetNgrokHost()
     {
         ListTunnelsResult listTunnels = await Provider.ListTunnels();
-        return listTunnels.Tunnels?.Where(t => t.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl
-               ?? throw new NullReferenceException("Can't retrieve NGrok host");
+        string? url = listTunnels.Tunnels?.Where(t => t.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
+        return url.GetValue("Can't retrieve NGrok host");
     }
 
     private async Task UpdateAsync(Message message)
     {
-        long userId = message.From?.Id ?? throw new NullReferenceException(nameof(message.From));
-        bool fromChat = message.Chat.Id != userId;
+        User user = message.From.GetValue(nameof(message.From));
+        bool fromChat = message.Chat.Id != user.Id;
         string? botName = null;
         if (fromChat)
         {
-            User user = await GetUserAsync();
-            botName = user.Username;
+            User bot = await GetUserAsync();
+            botName = bot.Username;
         }
 
         foreach (CommandBase<TBot, TConfig> command in Commands)
