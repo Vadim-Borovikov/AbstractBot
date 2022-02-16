@@ -8,7 +8,7 @@ namespace AbstractBot;
 public class ConfigGoogleSheets : Config
 {
     [JsonProperty]
-    public Dictionary<string, string>? GoogleCredential { get; set; }
+    public Dictionary<string, string?>? GoogleCredential { get; set; }
 
     [JsonProperty]
     public string? ApplicationName { get; set; }

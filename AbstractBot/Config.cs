@@ -14,10 +14,10 @@ public class Config
     internal string Url => $"{Host}/{Token}";
 
     [JsonProperty]
-    public List<string>? About { get; set; }
+    public List<string?>? About { get; set; }
 
     [JsonProperty]
-    public List<string>? ExtraCommands { get; set; }
+    public List<string?>? ExtraCommands { get; set; }
 
     [JsonProperty]
     public string? SystemTimeZoneId { get; set; }
@@ -26,7 +26,7 @@ public class Config
     public long? SuperAdminId { get; set; }
 
     [JsonProperty]
-    public List<long>? AdminIds { get; set; }
+    public List<long?>? AdminIds { get; set; }
 
     [JsonProperty]
     public string? DontUnderstandStickerFileId { get; set; }

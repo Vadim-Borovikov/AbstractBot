@@ -252,7 +252,7 @@ public abstract class BotBase<TBot, TConfig>
 
         if (Config.ExtraCommands?.Count > 0)
         {
-            foreach (string line in Config.ExtraCommands)
+            foreach (string? line in Config.ExtraCommands)
             {
                 builder.AppendLine(line);
             }
