@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using AbstractBot.Ngrok;
+using GoogleSheetsManager;
 using JetBrains.Annotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -10,6 +13,13 @@ namespace AbstractBot;
 [PublicAPI]
 public static class Utils
 {
+    public static async Task<string> GetNgrokHost()
+    {
+        ListTunnelsResult listTunnels = await Provider.ListTunnels();
+        string? url = listTunnels.Tunnels?.Where(t => t.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
+        return url.GetValue("Can't retrieve NGrok host");
+    }
+
     public static void DeleteExceptionLog() => System.IO.File.Delete(ExceptionsLogPath);
 
     public static Task LogExceptionAsync(Exception ex)
@@ -52,4 +62,5 @@ public static class Utils
     }
 
     private const string ExceptionsLogPath = "errors.txt";
+    private const string DesiredNgrokProto = "https";
 }

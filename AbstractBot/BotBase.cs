@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AbstractBot.Ngrok;
 using GoogleSheetsManager;
 using JetBrains.Annotations;
 using Telegram.Bot;
@@ -39,17 +38,12 @@ public abstract class BotBase<TBot, TConfig>
     {
         Config = config;
 
-        string token = Config.Token.GetValue(nameof(Config.Token));
-        string dontUnderstandStickerFileId =
-            Config.DontUnderstandStickerFileId.GetValue(nameof(Config.DontUnderstandStickerFileId));
-        string forbiddenStickerFileId = Config.ForbiddenStickerFileId.GetValue(nameof(Config.ForbiddenStickerFileId));
-
-        Client = new TelegramBotClient(token);
+        Client = new TelegramBotClient(Config.Token);
 
         Commands = new List<CommandBase<TBot, TConfig>>();
 
-        DontUnderstandSticker = new InputOnlineFile(dontUnderstandStickerFileId);
-        ForbiddenSticker = new InputOnlineFile(forbiddenStickerFileId);
+        DontUnderstandSticker = new InputOnlineFile(Config.DontUnderstandStickerFileId);
+        ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
 
         TimeManager = new TimeManager(Config.SystemTimeZoneId);
     }
@@ -58,7 +52,7 @@ public abstract class BotBase<TBot, TConfig>
     {
         if (string.IsNullOrWhiteSpace(Config.Host))
         {
-            Config.Host = await GetNgrokHost();
+            Config.Host = await Utils.GetNgrokHost();
         }
         await Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
@@ -89,8 +83,6 @@ public abstract class BotBase<TBot, TConfig>
         AccessType access = GetMaximumAccessFor(userId);
         return GetDescription(access);
     }
-
-    public string GetAbout() => Config.About is null ? "" : string.Join(Environment.NewLine, Config.About);
 
     public string GetCommandsDescriptionFor(long userId)
     {
@@ -147,13 +139,6 @@ public abstract class BotBase<TBot, TConfig>
         return Task.CompletedTask;
     }
 
-    private async Task<string> GetNgrokHost()
-    {
-        ListTunnelsResult listTunnels = await Provider.ListTunnels();
-        string? url = listTunnels.Tunnels?.Where(t => t.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
-        return url.GetValue("Can't retrieve NGrok host");
-    }
-
     private async Task UpdateAsync(Message message)
     {
         User user = message.From.GetValue(nameof(message.From));
@@ -186,20 +171,19 @@ public abstract class BotBase<TBot, TConfig>
 
     private string GetDescription(AccessType access)
     {
-        string about = GetAbout();
         string commandsDescription = GetCommandsDescription(access);
 
-        if (string.IsNullOrWhiteSpace(about))
+        if (string.IsNullOrWhiteSpace(Config.About))
         {
             return commandsDescription;
         }
 
         if (string.IsNullOrWhiteSpace(commandsDescription))
         {
-            return about;
+            return Config.About;
         }
 
-        return $"{about}{Environment.NewLine}{Environment.NewLine}{commandsDescription}";
+        return $"{Config.About}{Environment.NewLine}{Environment.NewLine}{commandsDescription}";
     }
 
     private string GetCommandsDescription(AccessType access)
@@ -250,16 +234,11 @@ public abstract class BotBase<TBot, TConfig>
             }
         }
 
-        if (Config.ExtraCommands?.Count > 0)
+        if (!string.IsNullOrWhiteSpace(Config.ExtraCommands))
         {
-            foreach (string? line in Config.ExtraCommands)
-            {
-                builder.AppendLine(line);
-            }
+            builder.AppendLine(Config.ExtraCommands);
         }
 
         return builder.ToString();
     }
-
-    private const string DesiredNgrokProto = "https";
 }

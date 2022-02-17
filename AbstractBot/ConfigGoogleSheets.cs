@@ -1,18 +1,20 @@
-using System.Collections.Generic;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 
 namespace AbstractBot;
 
 [PublicAPI]
 public class ConfigGoogleSheets : Config
 {
-    [JsonProperty]
-    public Dictionary<string, string?>? GoogleCredential { get; set; }
+    internal readonly string GoogleCredentialJson;
+    internal readonly string ApplicationName;
+    internal readonly string GoogleSheetId;
 
-    [JsonProperty]
-    public string? ApplicationName { get; set; }
-
-    [JsonProperty]
-    public string? GoogleSheetId { get; set; }
+    protected ConfigGoogleSheets(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
+        string forbiddenStickerFileId, string googleCredentialJson, string applicationName, string googleSheetId)
+        : base(token, systemTimeZoneId, dontUnderstandStickerFileId, forbiddenStickerFileId)
+    {
+        GoogleCredentialJson = googleCredentialJson;
+        ApplicationName = applicationName;
+        GoogleSheetId = googleSheetId;
+    }
 }

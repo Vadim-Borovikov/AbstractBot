@@ -1,8 +1,6 @@
 using System;
-using GoogleSheetsManager;
 using GoogleSheetsManager.Providers;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 namespace AbstractBot;
 
 [PublicAPI]
@@ -12,10 +10,8 @@ public abstract class BotBaseGoogleSheets<TBot, TConfig> : BotBase<TBot, TConfig
 {
     protected BotBaseGoogleSheets(TConfig config) : base(config)
     {
-        string googleCredentialJson = JsonConvert.SerializeObject(Config.GoogleCredential);
-        string applicationName = Config.ApplicationName.GetValue(nameof(Config.ApplicationName));
-        string sheetId = Config.GoogleSheetId.GetValue(nameof(Config.GoogleSheetId));
-        GoogleSheetsProvider = new SheetsProvider(googleCredentialJson, applicationName, sheetId);
+        GoogleSheetsProvider =
+            new SheetsProvider(Config.GoogleCredentialJson, Config.ApplicationName, Config.GoogleSheetId);
     }
 
     public virtual void Dispose()

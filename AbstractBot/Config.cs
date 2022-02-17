@@ -1,36 +1,30 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using JetBrains.Annotations;
 
 namespace AbstractBot;
 
+[PublicAPI]
 public class Config
 {
-    [JsonProperty]
-    public string? Token { get; set; }
+    internal readonly string Token;
+    internal readonly string SystemTimeZoneId;
+    internal readonly string DontUnderstandStickerFileId;
+    internal readonly string ForbiddenStickerFileId;
 
-    [JsonProperty]
     public string? Host { get; set; }
+    public string? About { get; init; }
+    public string? ExtraCommands { get; init; }
+    public List<long>? AdminIds { get; init; }
+    public long? SuperAdminId { get; init; }
 
     internal string Url => $"{Host}/{Token}";
 
-    [JsonProperty]
-    public List<string?>? About { get; set; }
-
-    [JsonProperty]
-    public List<string?>? ExtraCommands { get; set; }
-
-    [JsonProperty]
-    public string? SystemTimeZoneId { get; set; }
-
-    [JsonProperty]
-    public long? SuperAdminId { get; set; }
-
-    [JsonProperty]
-    public List<long?>? AdminIds { get; set; }
-
-    [JsonProperty]
-    public string? DontUnderstandStickerFileId { get; set; }
-
-    [JsonProperty]
-    public string? ForbiddenStickerFileId { get; set; }
+    internal Config(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
+        string forbiddenStickerFileId)
+    {
+        Token = token;
+        SystemTimeZoneId = systemTimeZoneId;
+        DontUnderstandStickerFileId = dontUnderstandStickerFileId;
+        ForbiddenStickerFileId = forbiddenStickerFileId;
+    }
 }
