@@ -7,8 +7,8 @@ namespace AbstractBot;
 
 [PublicAPI]
 public class SaveManager<TData, TJsonData>
-    where TData: class, IConvertableTo<TJsonData>, new()
-    where TJsonData: IConvertableTo<TData>
+    where TData: class, IConvertibleTo<TJsonData>, new()
+    where TJsonData: IConvertibleTo<TData>
 {
     public TData Data { get; private set; }
 
