@@ -5,7 +5,8 @@ namespace AbstractBot;
 [PublicAPI]
 public class ConfigGoogleSheets : Config
 {
-    internal readonly string GoogleCredentialJson;
+    public readonly string GoogleCredentialJson;
+
     internal readonly string ApplicationName;
     internal readonly string GoogleSheetId;
 
