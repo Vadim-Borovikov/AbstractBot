@@ -1,12 +1,14 @@
 ﻿using System.IO;
+using GoogleSheetsManager;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace AbstractBot;
 
 [PublicAPI]
-public class SaveManager<TData>
-    where TData: class, new()
+public class SaveManager<TData, TJsonData>
+    where TData: class, IConvertableTo<TJsonData>, new()
+    where TJsonData: IConvertableTo<TData>
 {
     public TData Data { get; private set; }
 
@@ -21,7 +23,8 @@ public class SaveManager<TData>
     {
         lock (_locker)
         {
-            string json = JsonConvert.SerializeObject(Data, Formatting.Indented);
+            TJsonData? jsonData = Data.Convert();
+            string json = jsonData is null ? "" : JsonConvert.SerializeObject(jsonData, Formatting.Indented);
             File.WriteAllText(_path, json);
         }
     }
@@ -35,7 +38,8 @@ public class SaveManager<TData>
                 return;
             }
             string json = File.ReadAllText(_path);
-            Data = JsonConvert.DeserializeObject<TData>(json) ?? new TData();
+            TJsonData? jsonData = JsonConvert.DeserializeObject<TJsonData>(json);
+            Data = jsonData?.Convert() ?? new TData();
         }
     }
 
