@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AbstractBot.Ngrok;
-using GoogleSheetsManager;
+using GryphonUtilities;
 using JetBrains.Annotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -16,7 +16,7 @@ public static class Utils
     public static async Task<string> GetNgrokHost()
     {
         ListTunnelsResult listTunnels = await Provider.ListTunnels();
-        string? url = listTunnels.Tunnels?.Where(t => t.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
+        string? url = listTunnels.Tunnels?.Where(t => t?.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
         return url.GetValue("Can't retrieve NGrok host");
     }
 
