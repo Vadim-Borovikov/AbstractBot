@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
@@ -10,6 +11,7 @@ public class Config
     internal readonly string SystemTimeZoneId;
     internal readonly string DontUnderstandStickerFileId;
     internal readonly string ForbiddenStickerFileId;
+    internal readonly TimeSpan SendMessageDelay;
 
     public string? Host { get; set; }
     public string? About { get; init; }
@@ -20,11 +22,12 @@ public class Config
     internal string Url => $"{Host}/{Token}";
 
     internal Config(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
-        string forbiddenStickerFileId)
+        string forbiddenStickerFileId, TimeSpan sendMessageDelay)
     {
         Token = token;
         SystemTimeZoneId = systemTimeZoneId;
         DontUnderstandStickerFileId = dontUnderstandStickerFileId;
         ForbiddenStickerFileId = forbiddenStickerFileId;
+        SendMessageDelay = sendMessageDelay;
     }
 }

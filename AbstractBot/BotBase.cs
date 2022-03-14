@@ -11,6 +11,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.Payments;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AbstractBot;
 
@@ -103,6 +104,16 @@ public abstract class BotBase<TBot, TConfig>
                 return true;
             default: return false;
         }
+    }
+
+    public async Task<Message> SendTextMessageAsync(ChatId chatId, string text, ParseMode? parseMode = null,
+        IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
+        bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(Config.SendMessageDelay, cancellationToken);
+        return await Client.SendTextMessageAsync(chatId, text, parseMode, entities, disableWebPagePreview,
+            disableNotification, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
     protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig>? command = null,

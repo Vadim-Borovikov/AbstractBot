@@ -1,3 +1,4 @@
+using System;
 using JetBrains.Annotations;
 
 namespace AbstractBot;
@@ -11,8 +12,9 @@ public class ConfigGoogleSheets : Config
     internal readonly string GoogleSheetId;
 
     protected ConfigGoogleSheets(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
-        string forbiddenStickerFileId, string googleCredentialJson, string applicationName, string googleSheetId)
-        : base(token, systemTimeZoneId, dontUnderstandStickerFileId, forbiddenStickerFileId)
+        string forbiddenStickerFileId, TimeSpan sendMessageDelay, string googleCredentialJson, string applicationName,
+        string googleSheetId)
+        : base(token, systemTimeZoneId, dontUnderstandStickerFileId, forbiddenStickerFileId, sendMessageDelay)
     {
         GoogleCredentialJson = googleCredentialJson;
         ApplicationName = applicationName;
