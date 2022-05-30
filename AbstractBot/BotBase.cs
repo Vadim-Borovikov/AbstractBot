@@ -116,6 +116,15 @@ public abstract class BotBase<TBot, TConfig>
             disableNotification, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
+    public async Task<Message> EditMessageTextAsync(ChatId chatId, int messageId, string text,
+        ParseMode? parseMode = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
+        InlineKeyboardMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(Config.SendMessageDelay, cancellationToken);
+        return await Client.EditMessageTextAsync(chatId, messageId, text, parseMode, entities, disableWebPagePreview,
+            replyMarkup, cancellationToken);
+    }
+
     protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig>? command = null,
         string? payload = null)
     {
