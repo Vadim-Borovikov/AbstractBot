@@ -61,6 +61,22 @@ public static class Utils
         return text.StartsWith(prefix, StringComparison.Ordinal) ? text[prefix.Length..] : null;
     }
 
+    internal static TimeSpan? Max(TimeSpan? a, TimeSpan? b)
+    {
+        if (a is null)
+        {
+            return b;
+        }
+
+        return a.Value.CompareTo(b) switch
+        {
+            0  => a,
+            1  => a,
+            -1 => b,
+            _  => throw new InvalidOperationException()
+        };
+    }
+
     private const string ExceptionsLogPath = "errors.txt";
     private const string DesiredNgrokProto = "https";
 }

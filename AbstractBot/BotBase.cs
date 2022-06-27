@@ -111,7 +111,7 @@ public abstract class BotBase<TBot, TConfig>
         bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(Config.SendMessageDelay, cancellationToken);
+        await DelayAsync(chatId, cancellationToken);
         return await Client.SendTextMessageAsync(chatId, text, parseMode, entities, disableWebPagePreview,
             disableNotification, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
@@ -120,7 +120,7 @@ public abstract class BotBase<TBot, TConfig>
         ParseMode? parseMode = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
         InlineKeyboardMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(Config.SendMessageDelay, cancellationToken);
+        await DelayAsync(chatId, cancellationToken);
         return await Client.EditMessageTextAsync(chatId, messageId, text, parseMode, entities, disableWebPagePreview,
             replyMarkup, cancellationToken);
     }
@@ -157,6 +157,27 @@ public abstract class BotBase<TBot, TConfig>
     protected virtual Task ProcessSuccessfulPaymentMessageAsync(Message successfulPaymentMessage, bool fromChat)
     {
         return Task.CompletedTask;
+    }
+
+    private async Task DelayAsync(ChatId chatId, CancellationToken cancellationToken)
+    {
+        DateTime now = TimeManager.Now();
+
+        TimeSpan? beforeGlobalUpdate =
+            TimeManager.GetDelayUntil(_lastUpdateGlobal, Config.SendMessagePeriodGlobal, now);
+
+        DateTime? lastUpdateLocal = _lastUptates.GetValueOrDefault(chatId);
+        TimeSpan? beforeLocalUpdate = TimeManager.GetDelayUntil(lastUpdateLocal, Config.SendMessagePeriodLocal, now);
+
+        TimeSpan? maxDelay = Utils.Max(beforeGlobalUpdate, beforeLocalUpdate);
+        if (maxDelay.HasValue)
+        {
+            await Task.Delay(maxDelay.Value, cancellationToken);
+            now += maxDelay.Value;
+        }
+
+        _lastUpdateGlobal = now;
+        _lastUptates[chatId] = now;
     }
 
     private async Task UpdateAsync(Message message)
@@ -261,4 +282,7 @@ public abstract class BotBase<TBot, TConfig>
 
         return builder.ToString();
     }
+
+    private DateTime? _lastUpdateGlobal;
+    private Dictionary<ChatId, DateTime> _lastUptates = new();
 }

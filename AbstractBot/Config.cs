@@ -11,7 +11,8 @@ public class Config
     internal readonly string SystemTimeZoneId;
     internal readonly string DontUnderstandStickerFileId;
     internal readonly string ForbiddenStickerFileId;
-    internal readonly TimeSpan SendMessageDelay;
+    internal readonly TimeSpan SendMessagePeriodLocal;
+    internal readonly TimeSpan SendMessagePeriodGlobal;
 
     public string? Host { get; set; }
     public string? About { get; init; }
@@ -22,12 +23,13 @@ public class Config
     internal string Url => $"{Host}/{Token}";
 
     internal Config(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
-        string forbiddenStickerFileId, TimeSpan sendMessageDelay)
+        string forbiddenStickerFileId, TimeSpan sendMessagePeriodLocal, TimeSpan sendMessagePeriodGlobal)
     {
         Token = token;
         SystemTimeZoneId = systemTimeZoneId;
         DontUnderstandStickerFileId = dontUnderstandStickerFileId;
         ForbiddenStickerFileId = forbiddenStickerFileId;
-        SendMessageDelay = sendMessageDelay;
+        SendMessagePeriodLocal = sendMessagePeriodLocal;
+        SendMessagePeriodGlobal = sendMessagePeriodGlobal;
     }
 }
