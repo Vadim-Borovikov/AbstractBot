@@ -135,6 +135,15 @@ public abstract class BotBase<TBot, TConfig>
             replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
+    public async Task<Message> SendStickerAsync(ChatId chatId, InputOnlineFile sticker,
+        bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
+    {
+        await DelayAsync(chatId, cancellationToken);
+        return await Client.SendStickerAsync(chatId, sticker, disableNotification, replyToMessageId,
+            allowSendingWithoutReply, replyMarkup, cancellationToken);
+    }
+
     public Task<Message> FinalizeStatusMessageAsync(Message message, string postfix = "")
     {
         string text = $"_{message.Text}_ Готово\\.{postfix}";
@@ -148,7 +157,7 @@ public abstract class BotBase<TBot, TConfig>
         {
             MessageType.Text              => ProcessTextMessageAsync(message, fromChat, command, payload),
             MessageType.SuccessfulPayment => ProcessSuccessfulPaymentMessageAsync(message, fromChat),
-            _                             => Client.SendStickerAsync(message.Chat.Id, DontUnderstandSticker)
+            _                             => SendStickerAsync(message.Chat.Id, DontUnderstandSticker)
         };
     }
 
@@ -157,13 +166,13 @@ public abstract class BotBase<TBot, TConfig>
     {
         if (command is null)
         {
-            return Client.SendStickerAsync(textMessage.Chat.Id, DontUnderstandSticker);
+            return SendStickerAsync(textMessage.Chat.Id, DontUnderstandSticker);
         }
 
         User user = textMessage.From.GetValue(nameof(textMessage.From));
         bool shouldExecute = IsAccessSuffice(user.Id, command.Access);
         return shouldExecute ? command.ExecuteAsync(textMessage, fromChat, payload)
-                             : Client.SendStickerAsync(textMessage.Chat.Id, ForbiddenSticker);
+                             : SendStickerAsync(textMessage.Chat.Id, ForbiddenSticker);
     }
 
     protected virtual Task ProcessCallbackAsync(CallbackQuery callback) => Task.CompletedTask;
