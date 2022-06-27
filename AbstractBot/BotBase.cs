@@ -125,6 +125,16 @@ public abstract class BotBase<TBot, TConfig>
             replyMarkup, cancellationToken);
     }
 
+    public async Task<Message> SendPhotoAsync(ChatId chatId, InputOnlineFile photo, string? caption = null,
+        ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
+        bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
+    {
+        await DelayAsync(chatId, cancellationToken);
+        return await Client.SendPhotoAsync(chatId, photo, caption, parseMode, captionEntities, disableNotification,
+            replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
+    }
+
     protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig>? command = null,
         string? payload = null)
     {
