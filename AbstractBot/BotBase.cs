@@ -135,6 +135,12 @@ public abstract class BotBase<TBot, TConfig>
             replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
+    public Task<Message> FinalizeStatusMessageAsync(Message message, string postfix = "")
+    {
+        string text = $"_{message.Text}_ Готово\\.{postfix}";
+        return EditMessageTextAsync(message.Chat.Id, message.MessageId, text, ParseMode.MarkdownV2);
+    }
+
     protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig>? command = null,
         string? payload = null)
     {
