@@ -64,17 +64,11 @@ public abstract class BotBase<TBot, TConfig>
         return Client.DeleteWebhookAsync(false, cancellationToken);
     }
 
-    public Task UpdateAsync(Update update)
+    public void Update(Update update)
     {
-        return update.Type switch
-        {
-            UpdateType.Message          => UpdateAsync(update.Message.GetValue(nameof(update.Message))),
-            UpdateType.CallbackQuery    =>
-                ProcessCallbackAsync(update.CallbackQuery.GetValue(nameof(update.CallbackQuery))),
-            UpdateType.PreCheckoutQuery =>
-                ProcessPreCheckoutAsync(update.PreCheckoutQuery.GetValue(nameof(update.PreCheckoutQuery))),
-            _                           => Task.CompletedTask
-        };
+        // ReSharper disable once UnusedVariable
+        //   I need to fire this so that Telegram wouldn't retry long updates AND exceptions would handle
+        Task task = UpdateAsync(update).ContinueWithHandling();
     }
 
     public Task<User> GetUserAsync() => Client.GetMeAsync();
@@ -203,6 +197,19 @@ public abstract class BotBase<TBot, TConfig>
 
         _lastUpdateGlobal = now;
         _lastUptates[chatId] = now;
+    }
+
+    private Task UpdateAsync(Update update)
+    {
+        return update.Type switch
+        {
+            UpdateType.Message => UpdateAsync(update.Message.GetValue(nameof(update.Message))),
+            UpdateType.CallbackQuery =>
+                ProcessCallbackAsync(update.CallbackQuery.GetValue(nameof(update.CallbackQuery))),
+            UpdateType.PreCheckoutQuery =>
+                ProcessPreCheckoutAsync(update.PreCheckoutQuery.GetValue(nameof(update.PreCheckoutQuery))),
+            _ => Task.CompletedTask
+        };
     }
 
     private async Task UpdateAsync(Message message)

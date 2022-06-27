@@ -24,6 +24,11 @@ public static class Utils
         return System.IO.File.AppendAllTextAsync(ExceptionsLogPath, $"{ex}{Environment.NewLine}");
     }
 
+    public static Task ContinueWithHandling(this Task task)
+    {
+        return task.ContinueWith(t => t.Exception is null ? Task.CompletedTask : LogExceptionAsync(t.Exception));
+    }
+
     public static string EscapeCharacters(string s)
     {
         return s.Replace("_", "\\_")
