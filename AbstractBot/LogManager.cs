@@ -24,15 +24,11 @@ public sealed class LogManager
 
     public void LogMessage(string? message = null)
     {
-        string name = GetLogNameFor(_timeManager.Now().Date);
-        string path = Path.Combine(MessagesLogDirectory, name);
+        string path = GetLogPathFor(_timeManager.Now().Date);
         InsertToStart(path, $"{message}{Environment.NewLine}");
     }
 
-    public void LogTimedMessage(string? message = null)
-    {
-        LogMessage($"{_timeManager.Now():HH:mm:ss}: {message}");
-    }
+    public void LogTimedMessage(string? message = null) => LogMessage($"{_timeManager.Now():HH:mm:ss}: {message}");
 
     public void LogException(Exception ex)
     {
@@ -67,7 +63,7 @@ public sealed class LogManager
         for (byte days = 0; days < LogsToHold; ++days)
         {
             DateTime date = _timeManager.Now().Date.AddDays(-days);
-            string name = GetLogNameFor(date);
+            string name = GetLogPathFor(date);
             newLogs.Add(name);
         }
 
@@ -79,7 +75,11 @@ public sealed class LogManager
         }
     }
 
-    private static string GetLogNameFor(DateTime day) => string.Format(MessagesLogPathTemplete, $"{day:dd.MM.yyyy}");
+    private static string GetLogPathFor(DateTime day)
+    {
+        string name = string.Format(MessagesLogPathTemplete, $"{day:dd.MM.yyyy}");
+        return Path.Combine(MessagesLogDirectory, name);
+    }
 
     private TimeManager _timeManager;
 
