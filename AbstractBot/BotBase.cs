@@ -190,7 +190,7 @@ public abstract class BotBase<TBot, TConfig>
         TimeSpan? beforeGlobalUpdate =
             TimeManager.GetDelayUntil(_lastUpdateGlobal, Config.SendMessagePeriodGlobal, now);
 
-        DateTime? lastUpdateLocal = _lastUptates.GetValueOrDefault(chatId);
+        DateTime? lastUpdateLocal = _lastUpdates.GetValueOrDefault(chatId);
         TimeSpan? beforeLocalUpdate = TimeManager.GetDelayUntil(lastUpdateLocal, Config.SendMessagePeriodLocal, now);
 
         TimeSpan? maxDelay = Utils.Max(beforeGlobalUpdate, beforeLocalUpdate);
@@ -201,7 +201,7 @@ public abstract class BotBase<TBot, TConfig>
         }
 
         _lastUpdateGlobal = now;
-        _lastUptates[chatId] = now;
+        _lastUpdates[chatId] = now;
     }
 
     private Task UpdateAsync(Update update)
@@ -321,6 +321,6 @@ public abstract class BotBase<TBot, TConfig>
     }
 
     private readonly TickManager _tickManager;
+    private readonly Dictionary<ChatId, DateTime> _lastUpdates = new();
     private DateTime? _lastUpdateGlobal;
-    private Dictionary<ChatId, DateTime> _lastUptates = new();
 }
