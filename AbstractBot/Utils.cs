@@ -10,6 +10,8 @@ namespace AbstractBot;
 [PublicAPI]
 public static class Utils
 {
+    public static readonly LogManager LogManager = new();
+
     public static async Task<string> GetNgrokHost()
     {
         ListTunnelsResult listTunnels = await Provider.ListTunnels();
@@ -17,17 +19,7 @@ public static class Utils
         return url.GetValue("Can't retrieve NGrok host");
     }
 
-    public static void DeleteExceptionLog() => System.IO.File.Delete(ExceptionsLogPath);
-
-    public static Task LogExceptionAsync(Exception ex)
-    {
-        return System.IO.File.AppendAllTextAsync(ExceptionsLogPath, $"{ex}{Environment.NewLine}");
-    }
-
-    public static Task ContinueWithHandling(this Task task)
-    {
-        return task.ContinueWith(t => t.Exception is null ? Task.CompletedTask : LogExceptionAsync(t.Exception));
-    }
+    public static Task ContinueWithHandling(this Task task) => task.ContinueWith(LogManager.LogExceptionIfPresents);
 
     public static string EscapeCharacters(string s)
     {
@@ -72,6 +64,5 @@ public static class Utils
         };
     }
 
-    private const string ExceptionsLogPath = "errors.txt";
     private const string DesiredNgrokProto = "https";
 }

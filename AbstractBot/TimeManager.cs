@@ -6,7 +6,10 @@ namespace AbstractBot;
 [PublicAPI]
 public sealed class TimeManager
 {
-    internal TimeManager(string timeZoneId) => _timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+    internal TimeManager(string? timeZoneId = null)
+    {
+        _timeZoneInfo = timeZoneId is null ? TimeZoneInfo.Local : TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+    }
 
     public DateTime Now() => ToLocal(DateTime.UtcNow);
 
