@@ -47,6 +47,8 @@ public abstract class BotBase<TBot, TConfig>
         ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
 
         TimeManager = new TimeManager(Config.SystemTimeZoneId);
+
+        _tickManager = new TickManager();
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
@@ -57,10 +59,13 @@ public abstract class BotBase<TBot, TConfig>
         }
         await Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
+        _tickManager.Start();
     }
 
     public virtual Task StopAsync(CancellationToken cancellationToken)
     {
+        _tickManager.Stop();
+        _tickManager.Dispose();
         return Client.DeleteWebhookAsync(false, cancellationToken);
     }
 
@@ -315,6 +320,7 @@ public abstract class BotBase<TBot, TConfig>
         return builder.ToString();
     }
 
+    private readonly TickManager _tickManager;
     private DateTime? _lastUpdateGlobal;
     private Dictionary<ChatId, DateTime> _lastUptates = new();
 }
