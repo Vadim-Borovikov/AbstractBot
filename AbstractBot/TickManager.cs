@@ -1,46 +1,18 @@
 ﻿using System;
-using System.Timers;
-using JetBrains.Annotations;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AbstractBot;
 
-[PublicAPI]
-public class TickManager : IDisposable
+internal sealed class TickManager : IntervalInvoker
 {
-    public TickManager()
+    public TickManager() : base(TickAsync, Interval) { }
+
+    private static Task TickAsync(CancellationToken _)
     {
-        _timer = new Timer
-        {
-            Interval = TickPeriod.TotalMilliseconds,
-            AutoReset = true
-        };
-        _timer.Elapsed += (_, _) => OnTimerElapsed();
+        Utils.LogManager.LogTimedMessage("Tick");
+        return Task.CompletedTask;
     }
 
-    public void Start()
-    {
-        Tick();
-        _timer.Start();
-    }
-
-    public void Stop() => _timer.Stop();
-
-    public void Dispose() => _timer.Dispose();
-
-    private void Tick() => Utils.LogManager.LogTimedMessage("Tick");
-
-    private void OnTimerElapsed()
-    {
-        try
-        {
-            Tick();
-        }
-        catch (Exception ex)
-        {
-            Utils.LogManager.LogException(ex);
-        }
-    }
-
-    private readonly Timer _timer;
-    private static readonly TimeSpan TickPeriod = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(3);
 }

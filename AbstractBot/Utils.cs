@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Ngrok;
 using GryphonUtilities;
@@ -19,7 +20,12 @@ public static class Utils
         return url.GetValue("Can't retrieve NGrok host");
     }
 
-    public static Task ContinueWithHandling(this Task task) => task.ContinueWith(LogManager.LogExceptionIfPresents);
+    public static void FireAndForget(Func<CancellationToken, Task> doWork,
+        CancellationToken cancellationToken = default)
+    {
+        Task.Run(() => doWork(cancellationToken), cancellationToken)
+            .ContinueWith(LogManager.LogExceptionIfPresents, cancellationToken);
+    }
 
     public static string EscapeCharacters(string s)
     {

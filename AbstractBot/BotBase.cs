@@ -59,17 +59,15 @@ public abstract class BotBase<TBot, TConfig>
         }
         await Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
-        _tickManager.Start();
+        _tickManager.Start(cancellationToken);
     }
 
     public virtual Task StopAsync(CancellationToken cancellationToken)
     {
-        _tickManager.Stop();
-        _tickManager.Dispose();
         return Client.DeleteWebhookAsync(false, cancellationToken);
     }
 
-    public void Update(Update update) => Task.Run(() => UpdateAsync(update)).ContinueWithHandling();
+    public void Update(Update update) => Utils.FireAndForget(_ => UpdateAsync(update));
 
     public Task<User> GetUserAsync() => Client.GetMeAsync();
 
