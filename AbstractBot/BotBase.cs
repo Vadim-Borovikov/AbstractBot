@@ -69,12 +69,7 @@ public abstract class BotBase<TBot, TConfig>
         return Client.DeleteWebhookAsync(false, cancellationToken);
     }
 
-    public void Update(Update update)
-    {
-        // ReSharper disable once UnusedVariable
-        //   I need to fire this so that Telegram wouldn't retry long updates AND exceptions would handle
-        Task task = UpdateAsync(update).ContinueWithHandling();
-    }
+    public void Update(Update update) => Task.Run(() => UpdateAsync(update)).ContinueWithHandling();
 
     public Task<User> GetUserAsync() => Client.GetMeAsync();
 
