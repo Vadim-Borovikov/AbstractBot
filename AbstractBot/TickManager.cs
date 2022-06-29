@@ -14,7 +14,7 @@ public class TickManager : IDisposable
             Interval = TickPeriod.TotalMilliseconds,
             AutoReset = true
         };
-        _timer.Elapsed += (_, _) => Tick();
+        _timer.Elapsed += (_, _) => OnTimerElapsed();
     }
 
     public void Start()
@@ -28,6 +28,18 @@ public class TickManager : IDisposable
     public void Dispose() => _timer.Dispose();
 
     private void Tick() => Utils.LogManager.LogTimedMessage("Tick");
+
+    private void OnTimerElapsed()
+    {
+        try
+        {
+            Tick();
+        }
+        catch (Exception ex)
+        {
+            Utils.LogManager.LogException(ex);
+        }
+    }
 
     private readonly Timer _timer;
     private static readonly TimeSpan TickPeriod = TimeSpan.FromSeconds(30);
