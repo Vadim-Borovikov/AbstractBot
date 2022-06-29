@@ -14,5 +14,5 @@ internal sealed class TickManager : IntervalInvoker
         return Task.CompletedTask;
     }
 
-    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(30);
 }
