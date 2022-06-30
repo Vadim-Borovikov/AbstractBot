@@ -12,10 +12,10 @@ public class ConfigGoogleSheets : Config
     internal readonly string GoogleSheetId;
 
     protected ConfigGoogleSheets(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
-        string forbiddenStickerFileId, TimeSpan sendMessagePeriodLocal, TimeSpan sendMessagePeriodGlobal,
-        string googleCredentialJson, string applicationName, string googleSheetId)
-        : base(token, systemTimeZoneId, dontUnderstandStickerFileId, forbiddenStickerFileId, sendMessagePeriodLocal,
-            sendMessagePeriodGlobal)
+        string forbiddenStickerFileId, TimeSpan sendMessagePeriodPrivate, TimeSpan sendMessagePeriodGroup,
+        TimeSpan sendMessagePeriodGlobal, string googleCredentialJson, string applicationName, string googleSheetId)
+        : base(token, systemTimeZoneId, dontUnderstandStickerFileId, forbiddenStickerFileId, sendMessagePeriodPrivate,
+            sendMessagePeriodGroup, sendMessagePeriodGlobal)
     {
         GoogleCredentialJson = googleCredentialJson;
         ApplicationName = applicationName;

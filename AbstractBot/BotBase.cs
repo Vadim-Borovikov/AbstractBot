@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using GryphonUtilities;
 using JetBrains.Annotations;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
@@ -96,48 +97,104 @@ public abstract class BotBase<TBot, TConfig>
         }
     }
 
-    public async Task<Message> SendTextMessageAsync(ChatId chatId, string text, ParseMode? parseMode = null,
+    public async Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
         IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
         bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await DelayAsync(chatId, cancellationToken);
-        return await Client.SendTextMessageAsync(chatId, text, parseMode, entities, disableWebPagePreview,
-            disableNotification, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
+        await DelayIfNeedeAsync(chat, cancellationToken);
+        UpdateInfo info = new(chat, TimeManager.Now(), UpdateInfo.Type.SendText, data: text[..10]);
+        _updateInfos.Add(info);
+        try
+        {
+            return await Client.SendTextMessageAsync(chat.Id, text, parseMode, entities, disableWebPagePreview,
+                disableNotification, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
+        }
+        catch (ApiRequestException)
+        {
+            LogUpdateInfosText();
+            throw;
+        }
     }
 
-    public async Task<Message> EditMessageTextAsync(ChatId chatId, int messageId, string text,
+    public async Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text,
         ParseMode? parseMode = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
         InlineKeyboardMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await DelayAsync(chatId, cancellationToken);
-        return await Client.EditMessageTextAsync(chatId, messageId, text, parseMode, entities, disableWebPagePreview,
-            replyMarkup, cancellationToken);
+        await DelayIfNeedeAsync(chat, cancellationToken);
+        UpdateInfo info = new(chat, TimeManager.Now(), UpdateInfo.Type.EditText, messageId, text[..10]);
+        _updateInfos.Add(info);
+        try
+        {
+            return await Client.EditMessageTextAsync(chat.Id, messageId, text, parseMode, entities,
+                disableWebPagePreview, replyMarkup, cancellationToken);
+        }
+        catch (ApiRequestException)
+        {
+            LogUpdateInfosText();
+            throw;
+        }
     }
 
-    public async Task<Message> SendPhotoAsync(ChatId chatId, InputOnlineFile photo, string? caption = null,
+    public async Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
+    {
+        await DelayIfNeedeAsync(chat, cancellationToken);
+        UpdateInfo info = new(chat, TimeManager.Now(), UpdateInfo.Type.Delete, messageId);
+        _updateInfos.Add(info);
+        try
+        {
+            await Client.DeleteMessageAsync(chat.Id, messageId, cancellationToken);
+        }
+        catch (ApiRequestException)
+        {
+            LogUpdateInfosText();
+            throw;
+        }
+    }
+
+    public async Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, string? caption = null,
         ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await DelayAsync(chatId, cancellationToken);
-        return await Client.SendPhotoAsync(chatId, photo, caption, parseMode, captionEntities, disableNotification,
-            replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
+        await DelayIfNeedeAsync(chat, cancellationToken);
+        UpdateInfo info = new(chat, TimeManager.Now(), UpdateInfo.Type.SendPhoto, data: caption);
+        _updateInfos.Add(info);
+        try
+        {
+            return await Client.SendPhotoAsync(chat.Id, photo, caption, parseMode, captionEntities,
+                disableNotification, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
+        }
+        catch (ApiRequestException)
+        {
+            LogUpdateInfosText();
+            throw;
+        }
     }
 
-    public async Task<Message> SendStickerAsync(ChatId chatId, InputOnlineFile sticker,
+    public async Task<Message> SendStickerAsync(Chat chat, InputOnlineFile sticker,
         bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await DelayAsync(chatId, cancellationToken);
-        return await Client.SendStickerAsync(chatId, sticker, disableNotification, replyToMessageId,
-            allowSendingWithoutReply, replyMarkup, cancellationToken);
+        await DelayIfNeedeAsync(chat, cancellationToken);
+        UpdateInfo info = new(chat, TimeManager.Now(), UpdateInfo.Type.SendSticker);
+        _updateInfos.Add(info);
+        try
+        {
+            return await Client.SendStickerAsync(chat.Id, sticker, disableNotification, replyToMessageId,
+                allowSendingWithoutReply, replyMarkup, cancellationToken);
+        }
+        catch (ApiRequestException)
+        {
+            LogUpdateInfosText();
+            throw;
+        }
     }
 
     public Task<Message> FinalizeStatusMessageAsync(Message message, string postfix = "")
     {
         string text = $"_{message.Text}_ Готово\\.{postfix}";
-        return EditMessageTextAsync(message.Chat.Id, message.MessageId, text, ParseMode.MarkdownV2);
+        return EditMessageTextAsync(message.Chat, message.MessageId, text, ParseMode.MarkdownV2);
     }
 
     protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig>? command = null,
@@ -147,7 +204,7 @@ public abstract class BotBase<TBot, TConfig>
         {
             MessageType.Text              => ProcessTextMessageAsync(message, fromChat, command, payload),
             MessageType.SuccessfulPayment => ProcessSuccessfulPaymentMessageAsync(message, fromChat),
-            _                             => SendStickerAsync(message.Chat.Id, DontUnderstandSticker)
+            _                             => SendStickerAsync(message.Chat, DontUnderstandSticker)
         };
     }
 
@@ -156,13 +213,13 @@ public abstract class BotBase<TBot, TConfig>
     {
         if (command is null)
         {
-            return SendStickerAsync(textMessage.Chat.Id, DontUnderstandSticker);
+            return SendStickerAsync(textMessage.Chat, DontUnderstandSticker);
         }
 
         User user = textMessage.From.GetValue(nameof(textMessage.From));
         bool shouldExecute = IsAccessSuffice(user.Id, command.Access);
         return shouldExecute ? command.ExecuteAsync(textMessage, fromChat, payload)
-                             : SendStickerAsync(textMessage.Chat.Id, ForbiddenSticker);
+                             : SendStickerAsync(textMessage.Chat, ForbiddenSticker);
     }
 
     protected virtual Task ProcessCallbackAsync(CallbackQuery callback) => Task.CompletedTask;
@@ -174,15 +231,19 @@ public abstract class BotBase<TBot, TConfig>
         return Task.CompletedTask;
     }
 
-    private async Task DelayAsync(ChatId chatId, CancellationToken cancellationToken)
+    private async Task DelayIfNeedeAsync(Chat chat, CancellationToken cancellationToken)
     {
         DateTime now = TimeManager.Now();
 
         TimeSpan? beforeGlobalUpdate =
             TimeManager.GetDelayUntil(_lastUpdateGlobal, Config.SendMessagePeriodGlobal, now);
 
-        DateTime? lastUpdateLocal = _lastUpdates.GetValueOrDefault(chatId);
-        TimeSpan? beforeLocalUpdate = TimeManager.GetDelayUntil(lastUpdateLocal, Config.SendMessagePeriodLocal, now);
+        DateTime? lastUpdateLocal =
+            _updateInfos.Where(i => i.Chat == chat).Select(i => i.Sent).OrderByDescending(d => d).FirstOrDefault();
+        TimeSpan period = chat.Type == ChatType.Private
+            ? Config.SendMessagePeriodPrivate
+            : Config.SendMessagePeriodGroup;
+        TimeSpan? beforeLocalUpdate = TimeManager.GetDelayUntil(lastUpdateLocal, period, now);
 
         TimeSpan? maxDelay = Utils.Max(beforeGlobalUpdate, beforeLocalUpdate);
         if (maxDelay.HasValue)
@@ -192,7 +253,6 @@ public abstract class BotBase<TBot, TConfig>
         }
 
         _lastUpdateGlobal = now;
-        _lastUpdates[chatId] = now;
     }
 
     private Task UpdateAsync(Update update)
@@ -311,6 +371,16 @@ public abstract class BotBase<TBot, TConfig>
         return builder.ToString();
     }
 
-    private readonly Dictionary<ChatId, DateTime> _lastUpdates = new();
+    private void LogUpdateInfosText()
+    {
+        StringBuilder sb = new();
+        foreach (UpdateInfo info in _updateInfos.OrderByDescending(i => i.Sent))
+        {
+            sb.AppendLine(info.ToString());
+        }
+        Utils.LogManager.LogMessage(sb.ToString());
+    }
+
+    private readonly List<UpdateInfo> _updateInfos = new();
     private DateTime? _lastUpdateGlobal;
 }
