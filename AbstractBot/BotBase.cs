@@ -152,6 +152,24 @@ public abstract class BotBase<TBot, TConfig>
         }
     }
 
+    public async Task ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId,
+        bool? disableNotification = null, CancellationToken cancellationToken = default)
+    {
+        await DelayIfNeedeAsync(chat, cancellationToken);
+        UpdateInfo info =
+            new(chat, TimeManager.Now(), UpdateInfo.Type.Forward, data: $"message {messageId} from {fromChatId}");
+        _updateInfos.Add(info);
+        try
+        {
+            await Client.ForwardMessageAsync(chat.Id, fromChatId, messageId, disableNotification, cancellationToken);
+        }
+        catch (ApiRequestException)
+        {
+            LogUpdateInfosText();
+            throw;
+        }
+    }
+
     public async Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, string? caption = null,
         ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,

@@ -9,6 +9,7 @@ internal sealed class UpdateInfo
         SendText,
         EditText,
         Delete,
+        Forward,
         SendPhoto,
         SendSticker
     }
