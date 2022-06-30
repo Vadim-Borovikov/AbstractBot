@@ -4,9 +4,12 @@ using System.Threading.Tasks;
 
 namespace AbstractBot;
 
-internal sealed class TickManager : IntervalInvoker
+internal static class TickManager
 {
-    public TickManager() : base(TickAsync, Interval) { }
+    public static void Start(CancellationToken cancellationToken)
+    {
+        Invoker.DoPeriodically(TickAsync, Interval, true, cancellationToken);
+    }
 
     private static Task TickAsync(CancellationToken _)
     {
