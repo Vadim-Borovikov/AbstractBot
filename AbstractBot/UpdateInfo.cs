@@ -1,8 +1,11 @@
 ﻿using System;
+using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
 namespace AbstractBot;
-internal sealed class UpdateInfo
+
+[PublicAPI]
+public static class UpdateInfo
 {
     public enum Type
     {
@@ -14,27 +17,22 @@ internal sealed class UpdateInfo
         SendSticker
     }
 
-    public readonly Chat Chat;
-    public readonly DateTime Sent;
-
-    public UpdateInfo(Chat chat, DateTime sent, Type type, int? messageId = null, string? data = null)
+    public static void LogRefused(Chat chat, Type type, int? messageId = null, string? data = null)
     {
-        Chat = chat;
-        Sent = sent;
-
-        _type = type;
-        _messageId = messageId;
-        _data = data;
+        string log = GetLog(chat, type, messageId, data);
+        Utils.LogManager.LogTimedMessage($"Refuse to {log}");
     }
 
-    public override string ToString()
+    internal static void Log(Chat chat, Type type, int? messageId = null, string? data = null)
     {
-        string? messageId = _messageId is null ? null : $"'Message {_messageId} ";
-        string? data = _data is null ? null : $"\"{_data}\" ";
-        return $"{messageId}{_type} {data}sent to {Chat.Type} {Chat.Id} at {Sent:T}";
+        string log = GetLog(chat, type, messageId, data);
+        Utils.LogManager.LogTimedMessage(log);
     }
 
-    private readonly Type _type;
-    private readonly int? _messageId;
-    private readonly string? _data;
+    private static string GetLog(Chat chat, Type type, int? messageId = null, string? data = null)
+    {
+        string? messageIdPart = messageId is null ? null : $"message {messageId} ";
+        string? dataPart = data is null ? null : $"\"{data.ReplaceLineEndings().Replace(Environment.NewLine, "↵")}\" ";
+        return $"{type} {messageIdPart}{dataPart}in {chat.Type} chat {chat.Id}";
+    }
 }
