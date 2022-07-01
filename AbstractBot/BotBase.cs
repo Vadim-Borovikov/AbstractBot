@@ -96,60 +96,60 @@ public abstract class BotBase<TBot, TConfig>
         }
     }
 
-    public async Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
+    public Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
         IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
         bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await DelayIfNeedeAsync(chat, cancellationToken);
+        DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendText, data: text);
-        return await Client.SendTextMessageAsync(chat.Id, text, parseMode, entities, disableWebPagePreview,
+        return Client.SendTextMessageAsync(chat.Id, text, parseMode, entities, disableWebPagePreview,
             disableNotification, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
-    public async Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text,
-        ParseMode? parseMode = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
+    public Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text, ParseMode? parseMode = null,
+        IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
         InlineKeyboardMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await DelayIfNeedeAsync(chat, cancellationToken);
+        DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.EditText, messageId, text);
-        return await Client.EditMessageTextAsync(chat.Id, messageId, text, parseMode, entities,
+        return Client.EditMessageTextAsync(chat.Id, messageId, text, parseMode, entities,
             disableWebPagePreview, replyMarkup, cancellationToken);
     }
 
-    public async Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
+    public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
     {
-        await DelayIfNeedeAsync(chat, cancellationToken);
+        DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.Delete, messageId);
-        await Client.DeleteMessageAsync(chat.Id, messageId, cancellationToken);
+        return Client.DeleteMessageAsync(chat.Id, messageId, cancellationToken);
     }
 
-    public async Task ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId,
-        bool? disableNotification = null, CancellationToken cancellationToken = default)
+    public Task ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId, bool? disableNotification = null,
+        CancellationToken cancellationToken = default)
     {
-        await DelayIfNeedeAsync(chat, cancellationToken);
+        DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.Forward, data: $"message {messageId} from {fromChatId}");
-        await Client.ForwardMessageAsync(chat.Id, fromChatId, messageId, disableNotification, cancellationToken);
+        return Client.ForwardMessageAsync(chat.Id, fromChatId, messageId, disableNotification, cancellationToken);
     }
 
-    public async Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, string? caption = null,
+    public Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, string? caption = null,
         ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await DelayIfNeedeAsync(chat, cancellationToken);
+        DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendPhoto, data: caption);
-        return await Client.SendPhotoAsync(chat.Id, photo, caption, parseMode, captionEntities, disableNotification,
+        return Client.SendPhotoAsync(chat.Id, photo, caption, parseMode, captionEntities, disableNotification,
             replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
-    public async Task<Message> SendStickerAsync(Chat chat, InputOnlineFile sticker,
-        bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+    public Task<Message> SendStickerAsync(Chat chat, InputOnlineFile sticker, bool? disableNotification = null,
+        int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
-        await DelayIfNeedeAsync(chat, cancellationToken);
+        DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendSticker);
-        return await Client.SendStickerAsync(chat.Id, sticker, disableNotification, replyToMessageId,
+        return Client.SendStickerAsync(chat.Id, sticker, disableNotification, replyToMessageId,
             allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
@@ -193,28 +193,31 @@ public abstract class BotBase<TBot, TConfig>
         return Task.CompletedTask;
     }
 
-    private async Task DelayIfNeedeAsync(Chat chat, CancellationToken cancellationToken)
+    private void DelayIfNeeded(Chat chat, CancellationToken cancellationToken)
     {
-        DateTime now = TimeManager.Now();
-
-        TimeSpan? beforeGlobalUpdate =
-            TimeManager.GetDelayUntil(_lastUpdateGlobal, Config.SendMessagePeriodGlobal, now);
-
-        DateTime? lastUpdateLocal = _lastUpdates.GetValueOrDefault(chat.Id);
-        TimeSpan period = chat.Type == ChatType.Private
-            ? Config.SendMessagePeriodPrivate
-            : Config.SendMessagePeriodGroup;
-        TimeSpan? beforeLocalUpdate = TimeManager.GetDelayUntil(lastUpdateLocal, period, now);
-
-        TimeSpan? maxDelay = Utils.Max(beforeGlobalUpdate, beforeLocalUpdate);
-        if (maxDelay.HasValue)
+        lock (_delayLocker)
         {
-            await Task.Delay(maxDelay.Value, cancellationToken);
-            now += maxDelay.Value;
-        }
+            DateTime now = TimeManager.Now();
 
-        _lastUpdateGlobal = now;
-        _lastUpdates[chat.Id] = now;
+            TimeSpan? beforeGlobalUpdate =
+                TimeManager.GetDelayUntil(_lastUpdateGlobal, Config.SendMessagePeriodGlobal, now);
+
+            DateTime? lastUpdateLocal = _lastUpdates.GetValueOrDefault(chat.Id);
+            TimeSpan period = chat.Type == ChatType.Private
+                ? Config.SendMessagePeriodPrivate
+                : Config.SendMessagePeriodGroup;
+            TimeSpan? beforeLocalUpdate = TimeManager.GetDelayUntil(lastUpdateLocal, period, now);
+
+            TimeSpan? maxDelay = Utils.Max(beforeGlobalUpdate, beforeLocalUpdate);
+            if (maxDelay.HasValue)
+            {
+                Task.Delay(maxDelay.Value, cancellationToken).Wait(cancellationToken);
+                now += maxDelay.Value;
+            }
+
+            _lastUpdateGlobal = now;
+            _lastUpdates[chat.Id] = now;
+        }
     }
 
     private Task UpdateAsync(Update update)
@@ -335,4 +338,5 @@ public abstract class BotBase<TBot, TConfig>
 
     private readonly Dictionary<long, DateTime> _lastUpdates = new();
     private DateTime? _lastUpdateGlobal;
+    private readonly object _delayLocker = new();
 }
