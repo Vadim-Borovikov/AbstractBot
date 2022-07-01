@@ -124,8 +124,8 @@ public abstract class BotBase<TBot, TConfig>
         return Client.DeleteMessageAsync(chat.Id, messageId, cancellationToken);
     }
 
-    public Task ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId, bool? disableNotification = null,
-        CancellationToken cancellationToken = default)
+    public Task<Message> ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId,
+        bool? disableNotification = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.Forward, data: $"message {messageId} from {fromChatId}");
