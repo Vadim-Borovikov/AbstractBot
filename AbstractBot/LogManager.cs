@@ -39,7 +39,13 @@ public sealed class LogManager
         InsertToStart(ExceptionsLogPath, message);
     }
 
-    public static void DeleteExceptionLog() => File.Delete(ExceptionsLogPath);
+    public void DeleteExceptionLog()
+    {
+        lock (_exceptionsLocker)
+        {
+            File.Delete(ExceptionsLogPath);
+        }
+    }
 
     internal void LogExceptionIfPresents(Task t)
     {
@@ -51,27 +57,33 @@ public sealed class LogManager
         LogException(t.Exception);
     }
 
-    private static void InsertToStart(string path, string? contents)
+    private void InsertToStart(string path, string? contents)
     {
-        string text = File.Exists(path) ? File.ReadAllText(path) : "";
-        File.WriteAllText(path, $"{contents}{text}");
+        lock (_logsLocker)
+        {
+            string text = File.Exists(path) ? File.ReadAllText(path) : "";
+            File.WriteAllText(path, $"{contents}{text}");
+        }
     }
 
     private void DeleteOldLogs()
     {
-        HashSet<string> newLogs = new();
-        for (byte days = 0; days < LogsToHold; ++days)
+        lock (_logsLocker)
         {
-            DateTime date = _timeManager.Now().Date.AddDays(-days);
-            string name = GetLogPathFor(date);
-            newLogs.Add(name);
-        }
+            HashSet<string> newLogs = new();
+            for (byte days = 0; days < LogsToHold; ++days)
+            {
+                DateTime date = _timeManager.Now().Date.AddDays(-days);
+                string name = GetLogPathFor(date);
+                newLogs.Add(name);
+            }
 
-        List<string> oldLogs =
-            Directory.EnumerateFiles(MessagesLogDirectory).Where(f => !newLogs.Contains(f)).ToList();
-        foreach (string log in oldLogs)
-        {
-            File.Delete(log);
+            List<string> oldLogs =
+                Directory.EnumerateFiles(MessagesLogDirectory).Where(f => !newLogs.Contains(f)).ToList();
+            foreach (string log in oldLogs)
+            {
+                File.Delete(log);
+            }
         }
     }
 
@@ -82,6 +94,9 @@ public sealed class LogManager
     }
 
     private TimeManager _timeManager;
+
+    private readonly object _exceptionsLocker = new();
+    private readonly object _logsLocker = new();
 
     private const string ExceptionsLogPath = "errors.txt";
     private const string MessagesLogDirectory = "Logs";
