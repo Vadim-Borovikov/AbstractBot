@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
@@ -62,7 +63,7 @@ public sealed class LogManager
         lock (_logsLocker)
         {
             string text = File.Exists(path) ? File.ReadAllText(path) : "";
-            File.WriteAllText(path, $"{contents}{text}");
+            File.WriteAllText(path, $"{contents}{text}", Encoding.UTF8);
         }
     }
 
