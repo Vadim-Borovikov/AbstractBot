@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="GenerateNuspec">
+    <Exec Command="if exist postBuild.bat if $(ConfigurationName) == Release call postBuild.bat $(OutDir)..\$(AssemblyName).$(PackageVersion).nupkg" />
   </Target>
 
 </Project>
