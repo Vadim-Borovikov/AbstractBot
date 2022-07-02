@@ -88,11 +88,7 @@ public sealed class LogManager
         }
     }
 
-    private static string GetLogPathFor(DateTime day)
-    {
-        string name = string.Format(MessagesLogPathTemplete, $"{day:dd.MM.yyyy}");
-        return Path.Combine(MessagesLogDirectory, name);
-    }
+    private static string GetLogPathFor(DateTime day) => Path.Combine(MessagesLogDirectory, $"{day:yyyy.MM.dd}.txt");
 
     private TimeManager _timeManager;
 
@@ -101,6 +97,5 @@ public sealed class LogManager
 
     private const string ExceptionsLogPath = "errors.txt";
     private const string MessagesLogDirectory = "Logs";
-    private const string MessagesLogPathTemplete = "log {0}.txt";
     private const byte LogsToHold = 5;
 }
