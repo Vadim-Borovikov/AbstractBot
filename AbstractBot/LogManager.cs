@@ -18,6 +18,7 @@ public sealed class LogManager
         {
             Directory.CreateDirectory(MessagesLogDirectory);
         }
+        _todayLogPath = Path.Combine(MessagesLogDirectory, MessagesLogNameToday);
         DeleteOldLogs();
     }
 
@@ -25,8 +26,14 @@ public sealed class LogManager
 
     public void LogMessage(string? message = null)
     {
-        string path = GetLogPathFor(_timeManager.Now().Date);
-        InsertToStart(path, $"{message}{Environment.NewLine}");
+        DateTime modifiedUtc = File.GetLastWriteTimeUtc(_todayLogPath);
+        DateTime modified = _timeManager.ToLocal(modifiedUtc);
+        if (modified.Date < _timeManager.Now().Date)
+        {
+            string newPath = GetLogPathFor(modified.Date);
+            File.Move(_todayLogPath, newPath);
+        }
+        InsertToStart(_todayLogPath, $"{message}{Environment.NewLine}");
     }
 
     public void LogTimedMessage(string? message = null) => LogMessage($"{_timeManager.Now():HH:mm:ss}: {message}");
@@ -88,14 +95,21 @@ public sealed class LogManager
         }
     }
 
-    private static string GetLogPathFor(DateTime day) => Path.Combine(MessagesLogDirectory, $"{day:yyyy.MM.dd}.txt");
+    private string GetLogPathFor(DateTime day)
+    {
+        return day == _timeManager.Now().Date
+            ? _todayLogPath
+            : Path.Combine(MessagesLogDirectory, $"{day:yyyy.MM.dd}.txt");
+    }
 
     private TimeManager _timeManager;
 
     private readonly object _exceptionsLocker = new();
     private readonly object _logsLocker = new();
+    private readonly string _todayLogPath;
 
     private const string ExceptionsLogPath = "errors.txt";
     private const string MessagesLogDirectory = "Logs";
+    private const string MessagesLogNameToday = "today.txt";
     private const byte LogsToHold = 5;
 }
