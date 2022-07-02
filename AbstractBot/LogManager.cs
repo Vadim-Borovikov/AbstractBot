@@ -26,12 +26,15 @@ public sealed class LogManager
 
     public void LogMessage(string? message = null)
     {
-        DateTime modifiedUtc = File.GetLastWriteTimeUtc(_todayLogPath);
-        DateTime modified = _timeManager.ToLocal(modifiedUtc);
-        if (modified.Date < _timeManager.Now().Date)
+        if (File.Exists(_todayLogPath))
         {
-            string newPath = GetLogPathFor(modified.Date);
-            File.Move(_todayLogPath, newPath);
+            DateTime modifiedUtc = File.GetLastWriteTimeUtc(_todayLogPath);
+            DateTime modified = _timeManager.ToLocal(modifiedUtc);
+            if (modified.Date < _timeManager.Now().Date)
+            {
+                string newPath = GetLogPathFor(modified.Date);
+                File.Move(_todayLogPath, newPath);
+            }
         }
         InsertToStart(_todayLogPath, $"{message}{Environment.NewLine}");
     }
