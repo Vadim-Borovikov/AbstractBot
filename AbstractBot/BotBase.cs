@@ -98,13 +98,15 @@ public abstract class BotBase<TBot, TConfig>
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
         IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
-        bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
-        IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
+        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
+        bool? allowSendingWithoutReply = null, IReplyMarkup? replyMarkup = null,
+        CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendText, data: text);
         return Client.SendTextMessageAsync(chat.Id, text, parseMode, entities, disableWebPagePreview,
-            disableNotification, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
+            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, replyMarkup,
+            cancellationToken);
     }
 
     public Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text, ParseMode? parseMode = null,
@@ -125,31 +127,33 @@ public abstract class BotBase<TBot, TConfig>
     }
 
     public Task<Message> ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId,
-        bool? disableNotification = null, CancellationToken cancellationToken = default)
+        bool? disableNotification = null, bool? protectContent = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.Forward, data: $"message {messageId} from {fromChatId}");
-        return Client.ForwardMessageAsync(chat.Id, fromChatId, messageId, disableNotification, cancellationToken);
+        return Client.ForwardMessageAsync(chat.Id, fromChatId, messageId, disableNotification, protectContent,
+            cancellationToken);
     }
 
     public Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, string? caption = null,
         ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
-        bool? disableNotification = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
-        IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
+        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
+        bool? allowSendingWithoutReply = null, IReplyMarkup? replyMarkup = null,
+        CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendPhoto, data: caption);
         return Client.SendPhotoAsync(chat.Id, photo, caption, parseMode, captionEntities, disableNotification,
-            replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
+            protectContent, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
     public Task<Message> SendStickerAsync(Chat chat, InputOnlineFile sticker, bool? disableNotification = null,
-        int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendSticker);
-        return Client.SendStickerAsync(chat.Id, sticker, disableNotification, replyToMessageId,
+        return Client.SendStickerAsync(chat.Id, sticker, disableNotification, protectContent, replyToMessageId,
             allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
