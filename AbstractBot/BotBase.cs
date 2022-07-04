@@ -153,6 +153,21 @@ public abstract class BotBase<TBot, TConfig>
             allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
+    public Task PinChatMessageAsync(Chat chat, int messageId, bool? disableNotification = null,
+        CancellationToken cancellationToken = default)
+    {
+        DelayIfNeeded(chat, cancellationToken);
+        UpdateInfo.Log(chat, UpdateInfo.Type.Pin, messageId);
+        return Client.PinChatMessageAsync(chat.Id, messageId, disableNotification, cancellationToken);
+    }
+
+    public Task UnpinChatMessageAsync(Chat chat, int? messageId = null, CancellationToken cancellationToken = default)
+    {
+        DelayIfNeeded(chat, cancellationToken);
+        UpdateInfo.Log(chat, UpdateInfo.Type.Unpin, messageId);
+        return Client.UnpinChatMessageAsync(chat.Id, messageId, cancellationToken);
+    }
+
     public Task<Message> FinalizeStatusMessageAsync(Message message, string postfix = "")
     {
         string text = $"_{message.Text}_ Готово\\.{postfix}";
