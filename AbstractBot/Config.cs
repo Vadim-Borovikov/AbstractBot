@@ -23,7 +23,7 @@ public class Config
 
     internal string Url => $"{Host}/{Token}";
 
-    internal Config(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
+    public Config(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
         string forbiddenStickerFileId, TimeSpan sendMessagePeriodPrivate, TimeSpan sendMessagePeriodGroup,
         TimeSpan sendMessagePeriodGlobal)
     {
