@@ -18,7 +18,7 @@ public class Config
     public string? Host { get; set; }
     public string? About { get; init; }
     public string? ExtraCommands { get; init; }
-    public List<long>? AdminIds { get; init; }
+    public List<long>? AdminIds { get; protected set; }
     public long? SuperAdminId { get; init; }
 
     internal string Url => $"{Host}/{Token}";
