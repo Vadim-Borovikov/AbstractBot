@@ -51,10 +51,7 @@ public abstract class BotBase<TBot, TConfig>
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(Config.Host))
-        {
-            Config.Host = await Utils.GetNgrokHost();
-        }
+        await Config.UpdateHostIfNeededAsync(Utils.GetNgrokHostAsync());
         await Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
         TickManager.Start(cancellationToken);
@@ -81,7 +78,7 @@ public abstract class BotBase<TBot, TConfig>
         return GetCommandsDescription(access);
     }
 
-    public bool IsAdmin(long userId) => Config.AdminIds is not null && Config.AdminIds.Contains(userId);
+    public bool IsAdmin(long userId) => Config.AdminIds.Contains(userId);
     public bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
 
     public bool IsAccessSuffice(long userId, AccessType against)

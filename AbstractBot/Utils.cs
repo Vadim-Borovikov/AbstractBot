@@ -13,13 +13,6 @@ public static class Utils
 {
     public static readonly LogManager LogManager = new();
 
-    public static async Task<string> GetNgrokHost()
-    {
-        ListTunnelsResult listTunnels = await Provider.ListTunnels();
-        string? url = listTunnels.Tunnels?.Where(t => t?.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
-        return url.GetValue("Can't retrieve NGrok host");
-    }
-
     public static void FireAndForget(Func<CancellationToken, Task> doWork,
         CancellationToken cancellationToken = default)
     {
@@ -52,6 +45,13 @@ public static class Utils
     public static string? GetPostfix(string text, string prefix)
     {
         return text.StartsWith(prefix, StringComparison.Ordinal) ? text[prefix.Length..] : null;
+    }
+
+    internal static async Task<string> GetNgrokHostAsync()
+    {
+        ListTunnelsResult listTunnels = await Provider.ListTunnels();
+        string? url = listTunnels.Tunnels?.Where(t => t?.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
+        return url.GetValue("Can't retrieve NGrok host");
     }
 
     internal static TimeSpan? Max(TimeSpan? a, TimeSpan? b)

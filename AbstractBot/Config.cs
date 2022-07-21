@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace AbstractBot;
@@ -15,13 +16,16 @@ public class Config
     internal readonly TimeSpan SendMessagePeriodGroup;
     internal readonly TimeSpan SendMessagePeriodGlobal;
 
-    public string? Host { get; set; }
+    public string? Host { init => _host = value; }
+
     public string? About { get; init; }
     public string? ExtraCommands { get; init; }
-    public List<long>? AdminIds { get; protected set; }
+
+    public List<long> AdminIds { protected internal get; init; } = new();
+
     public long? SuperAdminId { get; init; }
 
-    internal string Url => $"{Host}/{Token}";
+    internal string Url => $"{_host}/{Token}";
 
     public Config(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
         string forbiddenStickerFileId, TimeSpan sendMessagePeriodPrivate, TimeSpan sendMessagePeriodGroup,
@@ -35,4 +39,14 @@ public class Config
         SendMessagePeriodGroup = sendMessagePeriodGroup;
         SendMessagePeriodGlobal = sendMessagePeriodGlobal;
     }
+
+    internal async Task UpdateHostIfNeededAsync(Task<string> task)
+    {
+        if (string.IsNullOrWhiteSpace(_host))
+        {
+            _host = await task;
+        }
+    }
+
+    private string? _host;
 }
