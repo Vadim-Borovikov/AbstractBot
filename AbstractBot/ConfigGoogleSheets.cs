@@ -7,8 +7,8 @@ namespace AbstractBot;
 public class ConfigGoogleSheets : Config
 {
     public readonly string GoogleCredentialJson;
+    public readonly string ApplicationName;
 
-    internal readonly string ApplicationName;
     internal readonly string GoogleSheetId;
 
     protected ConfigGoogleSheets(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
