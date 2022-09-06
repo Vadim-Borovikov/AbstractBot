@@ -16,7 +16,11 @@ public class Config
     internal readonly TimeSpan SendMessagePeriodGroup;
     internal readonly TimeSpan SendMessagePeriodGlobal;
 
-    public string? Host { init => _host = value; }
+    public string? Host
+    {
+        init => _host = value;
+        get => _host;
+    }
 
     public string? About { get; init; }
     public string? ExtraCommands { get; init; }
