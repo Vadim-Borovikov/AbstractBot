@@ -16,7 +16,8 @@ public static class UpdateInfo
         SendPhoto,
         SendSticker,
         Pin,
-        Unpin
+        Unpin,
+        SendInvoice
     }
 
     public static void LogRefused(Chat chat, Type type, int? messageId = null, string? data = null)

@@ -169,6 +169,25 @@ public abstract class BotBase<TBot, TConfig>
         return Client.UnpinChatMessageAsync(chat.Id, messageId, cancellationToken);
     }
 
+    public Task SendInvoiceAsync(Chat chat, string title, string description, string payload,
+        string providerToken, string currency, IEnumerable<LabeledPrice> prices, int? maxTipAmount = null,
+        IEnumerable<int>? suggestedTipAmounts = null, string? startParameter = null, string? providerData = null,
+        string? photoUrl = null, int? photoSize = null, int? photoWidth = null, int? photoHeight = null,
+        bool? needName = null, bool? needPhoneNumber = null, bool? needEmail = null, bool? needShippingAddress = null,
+        bool? sendPhoneNumberToProvider = null, bool? sendEmailToProvider = null, bool? isFlexible = null,
+        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
+        bool? allowSendingWithoutReply = null, InlineKeyboardMarkup? replyMarkup = null,
+        CancellationToken cancellationToken = default)
+    {
+        DelayIfNeeded(chat, cancellationToken);
+        UpdateInfo.Log(chat, UpdateInfo.Type.SendInvoice, null, title);
+        return Client.SendInvoiceAsync(chat.Id, title, description, payload, providerToken, currency, prices,
+            maxTipAmount, suggestedTipAmounts, startParameter, providerData, photoUrl, photoSize, photoWidth,
+            photoHeight, needName, needPhoneNumber, needEmail, needShippingAddress, sendPhoneNumberToProvider,
+            sendEmailToProvider, isFlexible, disableNotification, protectContent, replyToMessageId,
+            allowSendingWithoutReply, replyMarkup, cancellationToken);
+    }
+
     public Task<Message> FinalizeStatusMessageAsync(Message message, string postfix = "")
     {
         string text = $"_{message.Text}_ Готово\\.{postfix}";
