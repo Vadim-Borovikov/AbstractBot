@@ -201,7 +201,8 @@ public abstract class BotBase<TBot, TConfig>
         {
             MessageType.Text              => ProcessTextMessageAsync(message, fromChat, command, payload),
             MessageType.SuccessfulPayment => ProcessSuccessfulPaymentMessageAsync(message, fromChat),
-            _                             => SendStickerAsync(message.Chat, DontUnderstandSticker)
+            _                             => SendStickerAsync(message.Chat, DontUnderstandSticker,
+                                                              replyToMessageId: message.MessageId)
         };
     }
 
@@ -210,13 +211,14 @@ public abstract class BotBase<TBot, TConfig>
     {
         if (command is null)
         {
-            return SendStickerAsync(textMessage.Chat, DontUnderstandSticker);
+            return SendStickerAsync(textMessage.Chat, DontUnderstandSticker, replyToMessageId: textMessage.MessageId);
         }
 
         User user = textMessage.From.GetValue(nameof(textMessage.From));
         bool shouldExecute = IsAccessSuffice(user.Id, command.Access);
         return shouldExecute ? command.ExecuteAsync(textMessage, fromChat, payload)
-                             : SendStickerAsync(textMessage.Chat, ForbiddenSticker);
+                             : SendStickerAsync(textMessage.Chat, ForbiddenSticker,
+                                                replyToMessageId: textMessage.MessageId);
     }
 
     protected virtual Task ProcessCallbackAsync(CallbackQuery callback) => Task.CompletedTask;
