@@ -1,56 +1,52 @@
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
+// ReSharper disable NullableWarningSuppressionIsUsed
 
 namespace AbstractBot;
 
 [PublicAPI]
 public class Config
 {
-    internal readonly string Token;
-    internal readonly string SystemTimeZoneId;
-    internal readonly string DontUnderstandStickerFileId;
-    internal readonly string ForbiddenStickerFileId;
-    internal readonly TimeSpan SendMessagePeriodPrivate;
-    internal readonly TimeSpan SendMessagePeriodGroup;
-    internal readonly TimeSpan SendMessagePeriodGlobal;
+    [Required]
+    [MinLength(1)]
+    public string Token { get; init; } = null!;
 
-    public string? Host
-    {
-        init => _host = value;
-        get => _host;
-    }
+    [Required]
+    [MinLength(1)]
+    public string SystemTimeZoneId { get; init; } = null!;
 
-    public string? About { get; init; }
-    public string? ExtraCommands { get; init; }
+    [Required]
+    [MinLength(1)]
+    public string SystemTimeZoneIdLogs { get; init; } = null!;
 
-    public List<long> AdminIds { protected internal get; init; } = new();
+    [Required]
+    [MinLength(1)]
+    public string DontUnderstandStickerFileId { get; init; } = null!;
+
+    [Required]
+    [MinLength(1)]
+    public string ForbiddenStickerFileId { get; init; } = null!;
+
+    [Required]
+    [Range(double.Epsilon, double.MaxValue)]
+    public double UpdatesPerSecondLimitPrivate { get; init; }
+
+    [Required]
+    [Range(double.Epsilon, double.MaxValue)]
+
+    public double UpdatesPerMinuteLimitGroup { get; set; }
+    [Required]
+    [Range(double.Epsilon, double.MaxValue)]
+    public double UpdatesPerSecondLimitGlobal { get; set; }
+
+    public string? Host { get; init; }
+
+    public List<string?>? About { get; init; }
+    public List<string?>? ExtraCommands { get; init; }
+
+    public List<long>? AdminIds { get; init; }
+    public string? AdminIdsJson { get; init; }
 
     public long? SuperAdminId { get; init; }
-
-    internal string Url => $"{_host}/{Token}";
-
-    public Config(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
-        string forbiddenStickerFileId, TimeSpan sendMessagePeriodPrivate, TimeSpan sendMessagePeriodGroup,
-        TimeSpan sendMessagePeriodGlobal)
-    {
-        Token = token;
-        SystemTimeZoneId = systemTimeZoneId;
-        DontUnderstandStickerFileId = dontUnderstandStickerFileId;
-        ForbiddenStickerFileId = forbiddenStickerFileId;
-        SendMessagePeriodPrivate = sendMessagePeriodPrivate;
-        SendMessagePeriodGroup = sendMessagePeriodGroup;
-        SendMessagePeriodGlobal = sendMessagePeriodGlobal;
-    }
-
-    internal async Task UpdateHostIfNeededAsync(Task<string> task)
-    {
-        if (string.IsNullOrWhiteSpace(_host))
-        {
-            _host = await task;
-        }
-    }
-
-    private string? _host;
 }

@@ -1,24 +1,21 @@
-using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
+// ReSharper disable NullableWarningSuppressionIsUsed
 
 namespace AbstractBot;
 
 [PublicAPI]
 public class ConfigGoogleSheets : Config
 {
-    public readonly string GoogleCredentialJson;
-    public readonly string ApplicationName;
+    public Dictionary<string, string>? GoogleCredential { get; init; }
+    public string? GoogleCredentialJson { get; init; }
 
-    internal readonly string GoogleSheetId;
+    [Required]
+    [MinLength(1)]
+    public string ApplicationName { get; init; } = null!;
 
-    protected ConfigGoogleSheets(string token, string systemTimeZoneId, string dontUnderstandStickerFileId,
-        string forbiddenStickerFileId, TimeSpan sendMessagePeriodPrivate, TimeSpan sendMessagePeriodGroup,
-        TimeSpan sendMessagePeriodGlobal, string googleCredentialJson, string applicationName, string googleSheetId)
-        : base(token, systemTimeZoneId, dontUnderstandStickerFileId, forbiddenStickerFileId, sendMessagePeriodPrivate,
-            sendMessagePeriodGroup, sendMessagePeriodGlobal)
-    {
-        GoogleCredentialJson = googleCredentialJson;
-        ApplicationName = applicationName;
-        GoogleSheetId = googleSheetId;
-    }
+    [Required]
+    [MinLength(1)]
+    public string GoogleSheetId { get; init; } = null!;
 }

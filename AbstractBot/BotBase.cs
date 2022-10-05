@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GryphonUtilities;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -47,12 +48,21 @@ public abstract class BotBase<TBot, TConfig>
         ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
 
         TimeManager = new TimeManager(Config.SystemTimeZoneId);
+
+        _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitPrivate);
+        _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitGlobal);
+        _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
+
+        _adminIds = GetAdminIds();
+
+        _about = Config.About is null ? null : string.Join(Environment.NewLine, Config.About);
+        _extraCommands = Config.ExtraCommands is null ? null : string.Join(Environment.NewLine, Config.ExtraCommands);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
-        await Config.UpdateHostIfNeededAsync(Utils.GetNgrokHostAsync());
-        await Client.SetWebhookAsync(Config.Url, cancellationToken: cancellationToken,
+        string url = await GetUrlAsync();
+        await Client.SetWebhookAsync(url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
         TickManager.Start(cancellationToken);
     }
@@ -78,7 +88,7 @@ public abstract class BotBase<TBot, TConfig>
         return GetCommandsDescription(access);
     }
 
-    public bool IsAdmin(long userId) => Config.AdminIds.Contains(userId);
+    public bool IsAdmin(long userId) => _adminIds.Contains(userId);
     public bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
 
     public bool IsAccessSuffice(long userId, AccessType against)
@@ -236,13 +246,10 @@ public abstract class BotBase<TBot, TConfig>
         {
             DateTime now = TimeManager.Now();
 
-            TimeSpan? beforeGlobalUpdate =
-                TimeManager.GetDelayUntil(_lastUpdateGlobal, Config.SendMessagePeriodGlobal, now);
+            TimeSpan? beforeGlobalUpdate = TimeManager.GetDelayUntil(_lastUpdateGlobal, _sendMessagePeriodGlobal, now);
 
             DateTime? lastUpdateLocal = _lastUpdates.GetValueOrDefault(chat.Id);
-            TimeSpan period = chat.Type == ChatType.Private
-                ? Config.SendMessagePeriodPrivate
-                : Config.SendMessagePeriodGroup;
+            TimeSpan period = chat.Type == ChatType.Private ? _sendMessagePeriodPrivate : _sendMessagePeriodGroup;
             TimeSpan? beforeLocalUpdate = TimeManager.GetDelayUntil(lastUpdateLocal, period, now);
 
             TimeSpan? maxDelay = Utils.Max(beforeGlobalUpdate, beforeLocalUpdate);
@@ -304,17 +311,14 @@ public abstract class BotBase<TBot, TConfig>
     {
         string commandsDescription = GetCommandsDescription(access);
 
-        if (string.IsNullOrWhiteSpace(Config.About))
+        if (string.IsNullOrWhiteSpace(_about))
         {
             return commandsDescription;
         }
 
-        if (string.IsNullOrWhiteSpace(commandsDescription))
-        {
-            return Config.About;
-        }
-
-        return $"{Config.About}{Environment.NewLine}{Environment.NewLine}{commandsDescription}";
+        return string.IsNullOrWhiteSpace(commandsDescription)
+            ? _about
+            : $"{_about}{Environment.NewLine}{Environment.NewLine}{commandsDescription}";
     }
 
     private string GetCommandsDescription(AccessType access)
@@ -365,15 +369,54 @@ public abstract class BotBase<TBot, TConfig>
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(Config.ExtraCommands))
+        if (!string.IsNullOrWhiteSpace(_extraCommands))
         {
-            builder.AppendLine(Config.ExtraCommands);
+            builder.AppendLine(_extraCommands);
         }
 
         return builder.ToString();
     }
 
+    private async Task<string> GetUrlAsync()
+    {
+        string? host = Config.Host;
+        if (string.IsNullOrWhiteSpace(host))
+        {
+            host = await Utils.GetNgrokHostAsync();
+        }
+
+        return $"{host}/{Config.Token}";
+    }
+
+    private IList<long> GetAdminIds()
+    {
+        if (Config.AdminIds is not null && (Config.AdminIds.Count != 0))
+        {
+            return Config.AdminIds;
+        }
+
+        if (Config.AdminIdsJson is not null)
+        {
+            List<long>? deserialized = JsonConvert.DeserializeObject<List<long>>(Config.AdminIdsJson);
+            if (deserialized is not null)
+            {
+                return deserialized;
+            }
+        }
+
+        return Array.Empty<long>();
+    }
+
+    private readonly IList<long> _adminIds;
+
+    private readonly string? _about;
+    private readonly string? _extraCommands;
+
     private readonly Dictionary<long, DateTime> _lastUpdates = new();
     private DateTime? _lastUpdateGlobal;
     private readonly object _delayLocker = new();
+
+    private readonly TimeSpan _sendMessagePeriodPrivate;
+    private readonly TimeSpan _sendMessagePeriodGlobal;
+    private readonly TimeSpan _sendMessagePeriodGroup;
 }

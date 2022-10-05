@@ -13,6 +13,13 @@ public static class Utils
 {
     public static readonly LogManager LogManager = new();
 
+    public static void StartLogWith(string systemTimeZoneId)
+    {
+        LogManager.SetTimeZone(systemTimeZoneId);
+        LogManager.LogMessage();
+        LogManager.LogTimedMessage("Startup");
+    }
+
     public static void FireAndForget(Func<CancellationToken, Task> doWork,
         CancellationToken cancellationToken = default)
     {
