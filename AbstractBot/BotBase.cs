@@ -32,6 +32,8 @@ public abstract class BotBase<TBot, TConfig>
     public readonly TConfig Config;
     public readonly TimeManager TimeManager;
 
+    public string Host { get; private set; } = "";
+
     protected readonly List<CommandBase<TBot, TConfig>> Commands;
     protected readonly InputOnlineFile DontUnderstandSticker;
     protected readonly InputOnlineFile ForbiddenSticker;
@@ -61,7 +63,8 @@ public abstract class BotBase<TBot, TConfig>
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
-        string url = await GetUrlAsync();
+        Host = await GetHostAsync();
+        string url = $"{Host}/{Config.Token}";
         await Client.SetWebhookAsync(url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
         TickManager.Start(cancellationToken);
@@ -377,15 +380,9 @@ public abstract class BotBase<TBot, TConfig>
         return builder.ToString();
     }
 
-    private async Task<string> GetUrlAsync()
+    private Task<string> GetHostAsync()
     {
-        string? host = Config.Host;
-        if (string.IsNullOrWhiteSpace(host))
-        {
-            host = await Utils.GetNgrokHostAsync();
-        }
-
-        return $"{host}/{Config.Token}";
+        return string.IsNullOrWhiteSpace(Config.Host) ? Utils.GetNgrokHostAsync() : Task.FromResult(Config.Host);
     }
 
     private IList<long> GetAdminIds()
