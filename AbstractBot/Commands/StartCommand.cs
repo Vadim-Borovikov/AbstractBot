@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -13,6 +14,11 @@ internal sealed class StartCommand<TBot, TConfig> : CommandBase<TBot, TConfig>
     public override async Task ExecuteAsync(Message message, bool fromChat, string? payload)
     {
         await Bot.SetCommandsForAsync(message.Chat);
-        await Bot.SendTextMessageAsync(message.Chat, Bot.About, ParseMode.MarkdownV2);
+        string text = $"{Bot.About}";
+        if (!string.IsNullOrWhiteSpace(Bot.Config.StartPostfix))
+        {
+            text += $"{Environment.NewLine}{Bot.Config.StartPostfix}";
+        }
+        await Bot.SendTextMessageAsync(message.Chat, text, ParseMode.MarkdownV2);
     }
 }
