@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AbstractBot.Commands;
 using GryphonUtilities;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -23,9 +24,9 @@ public abstract class BotBase<TBot, TConfig>
 {
     public enum AccessType
     {
-        SuperAdmin,
+        Users,
         Admins,
-        Users
+        SuperAdmin
     }
 
     public readonly TelegramBotClient Client;
@@ -68,6 +69,17 @@ public abstract class BotBase<TBot, TConfig>
         await Client.SetWebhookAsync(url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
         TickManager.Start(cancellationToken);
+        await Client.SetMyCommandsAsync(Commands.Where(c => c.Access == AccessType.Users),
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task SetCommandsForAsync(Chat chat, CancellationToken cancellationToken = default)
+    {
+        AccessType access = GetMaximumAccessFor(chat.Id);
+        BotCommandScope scope = new BotCommandScopeChat { ChatId = chat };
+        DelayIfNeeded(chat, cancellationToken);
+        await Client.SetMyCommandsAsync(Commands.Where(c => c.Access <= access), scope,
+            cancellationToken: cancellationToken);
     }
 
     public virtual Task StopAsync(CancellationToken cancellationToken)
@@ -320,7 +332,7 @@ public abstract class BotBase<TBot, TConfig>
         }
 
         return string.IsNullOrWhiteSpace(commandsDescription)
-            ? _about
+        ? _about
             : $"{_about}{Environment.NewLine}{Environment.NewLine}{commandsDescription}";
     }
 
@@ -340,7 +352,7 @@ public abstract class BotBase<TBot, TConfig>
                     builder.AppendLine(superAdminCommands.Count > 1 ? " оманды суперадмина:" : " оманда суперадмина:");
                     foreach (CommandBase<TBot, TConfig> command in superAdminCommands)
                     {
-                        builder.AppendLine($"/{command.Name} Ц {command.Description}");
+                        builder.AppendLine($"/{command.Command} Ц {command.Description}");
                     }
                     if (adminCommands.Any() || userCommands.Any())
                     {
@@ -354,7 +366,7 @@ public abstract class BotBase<TBot, TConfig>
                 builder.AppendLine(adminCommands.Count > 1 ? "јдминские команды:" : "јдминска€ команда:");
                 foreach (CommandBase<TBot, TConfig> command in adminCommands)
                 {
-                    builder.AppendLine($"/{command.Name} Ц {command.Description}");
+                    builder.AppendLine($"/{command.Command} Ц {command.Description}");
                 }
                 if (userCommands.Any())
                 {
@@ -368,7 +380,7 @@ public abstract class BotBase<TBot, TConfig>
             builder.AppendLine(userCommands.Count > 1 ? " оманды:" : " оманда:");
             foreach (CommandBase<TBot, TConfig> command in userCommands)
             {
-                builder.AppendLine($"/{command.Name} Ц {command.Description}");
+                builder.AppendLine($"/{command.Command} Ц {command.Description}");
             }
         }
 
