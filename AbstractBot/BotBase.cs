@@ -33,6 +33,8 @@ public abstract class BotBase<TBot, TConfig>
     public readonly TConfig Config;
     public readonly TimeManager TimeManager;
 
+    public readonly string About;
+
     public string Host { get; private set; } = "";
 
     protected readonly List<CommandBase<TBot, TConfig>> Commands;
@@ -45,7 +47,11 @@ public abstract class BotBase<TBot, TConfig>
 
         Client = new TelegramBotClient(Config.Token);
 
-        Commands = new List<CommandBase<TBot, TConfig>>();
+        Commands = new List<CommandBase<TBot, TConfig>>
+        {
+            new StartCommand<TBot, TConfig>((TBot) this),
+            new HelpCommand<TBot, TConfig>((TBot) this)
+        };
 
         DontUnderstandSticker = new InputOnlineFile(Config.DontUnderstandStickerFileId);
         ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
@@ -55,10 +61,9 @@ public abstract class BotBase<TBot, TConfig>
         _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitPrivate);
         _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitGlobal);
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
-
         _adminIds = GetAdminIds();
 
-        _about = Config.About is null ? null : string.Join(Environment.NewLine, Config.About);
+        About = string.Join(Environment.NewLine, Config.About);
         _extraCommands = Config.ExtraCommands is null ? null : string.Join(Environment.NewLine, Config.ExtraCommands);
     }
 
@@ -326,14 +331,9 @@ public abstract class BotBase<TBot, TConfig>
     {
         string commandsDescription = GetCommandsDescription(access);
 
-        if (string.IsNullOrWhiteSpace(_about))
-        {
-            return commandsDescription;
-        }
-
-        return string.IsNullOrWhiteSpace(commandsDescription)
-        ? _about
-            : $"{_about}{Environment.NewLine}{Environment.NewLine}{commandsDescription}";
+        return string.IsNullOrWhiteSpace(About)
+            ? commandsDescription
+            : $"{About}{Environment.NewLine}{Environment.NewLine}{commandsDescription}";
     }
 
     private string GetCommandsDescription(AccessType access)
@@ -418,7 +418,6 @@ public abstract class BotBase<TBot, TConfig>
 
     private readonly IList<long> _adminIds;
 
-    private readonly string? _about;
     private readonly string? _extraCommands;
 
     private readonly Dictionary<long, DateTime> _lastUpdates = new();

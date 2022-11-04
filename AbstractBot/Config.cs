@@ -42,7 +42,7 @@ public class Config
 
     public string? Host { get; init; }
 
-    public List<string?>? About { get; init; }
+    public List<string?> About { get; init; } = null!;
     public List<string?>? ExtraCommands { get; init; }
 
     public List<long>? AdminIds { get; init; }
