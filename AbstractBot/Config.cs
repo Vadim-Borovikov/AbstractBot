@@ -43,7 +43,8 @@ public class Config
     public string? Host { get; init; }
 
     public List<string?> About { get; init; } = null!;
-    public string? StartPostfix { get; init; }
+    public List<string?>? StartPostfix { get; init; }
+    public List<string?>? HelpPrefix { get; init; }
     public List<string?>? ExtraCommands { get; init; }
 
     public List<long>? AdminIds { get; init; }

@@ -34,6 +34,8 @@ public abstract class BotBase<TBot, TConfig>
     public readonly TimeManager TimeManager;
 
     public readonly string About;
+    public readonly string? StartPostfix;
+    public readonly string? HelpPrefix;
 
     public string Host { get; private set; } = "";
 
@@ -64,6 +66,8 @@ public abstract class BotBase<TBot, TConfig>
         _adminIds = GetAdminIds();
 
         About = string.Join(Environment.NewLine, Config.About);
+        StartPostfix = Config.StartPostfix is null ? null : string.Join(Environment.NewLine, Config.StartPostfix);
+        HelpPrefix = Config.HelpPrefix is null ? null : string.Join(Environment.NewLine, Config.HelpPrefix);
         _extraCommands = Config.ExtraCommands is null ? null : string.Join(Environment.NewLine, Config.ExtraCommands);
     }
 
@@ -95,12 +99,6 @@ public abstract class BotBase<TBot, TConfig>
     public void Update(Update update) => Utils.FireAndForget(_ => UpdateAsync(update));
 
     public Task<User> GetUserAsync() => Client.GetMeAsync();
-
-    public string GetDescriptionFor(long userId)
-    {
-        AccessType access = GetMaximumAccessFor(userId);
-        return GetDescription(access);
-    }
 
     public string GetCommandsDescriptionFor(long userId)
     {
@@ -325,15 +323,6 @@ public abstract class BotBase<TBot, TConfig>
         return IsSuperAdmin(userId)
             ? AccessType.SuperAdmin
             : IsAdmin(userId) ? AccessType.Admins : AccessType.Users;
-    }
-
-    private string GetDescription(AccessType access)
-    {
-        string commandsDescription = GetCommandsDescription(access);
-
-        return string.IsNullOrWhiteSpace(About)
-            ? commandsDescription
-            : $"{About}{Environment.NewLine}{Environment.NewLine}{commandsDescription}";
     }
 
     private string GetCommandsDescription(AccessType access)

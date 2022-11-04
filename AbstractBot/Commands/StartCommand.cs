@@ -15,9 +15,9 @@ internal sealed class StartCommand<TBot, TConfig> : CommandBase<TBot, TConfig>
     {
         await Bot.SetCommandsForAsync(message.Chat);
         string text = $"{Bot.About}";
-        if (!string.IsNullOrWhiteSpace(Bot.Config.StartPostfix))
+        if (!string.IsNullOrWhiteSpace(Bot.StartPostfix))
         {
-            text += $"{Environment.NewLine}{Bot.Config.StartPostfix}";
+            text += $"{Environment.NewLine}{Bot.StartPostfix}";
         }
         await Bot.SendTextMessageAsync(message.Chat, text, ParseMode.MarkdownV2);
     }
