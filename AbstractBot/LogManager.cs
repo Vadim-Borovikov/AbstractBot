@@ -45,8 +45,10 @@ public sealed class LogManager
     {
         LogTimedMessage($"Error: {ex.Message}");
 
+        string description =
+            string.Join($"{Environment.NewLine}{Environment.NewLine}", ex.Flatten().Select(e => e.ToString()));
         string message =
-            $"{_timeManager.Now():dd.MM HH:mm:ss}{Environment.NewLine}{ex}{Environment.NewLine}{Environment.NewLine}";
+            $"{_timeManager.Now():dd.MM HH:mm:ss}{Environment.NewLine}{description}{Environment.NewLine}{Environment.NewLine}";
         InsertToStart(ExceptionsLogPath, message);
     }
 

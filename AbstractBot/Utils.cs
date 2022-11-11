@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,6 +76,25 @@ public static class Utils
             -1 => b,
             _  => throw new InvalidOperationException()
         };
+    }
+
+    internal static IEnumerable<Exception> Flatten(this Exception ex)
+    {
+        if (ex is AggregateException aggregateException)
+        {
+            foreach (Exception e in aggregateException.Flatten().InnerExceptions)
+            {
+                yield return e;
+            }
+            yield break;
+        }
+
+        yield return ex;
+        while (ex.InnerException is not null)
+        {
+            ex = ex.InnerException;
+            yield return ex;
+        }
     }
 
     private const string DesiredNgrokProto = "https";
