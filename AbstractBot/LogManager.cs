@@ -41,15 +41,13 @@ public sealed class LogManager
 
     public void LogTimedMessage(string? message = null) => LogMessage($"{_timeManager.Now():HH:mm:ss}: {message}");
 
+    public void LogError(string message) => LogError(message, message);
+
     public void LogException(Exception ex)
     {
-        LogTimedMessage($"Error: {ex.Message}");
-
-        string description =
+        string body =
             string.Join($"{Environment.NewLine}{Environment.NewLine}", ex.Flatten().Select(e => e.ToString()));
-        string message =
-            $"{_timeManager.Now():dd.MM HH:mm:ss}{Environment.NewLine}{description}{Environment.NewLine}{Environment.NewLine}";
-        InsertToStart(ExceptionsLogPath, message);
+        LogError(ex.Message, body);
     }
 
     public void DeleteExceptionLog()
@@ -68,6 +66,13 @@ public sealed class LogManager
         }
 
         LogException(t.Exception);
+    }
+
+    public void LogError(string title, string body)
+    {
+        LogTimedMessage($"Error: {title}");
+        InsertToStart(ExceptionsLogPath,
+            $"{_timeManager.Now():dd.MM HH:mm:ss}{Environment.NewLine}{body}{Environment.NewLine}{Environment.NewLine}");
     }
 
     private void InsertToStart(string path, string? contents)
