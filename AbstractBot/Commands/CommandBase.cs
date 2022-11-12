@@ -5,17 +5,15 @@ using Telegram.Bot.Types;
 namespace AbstractBot.Commands;
 
 [PublicAPI]
-public abstract class CommandBase<TBot, TConfig> : BotCommand
-    where TBot : BotBase<TBot, TConfig>
-    where TConfig : Config
+public abstract class CommandBase : BotCommand
 {
     protected virtual string? Alias => null;
 
-    public virtual BotBase<TBot, TConfig>.AccessType Access => BotBase<TBot, TConfig>.AccessType.Users;
+    public virtual BotBase.AccessType Access => BotBase.AccessType.Users;
 
-    protected CommandBase(TBot bot, string command, string description)
+    protected CommandBase(BotBase bot, string command, string description)
     {
-        Bot = bot;
+        BotBase = bot;
         Command = command;
         Description = description;
     }
@@ -38,5 +36,5 @@ public abstract class CommandBase<TBot, TConfig> : BotCommand
 
     public abstract Task ExecuteAsync(Message message, bool fromChat, string? payload);
 
-    protected readonly TBot Bot;
+    protected readonly BotBase BotBase;
 }

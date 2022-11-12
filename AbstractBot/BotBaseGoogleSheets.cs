@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 namespace AbstractBot;
 
 [PublicAPI]
-public abstract class BotBaseGoogleSheets<TBot, TConfig> : BotBase<TBot, TConfig>, IDisposable
+public abstract class BotBaseGoogleSheets<TBot, TConfig> : BotBaseCustom<TConfig>, IDisposable
     where TBot: BotBaseGoogleSheets<TBot, TConfig>
     where TConfig : ConfigGoogleSheets
 {

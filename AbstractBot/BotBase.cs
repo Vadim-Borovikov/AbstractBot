@@ -18,9 +18,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 namespace AbstractBot;
 
 [PublicAPI]
-public abstract class BotBase<TBot, TConfig>
-    where TBot: BotBase<TBot, TConfig>
-    where TConfig: Config
+public abstract class BotBase
 {
     public enum AccessType
     {
@@ -30,7 +28,7 @@ public abstract class BotBase<TBot, TConfig>
     }
 
     public readonly TelegramBotClient Client;
-    public readonly TConfig Config;
+    public readonly Config ConfigBase;
     public readonly TimeManager TimeManager;
 
     public readonly string About;
@@ -39,42 +37,42 @@ public abstract class BotBase<TBot, TConfig>
 
     public string Host { get; private set; } = "";
 
-    protected readonly List<CommandBase<TBot, TConfig>> Commands;
+    protected readonly List<CommandBase> Commands;
     protected readonly InputOnlineFile DontUnderstandSticker;
     protected readonly InputOnlineFile ForbiddenSticker;
 
-    protected BotBase(TConfig config)
+    protected BotBase(Config config)
     {
-        Config = config;
+        ConfigBase = config;
 
-        Client = new TelegramBotClient(Config.Token);
+        Client = new TelegramBotClient(ConfigBase.Token);
 
-        Commands = new List<CommandBase<TBot, TConfig>>
+        Commands = new List<CommandBase>
         {
-            new StartCommand<TBot, TConfig>((TBot) this),
-            new HelpCommand<TBot, TConfig>((TBot) this)
+            new StartCommand(this),
+            new HelpCommand(this)
         };
 
-        DontUnderstandSticker = new InputOnlineFile(Config.DontUnderstandStickerFileId);
-        ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
+        DontUnderstandSticker = new InputOnlineFile(ConfigBase.DontUnderstandStickerFileId);
+        ForbiddenSticker = new InputOnlineFile(ConfigBase.ForbiddenStickerFileId);
 
-        TimeManager = new TimeManager(Config.SystemTimeZoneId);
+        TimeManager = new TimeManager(ConfigBase.SystemTimeZoneId);
 
         _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitPrivate);
         _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitGlobal);
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
         _adminIds = GetAdminIds();
 
-        About = string.Join(Environment.NewLine, Config.About);
-        StartPostfix = Config.StartPostfix is null ? null : string.Join(Environment.NewLine, Config.StartPostfix);
-        HelpPrefix = Config.HelpPrefix is null ? null : string.Join(Environment.NewLine, Config.HelpPrefix);
-        _extraCommands = Config.ExtraCommands is null ? null : string.Join(Environment.NewLine, Config.ExtraCommands);
+        About = string.Join(Environment.NewLine, ConfigBase.About);
+        StartPostfix = ConfigBase.StartPostfix is null ? null : string.Join(Environment.NewLine, ConfigBase.StartPostfix);
+        HelpPrefix = ConfigBase.HelpPrefix is null ? null : string.Join(Environment.NewLine, ConfigBase.HelpPrefix);
+        _extraCommands = ConfigBase.ExtraCommands is null ? null : string.Join(Environment.NewLine, ConfigBase.ExtraCommands);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
         Host = await GetHostAsync();
-        string url = $"{Host}/{Config.Token}";
+        string url = $"{Host}/{ConfigBase.Token}";
         await Client.SetWebhookAsync(url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
         TickManager.Start(cancellationToken);
@@ -107,7 +105,7 @@ public abstract class BotBase<TBot, TConfig>
     }
 
     public bool IsAdmin(long userId) => _adminIds.Contains(userId);
-    public bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
+    public bool IsSuperAdmin(long userId) => ConfigBase.SuperAdminId == userId;
 
     public bool IsAccessSuffice(long userId, AccessType against)
     {
@@ -222,7 +220,7 @@ public abstract class BotBase<TBot, TConfig>
         return EditMessageTextAsync(message.Chat, message.MessageId, text, ParseMode.MarkdownV2);
     }
 
-    protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase<TBot, TConfig>? command = null,
+    protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase? command = null,
         string? payload = null)
     {
         return message.Type switch
@@ -234,8 +232,8 @@ public abstract class BotBase<TBot, TConfig>
         };
     }
 
-    protected virtual Task ProcessTextMessageAsync(Message textMessage, bool fromChat,
-        CommandBase<TBot, TConfig>? command = null, string? payload = null)
+    protected virtual Task ProcessTextMessageAsync(Message textMessage, bool fromChat, CommandBase? command = null,
+        string? payload = null)
     {
         if (command is null)
         {
@@ -306,7 +304,7 @@ public abstract class BotBase<TBot, TConfig>
             botName = bot.Username;
         }
 
-        foreach (CommandBase<TBot, TConfig> command in Commands)
+        foreach (CommandBase command in Commands)
         {
             if (command.IsInvokingBy(message.Text ?? "", out string? payload, fromChat, botName))
             {
@@ -328,18 +326,18 @@ public abstract class BotBase<TBot, TConfig>
     private string GetCommandsDescription(AccessType access)
     {
         StringBuilder builder = new();
-        List<CommandBase<TBot, TConfig>> userCommands = Commands.Where(c => c.Access == AccessType.Users).ToList();
+        List<CommandBase> userCommands = Commands.Where(c => c.Access == AccessType.Users).ToList();
         if (access != AccessType.Users)
         {
-            List<CommandBase<TBot, TConfig>> adminCommands = Commands.Where(c => c.Access == AccessType.Admins).ToList();
+            List<CommandBase> adminCommands = Commands.Where(c => c.Access == AccessType.Admins).ToList();
             if (access == AccessType.SuperAdmin)
             {
-                List<CommandBase<TBot, TConfig>> superAdminCommands =
+                List<CommandBase> superAdminCommands =
                     Commands.Where(c => c.Access == AccessType.SuperAdmin).ToList();
                 if (superAdminCommands.Any())
                 {
                     builder.AppendLine(superAdminCommands.Count > 1 ? "Команды суперадмина:" : "Команда суперадмина:");
-                    foreach (CommandBase<TBot, TConfig> command in superAdminCommands)
+                    foreach (CommandBase command in superAdminCommands)
                     {
                         builder.AppendLine($"/{command.Command} – {command.Description}");
                     }
@@ -353,7 +351,7 @@ public abstract class BotBase<TBot, TConfig>
             if (adminCommands.Any())
             {
                 builder.AppendLine(adminCommands.Count > 1 ? "Админские команды:" : "Админская команда:");
-                foreach (CommandBase<TBot, TConfig> command in adminCommands)
+                foreach (CommandBase command in adminCommands)
                 {
                     builder.AppendLine($"/{command.Command} – {command.Description}");
                 }
@@ -367,7 +365,7 @@ public abstract class BotBase<TBot, TConfig>
         if (userCommands.Any())
         {
             builder.AppendLine(userCommands.Count > 1 ? "Команды:" : "Команда:");
-            foreach (CommandBase<TBot, TConfig> command in userCommands)
+            foreach (CommandBase command in userCommands)
             {
                 builder.AppendLine($"/{command.Command} – {command.Description}");
             }
@@ -383,19 +381,19 @@ public abstract class BotBase<TBot, TConfig>
 
     private Task<string> GetHostAsync()
     {
-        return string.IsNullOrWhiteSpace(Config.Host) ? Utils.GetNgrokHostAsync() : Task.FromResult(Config.Host);
+        return string.IsNullOrWhiteSpace(ConfigBase.Host) ? Utils.GetNgrokHostAsync() : Task.FromResult(ConfigBase.Host);
     }
 
     private IList<long> GetAdminIds()
     {
-        if (Config.AdminIds is not null && (Config.AdminIds.Count != 0))
+        if (ConfigBase.AdminIds is not null && (ConfigBase.AdminIds.Count != 0))
         {
-            return Config.AdminIds;
+            return ConfigBase.AdminIds;
         }
 
-        if (Config.AdminIdsJson is not null)
+        if (ConfigBase.AdminIdsJson is not null)
         {
-            List<long>? deserialized = JsonConvert.DeserializeObject<List<long>>(Config.AdminIdsJson);
+            List<long>? deserialized = JsonConvert.DeserializeObject<List<long>>(ConfigBase.AdminIdsJson);
             if (deserialized is not null)
             {
                 return deserialized;
