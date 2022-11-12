@@ -5,7 +5,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace AbstractBot.Commands;
 
-internal sealed class StartCommand : CommandBase
+public sealed class StartCommand : CommandBase
 {
     public StartCommand(BotBase bot) : base(bot, "start", "приветствие") { }
 
