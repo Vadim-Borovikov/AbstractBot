@@ -211,7 +211,8 @@ public abstract class BotBase
 
     public Task<Message> FinalizeStatusMessageAsync(Message message, string postfix = "")
     {
-        string text = $"_{message.Text}_ Готово\\.{postfix}";
+        string text = message.Text.GetValue(nameof(message.Text));
+        text = $"_{Utils.EscapeCharacters(text)}_ Готово\\.{postfix}";
         return EditMessageTextAsync(message.Chat, message.MessageId, text, ParseMode.MarkdownV2);
     }
 
