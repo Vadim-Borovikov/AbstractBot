@@ -99,12 +99,6 @@ public abstract class BotBase
 
     public Task<User> GetUserAsync() => Client.GetMeAsync();
 
-    public string GetCommandsDescriptionFor(long userId)
-    {
-        AccessType access = GetMaximumAccessFor(userId);
-        return GetCommandsDescription(access);
-    }
-
     public bool IsAdmin(long userId) => AdminIds.Contains(userId);
     public bool IsSuperAdmin(long userId) => ConfigBase.SuperAdminId == userId;
 
@@ -221,6 +215,64 @@ public abstract class BotBase
         return EditMessageTextAsync(message.Chat, message.MessageId, text, ParseMode.MarkdownV2);
     }
 
+    internal string GetCommandsDescriptionFor(long userId)
+    {
+        AccessType access = GetMaximumAccessFor(userId);
+
+        StringBuilder builder = new();
+        List<CommandBase> userCommands = Commands.Where(c => c.Access == AccessType.Users).ToList();
+        if (access != AccessType.Users)
+        {
+            List<CommandBase> adminCommands = Commands.Where(c => c.Access == AccessType.Admins).ToList();
+            if (access == AccessType.SuperAdmin)
+            {
+                List<CommandBase> superAdminCommands =
+                    Commands.Where(c => c.Access == AccessType.SuperAdmin).ToList();
+                if (superAdminCommands.Any())
+                {
+                    builder.AppendLine(superAdminCommands.Count > 1 ? "Команды суперадмина:" : "Команда суперадмина:");
+                    foreach (CommandBase command in superAdminCommands)
+                    {
+                        builder.AppendLine(command.GetEscapedLine());
+                    }
+                    if (adminCommands.Any() || userCommands.Any())
+                    {
+                        builder.AppendLine();
+                    }
+                }
+            }
+
+            if (adminCommands.Any())
+            {
+                builder.AppendLine(adminCommands.Count > 1 ? "Админские команды:" : "Админская команда:");
+                foreach (CommandBase command in adminCommands)
+                {
+                    builder.AppendLine(command.GetEscapedLine());
+                }
+                if (userCommands.Any())
+                {
+                    builder.AppendLine();
+                }
+            }
+        }
+
+        if (userCommands.Any())
+        {
+            builder.AppendLine(userCommands.Count > 1 ? "Команды:" : "Команда:");
+            foreach (CommandBase command in userCommands)
+            {
+                builder.AppendLine(command.GetEscapedLine());
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(_extraCommands))
+        {
+            builder.AppendLine(_extraCommands);
+        }
+
+        return builder.ToString();
+    }
+
     protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase? command = null,
         string? payload = null)
     {
@@ -322,62 +374,6 @@ public abstract class BotBase
         return IsSuperAdmin(userId)
             ? AccessType.SuperAdmin
             : IsAdmin(userId) ? AccessType.Admins : AccessType.Users;
-    }
-
-    private string GetCommandsDescription(AccessType access)
-    {
-        StringBuilder builder = new();
-        List<CommandBase> userCommands = Commands.Where(c => c.Access == AccessType.Users).ToList();
-        if (access != AccessType.Users)
-        {
-            List<CommandBase> adminCommands = Commands.Where(c => c.Access == AccessType.Admins).ToList();
-            if (access == AccessType.SuperAdmin)
-            {
-                List<CommandBase> superAdminCommands =
-                    Commands.Where(c => c.Access == AccessType.SuperAdmin).ToList();
-                if (superAdminCommands.Any())
-                {
-                    builder.AppendLine(superAdminCommands.Count > 1 ? "Команды суперадмина:" : "Команда суперадмина:");
-                    foreach (CommandBase command in superAdminCommands)
-                    {
-                        builder.AppendLine($"/{command.Command} – {command.Description}");
-                    }
-                    if (adminCommands.Any() || userCommands.Any())
-                    {
-                        builder.AppendLine();
-                    }
-                }
-            }
-
-            if (adminCommands.Any())
-            {
-                builder.AppendLine(adminCommands.Count > 1 ? "Админские команды:" : "Админская команда:");
-                foreach (CommandBase command in adminCommands)
-                {
-                    builder.AppendLine($"/{command.Command} – {command.Description}");
-                }
-                if (userCommands.Any())
-                {
-                    builder.AppendLine();
-                }
-            }
-        }
-
-        if (userCommands.Any())
-        {
-            builder.AppendLine(userCommands.Count > 1 ? "Команды:" : "Команда:");
-            foreach (CommandBase command in userCommands)
-            {
-                builder.AppendLine($"/{command.Command} – {command.Description}");
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(_extraCommands))
-        {
-            builder.AppendLine(_extraCommands);
-        }
-
-        return builder.ToString();
     }
 
     private Task<string> GetHostAsync()

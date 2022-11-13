@@ -36,5 +36,7 @@ public abstract class CommandBase : BotCommand
 
     public abstract Task ExecuteAsync(Message message, bool fromChat, string? payload);
 
+    internal string GetEscapedLine() => Utils.EscapeCharacters($"/{Command} – {Description}");
+
     protected readonly BotBase BotBase;
 }
