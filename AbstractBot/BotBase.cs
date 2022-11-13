@@ -37,6 +37,7 @@ public abstract class BotBase
 
     public string Host { get; private set; } = "";
 
+    protected readonly List<long> AdminIds;
     protected readonly List<CommandBase> Commands;
     protected readonly InputOnlineFile DontUnderstandSticker;
     protected readonly InputOnlineFile ForbiddenSticker;
@@ -61,7 +62,7 @@ public abstract class BotBase
         _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitPrivate);
         _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitGlobal);
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
-        _adminIds = GetAdminIds();
+        AdminIds = GetAdminIds();
 
         About = string.Join(Environment.NewLine, ConfigBase.About);
         StartPostfix = ConfigBase.StartPostfix is null ? null : string.Join(Environment.NewLine, ConfigBase.StartPostfix);
@@ -104,7 +105,7 @@ public abstract class BotBase
         return GetCommandsDescription(access);
     }
 
-    public bool IsAdmin(long userId) => _adminIds.Contains(userId);
+    public bool IsAdmin(long userId) => AdminIds.Contains(userId);
     public bool IsSuperAdmin(long userId) => ConfigBase.SuperAdminId == userId;
 
     public bool IsAccessSuffice(long userId, AccessType against)
@@ -384,7 +385,7 @@ public abstract class BotBase
         return string.IsNullOrWhiteSpace(ConfigBase.Host) ? Utils.GetNgrokHostAsync() : Task.FromResult(ConfigBase.Host);
     }
 
-    private IList<long> GetAdminIds()
+    private List<long> GetAdminIds()
     {
         if (ConfigBase.AdminIds is not null && (ConfigBase.AdminIds.Count != 0))
         {
@@ -400,10 +401,8 @@ public abstract class BotBase
             }
         }
 
-        return Array.Empty<long>();
+        return new List<long>();
     }
-
-    private readonly IList<long> _adminIds;
 
     private readonly string? _extraCommands;
 
