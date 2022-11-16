@@ -8,15 +8,15 @@ public sealed class TimeManager
 {
     internal TimeManager(string? timeZoneId = null)
     {
-        _timeZoneInfo = timeZoneId is null ? TimeZoneInfo.Local : TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        TimeZoneInfo = timeZoneId is null ? TimeZoneInfo.Local : TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
     }
 
     public DateTimeOffset Now() => ToLocal(DateTimeOffset.UtcNow);
 
     public DateTimeOffset ToLocal(DateTimeOffset utc)
     {
-        DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(utc.UtcDateTime, _timeZoneInfo);
-        return new DateTimeOffset(dateTime, _timeZoneInfo.GetUtcOffset(utc));
+        DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(utc.UtcDateTime, TimeZoneInfo);
+        return new DateTimeOffset(dateTime, TimeZoneInfo.BaseUtcOffset);
     }
 
     public static TimeSpan? GetDelayUntil(DateTimeOffset? start, TimeSpan delay, DateTimeOffset now)
@@ -30,5 +30,5 @@ public sealed class TimeManager
         return time <= now ? null : time - now;
     }
 
-    private readonly TimeZoneInfo _timeZoneInfo;
+    public readonly TimeZoneInfo TimeZoneInfo;
 }
