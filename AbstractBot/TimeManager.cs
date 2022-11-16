@@ -11,20 +11,22 @@ public sealed class TimeManager
         _timeZoneInfo = timeZoneId is null ? TimeZoneInfo.Local : TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
     }
 
-    public DateTime Now() => ToLocal(DateTime.UtcNow);
+    public DateTimeOffset Now() => ToLocal(DateTimeOffset.UtcNow);
 
-    public DateTime ToLocal(DateTime utc) => TimeZoneInfo.ConvertTimeFromUtc(utc, _timeZoneInfo);
+    public DateTimeOffset ToLocal(DateTimeOffset utc)
+    {
+        DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(utc.UtcDateTime, _timeZoneInfo);
+        return new DateTimeOffset(dateTime, _timeZoneInfo.GetUtcOffset(utc));
+    }
 
-    public DateTime ToUtc(DateTime local) => TimeZoneInfo.ConvertTimeToUtc(local, _timeZoneInfo);
-
-    public static TimeSpan? GetDelayUntil(DateTime? start, TimeSpan delay, DateTime now)
+    public static TimeSpan? GetDelayUntil(DateTimeOffset? start, TimeSpan delay, DateTimeOffset now)
     {
         if (start is null)
         {
             return null;
         }
 
-        DateTime time = start.Value + delay;
+        DateTimeOffset time = start.Value + delay;
         return time <= now ? null : time - now;
     }
 
