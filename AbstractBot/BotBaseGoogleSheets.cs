@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using GoogleSheetsManager;
 using GoogleSheetsManager.Providers;
 using GryphonUtilities;
 using JetBrains.Annotations;
@@ -24,9 +23,23 @@ public abstract class BotBaseGoogleSheets<TBot, TConfig> : BotBaseCustom<TConfig
         GoogleSheetsProvider = new SheetsProvider(json, Config.ApplicationName, Config.GoogleSheetId);
         AdditionalConverters = new Dictionary<Type, Func<object?, object?>>
         {
-            { typeof(DateTimeFull), o => o.ToDateTimeFull(TimeManager.TimeZoneInfo) },
-            { typeof(DateTimeFull?), o => o.ToDateTimeFull(TimeManager.TimeZoneInfo) }
+            { typeof(DateTimeFull), o => GetDateTimeFull(o) },
+            { typeof(DateTimeFull?), o => GetDateTimeFull(o) }
         };
+    }
+
+    public DateTimeFull? GetDateTimeFull(object? o)
+    {
+        switch (o)
+        {
+            case DateTimeFull dtf: return dtf;
+            case DateTimeOffset dto: return TimeManager.GetDateTimeFull(dto);
+            default:
+            {
+                DateTime? dt = GoogleSheetsManager.Utils.GetDateTime(o);
+                return dt is null ? null : TimeManager.GetDateTimeFull(dt.Value);
+            }
+        }
     }
 
     public virtual void Dispose()
