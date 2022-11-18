@@ -314,11 +314,11 @@ public abstract class BotBase
     {
         lock (_delayLocker)
         {
-            DateTimeOffset now = TimeManager.Now();
+            DateTimeFull now = TimeManager.Now();
 
             TimeSpan? beforeGlobalUpdate = TimeManager.GetDelayUntil(_lastUpdateGlobal, _sendMessagePeriodGlobal, now);
 
-            DateTimeOffset lastUpdateLocal = _lastUpdates.GetValueOrDefault(chat.Id);
+            DateTimeFull? lastUpdateLocal = _lastUpdates.ContainsKey(chat.Id) ? _lastUpdates[chat.Id] : null;
             TimeSpan period = chat.Type == ChatType.Private ? _sendMessagePeriodPrivate : _sendMessagePeriodGroup;
             TimeSpan? beforeLocalUpdate = TimeManager.GetDelayUntil(lastUpdateLocal, period, now);
 
@@ -326,7 +326,8 @@ public abstract class BotBase
             if (maxDelay.HasValue)
             {
                 Task.Delay(maxDelay.Value, cancellationToken).Wait(cancellationToken);
-                now += maxDelay.Value;
+                DateTimeOffset nowOffset = now.ToDateTimeOffset() + maxDelay.Value;
+                now = new DateTimeFull(nowOffset, now.TimeZoneInfo);
             }
 
             _lastUpdateGlobal = now;
@@ -403,8 +404,8 @@ public abstract class BotBase
 
     private readonly string? _extraCommands;
 
-    private readonly Dictionary<long, DateTimeOffset> _lastUpdates = new();
-    private DateTimeOffset? _lastUpdateGlobal;
+    private readonly Dictionary<long, DateTimeFull> _lastUpdates = new();
+    private DateTimeFull? _lastUpdateGlobal;
     private readonly object _delayLocker = new();
 
     private readonly TimeSpan _sendMessagePeriodPrivate;
