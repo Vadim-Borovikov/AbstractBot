@@ -326,8 +326,7 @@ public abstract class BotBase
             if (maxDelay.HasValue)
             {
                 Task.Delay(maxDelay.Value, cancellationToken).Wait(cancellationToken);
-                DateTimeOffset nowOffset = now.ToDateTimeOffset() + maxDelay.Value;
-                now = new DateTimeFull(nowOffset, now.TimeZoneInfo);
+                now += maxDelay.Value;
             }
 
             _lastUpdateGlobal = now;
