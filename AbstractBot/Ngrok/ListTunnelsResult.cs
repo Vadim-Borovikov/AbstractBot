@@ -1,21 +1,20 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 
 namespace AbstractBot.Ngrok;
 
-[UsedImplicitly]
+[PublicAPI]
 internal sealed class ListTunnelsResult
 {
+    [PublicAPI]
     public sealed class Tunnel
     {
-        [JsonProperty]
-        public string? Proto { get; set; }
+        public string? Proto;
 
-        [JsonProperty]
-        public string? PublicUrl { get; set; }
+        [JsonPropertyName("public_url")]
+        public string? PublicUrl;
     }
 
-    [JsonProperty]
-    public List<Tunnel?>? Tunnels { get; set; }
+    public List<Tunnel?>? Tunnels;
 }
