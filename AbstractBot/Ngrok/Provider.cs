@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Text.Json;
+using System.Threading.Tasks;
 using GryphonUtilities;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace AbstractBot.Ngrok;
 
@@ -9,15 +8,13 @@ internal static class Provider
 {
     public static Task<ListTunnelsResult> ListTunnels()
     {
-        return RestHelper.CallGetMethodAsync<ListTunnelsResult>(ApiProvider, Method, settings: Settings);
+        return RestHelper.CallGetMethodAsync<ListTunnelsResult>(ApiProvider, Method, options: Options);
     }
 
-    private static readonly JsonSerializerSettings Settings = new()
+    private static readonly JsonSerializerOptions Options = new()
     {
-        ContractResolver = new DefaultContractResolver
-        {
-            NamingStrategy = new SnakeCaseNamingStrategy()
-        }
+        IncludeFields = true,
+        PropertyNameCaseInsensitive = true
     };
 
     private const string ApiProvider = "http://127.0.0.1:4040/api";

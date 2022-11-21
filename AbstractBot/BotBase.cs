@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Commands;
 using GryphonUtilities;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -380,7 +380,9 @@ public abstract class BotBase
 
     private Task<string> GetHostAsync()
     {
-        return string.IsNullOrWhiteSpace(ConfigBase.Host) ? Utils.GetNgrokHostAsync() : Task.FromResult(ConfigBase.Host);
+        return string.IsNullOrWhiteSpace(ConfigBase.Host)
+            ? Utils.GetNgrokHostAsync()
+            : Task.FromResult(ConfigBase.Host);
     }
 
     private List<long> GetAdminIds()
@@ -392,7 +394,7 @@ public abstract class BotBase
 
         if (ConfigBase.AdminIdsJson is not null)
         {
-            List<long>? deserialized = JsonConvert.DeserializeObject<List<long>>(ConfigBase.AdminIdsJson);
+            List<long>? deserialized = JsonSerializer.Deserialize<List<long>>(ConfigBase.AdminIdsJson);
             if (deserialized is not null)
             {
                 return deserialized;
