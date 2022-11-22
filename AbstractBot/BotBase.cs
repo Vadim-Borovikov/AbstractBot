@@ -314,7 +314,7 @@ public abstract class BotBase
     {
         lock (_delayLocker)
         {
-            DateTimeFull now = TimeManager.Now();
+            DateTimeFull now = DateTimeFull.CreateUtcNow();
 
             TimeSpan? beforeGlobalUpdate = TimeManager.GetDelayUntil(_lastUpdateGlobal, _sendMessagePeriodGlobal, now);
 
