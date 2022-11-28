@@ -34,6 +34,8 @@ public static class Utils
         return result;
     }
 
+    public static bool IsGroup(Chat chat) => chat.Type is ChatType.Group or ChatType.Supergroup;
+
     public static void StartLogWith(string systemTimeZoneId)
     {
         LogManager.SetTimeZone(systemTimeZoneId);

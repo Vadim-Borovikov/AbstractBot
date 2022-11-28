@@ -358,7 +358,7 @@ public abstract class BotBase
     private async Task UpdateAsync(Message message)
     {
         Chat senderChat = GetSenderChat(message);
-        bool fromChat = senderChat.Type is ChatType.Group or ChatType.Supergroup;
+        bool fromChat = Utils.IsGroup(senderChat);
         string? botName = null;
         if (fromChat)
         {
