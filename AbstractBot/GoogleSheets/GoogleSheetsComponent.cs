@@ -5,27 +5,26 @@ using GoogleSheetsManager.Providers;
 using GryphonUtilities;
 using JetBrains.Annotations;
 
-namespace AbstractBot;
+namespace AbstractBot.GoogleSheets;
 
 [PublicAPI]
-public abstract class BotBaseGoogleSheets<TBot, TConfig> : BotBaseCustom<TConfig>, IDisposable
-    where TBot: BotBaseGoogleSheets<TBot, TConfig>
-    where TConfig : ConfigGoogleSheets
+public class GoogleSheetsComponent : IDisposable
 {
     public readonly SheetsProvider GoogleSheetsProvider;
     public readonly Dictionary<Type, Func<object?, object?>> AdditionalConverters;
 
-    protected BotBaseGoogleSheets(TConfig config) : base(config)
+    public GoogleSheetsComponent(IConfigGoogleSheets config, JsonSerializerOptions options, TimeManager timeManager)
     {
-        string json = string.IsNullOrWhiteSpace(Config.GoogleCredentialJson)
-            ? JsonSerializer.Serialize(Config.GoogleCredential, JsonSerializerOptionsProvider.PascalCaseOptions)
-            : Config.GoogleCredentialJson;
-        GoogleSheetsProvider = new SheetsProvider(json, Config.ApplicationName, Config.GoogleSheetId);
+        string json = string.IsNullOrWhiteSpace(config.GoogleCredentialJson)
+            ? JsonSerializer.Serialize(config.GoogleCredential, options)
+            : config.GoogleCredentialJson;
+        GoogleSheetsProvider = new SheetsProvider(json, config.ApplicationName, config.GoogleSheetId);
         AdditionalConverters = new Dictionary<Type, Func<object?, object?>>
         {
             { typeof(DateTimeFull), o => GetDateTimeFull(o) },
             { typeof(DateTimeFull?), o => GetDateTimeFull(o) }
         };
+        _timeManager = timeManager;
     }
 
     public DateTimeFull? GetDateTimeFull(object? o)
@@ -33,11 +32,11 @@ public abstract class BotBaseGoogleSheets<TBot, TConfig> : BotBaseCustom<TConfig
         switch (o)
         {
             case DateTimeFull dtf: return dtf;
-            case DateTimeOffset dto: return TimeManager.GetDateTimeFull(dto);
+            case DateTimeOffset dto: return _timeManager.GetDateTimeFull(dto);
             default:
             {
                 DateTime? dt = GoogleSheetsManager.Utils.GetDateTime(o);
-                return dt is null ? null : TimeManager.GetDateTimeFull(dt.Value);
+                return dt is null ? null : _timeManager.GetDateTimeFull(dt.Value);
             }
         }
     }
@@ -47,4 +46,6 @@ public abstract class BotBaseGoogleSheets<TBot, TConfig> : BotBaseCustom<TConfig
         GoogleSheetsProvider.Dispose();
         GC.SuppressFinalize(this);
     }
+
+    private readonly TimeManager _timeManager;
 }
