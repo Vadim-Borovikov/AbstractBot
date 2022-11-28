@@ -30,8 +30,10 @@ public abstract class CommandBase : BotCommand
         }
 
         payload = null;
-        return (fromChat && (text == $"/{Command}@{botName}"))
-               || (!fromChat && ((text == $"/{Command}") || (!string.IsNullOrWhiteSpace(Alias) && (text == Alias))));
+
+        return (!string.IsNullOrWhiteSpace(Alias) && (text == Alias))
+               || (fromChat && (text == $"/{Command}@{botName}"))
+               || (!fromChat && (text == $"/{Command}"));
     }
 
     public abstract Task ExecuteAsync(Message message, Chat chat, string? payload);
