@@ -68,9 +68,11 @@ public abstract class BotBase
         AdminIds = GetAdminIds();
 
         About = string.Join(Environment.NewLine, ConfigBase.About);
-        StartPostfix = ConfigBase.StartPostfix is null ? null : string.Join(Environment.NewLine, ConfigBase.StartPostfix);
+        StartPostfix =
+            ConfigBase.StartPostfix is null ? null : string.Join(Environment.NewLine, ConfigBase.StartPostfix);
         HelpPrefix = ConfigBase.HelpPrefix is null ? null : string.Join(Environment.NewLine, ConfigBase.HelpPrefix);
-        _extraCommands = ConfigBase.ExtraCommands is null ? null : string.Join(Environment.NewLine, ConfigBase.ExtraCommands);
+        _extraCommands =
+            ConfigBase.ExtraCommands is null ? null : string.Join(Environment.NewLine, ConfigBase.ExtraCommands);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
