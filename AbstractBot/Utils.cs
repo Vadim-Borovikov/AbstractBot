@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using AbstractBot.Ngrok;
 using GryphonUtilities;
 using JetBrains.Annotations;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace AbstractBot;
 
@@ -13,6 +15,24 @@ namespace AbstractBot;
 public static class Utils
 {
     public static readonly LogManager LogManager = new();
+
+    public static Chat GetChat(long id, ChatType type = ChatType.Private)
+    {
+        return new Chat
+        {
+            Id = id,
+            Type = type
+        };
+    }
+
+    public static Chat GetChatWith(User user)
+    {
+        Chat result = GetChat(user.Id);
+        result.FirstName = user.FirstName;
+        result.LastName = user.LastName;
+        result.Username = user.Username;
+        return result;
+    }
 
     public static void StartLogWith(string systemTimeZoneId)
     {

@@ -107,16 +107,11 @@ public abstract class BotBase
     public bool IsAdmin(long userId) => AdminIds.Contains(userId);
     public bool IsSuperAdmin(long userId) => ConfigBase.SuperAdminId == userId;
 
-    public bool IsAccessSuffice(long userId, AccessType against)
+    public AccessType GetMaximumAccessFor(long userId)
     {
-        switch (against)
-        {
-            case AccessType.SuperAdmin when IsSuperAdmin(userId):
-            case AccessType.Admins when IsAdmin(userId) || IsSuperAdmin(userId):
-            case AccessType.Users:
-                return true;
-            default: return false;
-        }
+        return IsSuperAdmin(userId)
+            ? AccessType.SuperAdmin
+            : IsAdmin(userId) ? AccessType.Admins : AccessType.Users;
     }
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
@@ -279,19 +274,19 @@ public abstract class BotBase
         return builder.ToString();
     }
 
-    protected virtual Task UpdateAsync(Message message, bool fromChat, CommandBase? command = null,
+    protected virtual Task UpdateAsync(Message message, Chat senderChat, CommandBase? command = null,
         string? payload = null)
     {
         return message.Type switch
         {
-            MessageType.Text              => ProcessTextMessageAsync(message, fromChat, command, payload),
-            MessageType.SuccessfulPayment => ProcessSuccessfulPaymentMessageAsync(message, fromChat),
+            MessageType.Text              => ProcessTextMessageAsync(message, senderChat, command, payload),
+            MessageType.SuccessfulPayment => ProcessSuccessfulPaymentMessageAsync(message, senderChat),
             _                             => SendStickerAsync(message.Chat, DontUnderstandSticker,
                                                               replyToMessageId: message.MessageId)
         };
     }
 
-    protected virtual Task ProcessTextMessageAsync(Message textMessage, bool fromChat, CommandBase? command = null,
+    protected virtual Task ProcessTextMessageAsync(Message textMessage, Chat senderChat, CommandBase? command = null,
         string? payload = null)
     {
         if (command is null)
@@ -299,18 +294,16 @@ public abstract class BotBase
             return SendStickerAsync(textMessage.Chat, DontUnderstandSticker, replyToMessageId: textMessage.MessageId);
         }
 
-        User user = textMessage.From.GetValue(nameof(textMessage.From));
-        bool shouldExecute = IsAccessSuffice(user.Id, command.Access);
-        return shouldExecute ? command.ExecuteAsync(textMessage, fromChat, payload)
-                             : SendStickerAsync(textMessage.Chat, ForbiddenSticker,
-                                                replyToMessageId: textMessage.MessageId);
+        return GetMaximumAccessFor(senderChat.Id) >= command.Access
+            ? command.ExecuteAsync(textMessage, textMessage.Chat, payload)
+            : SendStickerAsync(textMessage.Chat, ForbiddenSticker, replyToMessageId: textMessage.MessageId);
     }
 
     protected virtual Task ProcessCallbackAsync(CallbackQuery callback) => Task.CompletedTask;
 
     protected virtual Task ProcessPreCheckoutAsync(PreCheckoutQuery preCheckout) => Task.CompletedTask;
 
-    protected virtual Task ProcessSuccessfulPaymentMessageAsync(Message successfulPaymentMessage, bool fromChat)
+    protected virtual Task ProcessSuccessfulPaymentMessageAsync(Message successfulPaymentMessage, Chat senderChat)
     {
         return Task.CompletedTask;
     }
@@ -352,10 +345,20 @@ public abstract class BotBase
         };
     }
 
+    private static Chat GetSenderChat(Message message)
+    {
+        if (message.SenderChat is not null)
+        {
+            return message.SenderChat;
+        }
+        User user = message.From.GetValue(nameof(message.From));
+        return Utils.GetChatWith(user);
+    }
+
     private async Task UpdateAsync(Message message)
     {
-        User user = message.From.GetValue(nameof(message.From));
-        bool fromChat = message.Chat.Id != user.Id;
+        Chat senderChat = GetSenderChat(message);
+        bool fromChat = senderChat.Type is ChatType.Group or ChatType.Supergroup;
         string? botName = null;
         if (fromChat)
         {
@@ -365,21 +368,14 @@ public abstract class BotBase
 
         foreach (CommandBase command in Commands)
         {
-            if (command.IsInvokingBy(message.Text ?? "", out string? payload, fromChat, botName))
+            if (command.IsInvokingBy(message.Text, fromChat, botName, out string? payload))
             {
-                await UpdateAsync(message, fromChat, command, payload);
+                await UpdateAsync(message, senderChat, command, payload);
                 return;
             }
         }
 
-        await UpdateAsync(message, fromChat);
-    }
-
-    private AccessType GetMaximumAccessFor(long userId)
-    {
-        return IsSuperAdmin(userId)
-            ? AccessType.SuperAdmin
-            : IsAdmin(userId) ? AccessType.Admins : AccessType.Users;
+        await UpdateAsync(message, senderChat);
     }
 
     private Task<string> GetHostAsync()

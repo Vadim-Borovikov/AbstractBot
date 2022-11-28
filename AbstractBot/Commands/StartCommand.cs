@@ -9,14 +9,14 @@ public sealed class StartCommand : CommandBase
 {
     public StartCommand(BotBase bot) : base(bot, "start", "приветствие") { }
 
-    public override async Task ExecuteAsync(Message message, bool fromChat, string? payload)
+    public override async Task ExecuteAsync(Message message, Chat chat, string? payload)
     {
-        await BotBase.SetCommandsForAsync(message.Chat);
+        await BotBase.SetCommandsForAsync(chat);
         string text = $"{BotBase.About}";
         if (!string.IsNullOrWhiteSpace(BotBase.StartPostfix))
         {
             text += $"{Environment.NewLine}{BotBase.StartPostfix}";
         }
-        await BotBase.SendTextMessageAsync(message.Chat, text, ParseMode.MarkdownV2);
+        await BotBase.SendTextMessageAsync(chat, text, ParseMode.MarkdownV2);
     }
 }

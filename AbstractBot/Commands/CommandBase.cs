@@ -18,11 +18,11 @@ public abstract class CommandBase : BotCommand
         Description = description;
     }
 
-    public virtual bool IsInvokingBy(string text, out string? payload, bool fromChat = false, string? botName = null)
+    public bool IsInvokingBy(string? text, bool fromChat, string? botName, out string? payload)
     {
         if (!fromChat)
         {
-            payload = Utils.GetPostfix(text, $"/{Command} ");
+            payload = text is null ? null : Utils.GetPostfix(text, $"/{Command} ");
             if (!string.IsNullOrWhiteSpace(payload))
             {
                 return true;
@@ -34,7 +34,7 @@ public abstract class CommandBase : BotCommand
                || (!fromChat && ((text == $"/{Command}") || (!string.IsNullOrWhiteSpace(Alias) && (text == Alias))));
     }
 
-    public abstract Task ExecuteAsync(Message message, bool fromChat, string? payload);
+    public abstract Task ExecuteAsync(Message message, Chat chat, string? payload);
 
     internal string GetEscapedLine() => Utils.EscapeCharacters($"/{Command} – {Description}");
 
