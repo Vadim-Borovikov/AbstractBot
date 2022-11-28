@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Ngrok;
@@ -54,9 +55,9 @@ public static class Utils
         return text.StartsWith(prefix, StringComparison.Ordinal) ? text[prefix.Length..] : null;
     }
 
-    internal static async Task<string> GetNgrokHostAsync()
+    internal static async Task<string> GetNgrokHostAsync(JsonSerializerOptions options)
     {
-        ListTunnelsResult listTunnels = await Provider.ListTunnels();
+        ListTunnelsResult listTunnels = await Provider.ListTunnels(options);
         string? url = listTunnels.Tunnels?.Where(t => t?.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
         return url.GetValue("Can't retrieve NGrok host");
     }

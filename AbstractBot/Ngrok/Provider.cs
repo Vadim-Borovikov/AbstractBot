@@ -6,16 +6,10 @@ namespace AbstractBot.Ngrok;
 
 internal static class Provider
 {
-    public static Task<ListTunnelsResult> ListTunnels()
+    public static Task<ListTunnelsResult> ListTunnels(JsonSerializerOptions options)
     {
-        return RestHelper.CallGetMethodAsync<ListTunnelsResult>(ApiProvider, Method, options: Options);
+        return RestHelper.CallGetMethodAsync<ListTunnelsResult>(ApiProvider, Method, options: options);
     }
-
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        IncludeFields = true,
-        PropertyNameCaseInsensitive = true
-    };
 
     private const string ApiProvider = "http://127.0.0.1:4040/api";
     private const string Method = "/tunnels";

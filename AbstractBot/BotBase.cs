@@ -30,6 +30,7 @@ public abstract class BotBase
     public readonly TelegramBotClient Client;
     public readonly Config ConfigBase;
     public readonly TimeManager TimeManager;
+    public readonly JsonSerializerOptionsProvider JsonSerializerOptionsProvider;
 
     public readonly string About;
     public readonly string? StartPostfix;
@@ -58,6 +59,8 @@ public abstract class BotBase
         ForbiddenSticker = new InputOnlineFile(ConfigBase.ForbiddenStickerFileId);
 
         TimeManager = new TimeManager(ConfigBase.SystemTimeZoneId);
+
+        JsonSerializerOptionsProvider = new JsonSerializerOptionsProvider(TimeManager);
 
         _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitPrivate);
         _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitGlobal);
@@ -380,7 +383,7 @@ public abstract class BotBase
     private Task<string> GetHostAsync()
     {
         return string.IsNullOrWhiteSpace(ConfigBase.Host)
-            ? Utils.GetNgrokHostAsync()
+            ? Utils.GetNgrokHostAsync(JsonSerializerOptionsProvider.SnakeCaseOptions)
             : Task.FromResult(ConfigBase.Host);
     }
 
@@ -393,7 +396,8 @@ public abstract class BotBase
 
         if (!string.IsNullOrWhiteSpace(ConfigBase.AdminIdsJson))
         {
-            List<long>? deserialized = JsonSerializer.Deserialize<List<long>>(ConfigBase.AdminIdsJson);
+            List<long>? deserialized = JsonSerializer.Deserialize<List<long>>(ConfigBase.AdminIdsJson,
+                JsonSerializerOptionsProvider.PascalCaseOptions);
             if (deserialized is not null)
             {
                 return deserialized;

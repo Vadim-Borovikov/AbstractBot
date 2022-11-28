@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 
 namespace AbstractBot.Ngrok;
@@ -11,8 +10,6 @@ internal sealed class ListTunnelsResult
     public sealed class Tunnel
     {
         public string? Proto;
-
-        [JsonPropertyName("public_url")]
         public string? PublicUrl;
     }
 

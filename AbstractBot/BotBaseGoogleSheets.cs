@@ -18,7 +18,7 @@ public abstract class BotBaseGoogleSheets<TBot, TConfig> : BotBaseCustom<TConfig
     protected BotBaseGoogleSheets(TConfig config) : base(config)
     {
         string json = string.IsNullOrWhiteSpace(Config.GoogleCredentialJson)
-            ? JsonSerializer.Serialize(Config.GoogleCredential)
+            ? JsonSerializer.Serialize(Config.GoogleCredential, JsonSerializerOptionsProvider.PascalCaseOptions)
             : Config.GoogleCredentialJson;
         GoogleSheetsProvider = new SheetsProvider(json, Config.ApplicationName, Config.GoogleSheetId);
         AdditionalConverters = new Dictionary<Type, Func<object?, object?>>
