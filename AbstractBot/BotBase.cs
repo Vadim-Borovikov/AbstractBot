@@ -295,7 +295,7 @@ public abstract class BotBase
         }
 
         return GetMaximumAccessFor(senderChat.Id) >= command.Access
-            ? command.ExecuteAsync(textMessage, textMessage.Chat, payload)
+            ? command.ExecuteAsync(textMessage, payload)
             : SendStickerAsync(textMessage.Chat, ForbiddenSticker, replyToMessageId: textMessage.MessageId);
     }
 

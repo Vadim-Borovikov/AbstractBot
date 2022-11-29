@@ -32,6 +32,8 @@ public abstract class CommandBase : BotCommand
         return text == (fromChat ? $"/{Command}@{botName}" : $"/{Command}");
     }
 
+    public Task ExecuteAsync(Message message, string? payload) => ExecuteAsync(message, message.Chat, payload);
+
     public abstract Task ExecuteAsync(Message message, Chat chat, string? payload);
 
     internal string GetEscapedLine() => Utils.EscapeCharacters($"/{Command} – {Description}");
