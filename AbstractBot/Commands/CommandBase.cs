@@ -7,8 +7,6 @@ namespace AbstractBot.Commands;
 [PublicAPI]
 public abstract class CommandBase : BotCommand
 {
-    protected virtual string? Alias => null;
-
     public virtual BotBase.AccessType Access => BotBase.AccessType.Users;
 
     protected CommandBase(BotBase bot, string command, string description)
@@ -18,7 +16,7 @@ public abstract class CommandBase : BotCommand
         Description = description;
     }
 
-    public bool IsInvokingBy(string? text, bool fromChat, string? botName, out string? payload)
+    public virtual bool IsInvokingBy(string? text, bool fromChat, string? botName, out string? payload)
     {
         if (!fromChat)
         {
@@ -31,9 +29,7 @@ public abstract class CommandBase : BotCommand
 
         payload = null;
 
-        return (!string.IsNullOrWhiteSpace(Alias) && (text == Alias))
-               || (fromChat && (text == $"/{Command}@{botName}"))
-               || (!fromChat && (text == $"/{Command}"));
+        return text == (fromChat ? $"/{Command}@{botName}" : $"/{Command}");
     }
 
     public abstract Task ExecuteAsync(Message message, Chat chat, string? payload);
