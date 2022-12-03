@@ -236,24 +236,6 @@ public abstract class BotBase
             allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
-    public Task<Message> SendStatusMessageAsync(Chat chat, string text, bool? disableWebPagePreview = null,
-        bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
-        CancellationToken cancellationToken = default)
-    {
-        text = $"_{Utils.EscapeCharacters(text)}…_";
-        return SendTextMessageAsync(chat, text, null, ParseMode.MarkdownV2,
-            disableWebPagePreview: disableWebPagePreview, disableNotification: true, protectContent: protectContent,
-            replyToMessageId: replyToMessageId, allowSendingWithoutReply: allowSendingWithoutReply,
-            cancellationToken: cancellationToken);
-    }
-
-    public Task<Message> FinalizeStatusMessageAsync(Message message, string postfix = "")
-    {
-        string text = message.Text.GetValue(nameof(message.Text));
-        text = $"_{Utils.EscapeCharacters(text)}_ Готово\\.{postfix}";
-        return EditMessageTextAsync(message.Chat, message.MessageId, text, ParseMode.MarkdownV2);
-    }
-
     internal string GetCommandsDescriptionFor(long userId)
     {
         AccessType access = GetMaximumAccessFor(userId);
