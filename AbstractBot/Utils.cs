@@ -8,12 +8,15 @@ using GryphonUtilities;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AbstractBot;
 
 [PublicAPI]
 public static class Utils
 {
+    public static readonly ReplyKeyboardRemove NoKeyboard = new();
+
     public static readonly LogManager LogManager = new();
 
     public static Chat GetChat(long id, ChatType type = ChatType.Private)

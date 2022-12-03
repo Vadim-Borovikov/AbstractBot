@@ -43,6 +43,8 @@ public abstract class BotBase
     protected readonly InputOnlineFile DontUnderstandSticker;
     protected readonly InputOnlineFile ForbiddenSticker;
 
+    protected virtual IReplyMarkup GetDefaultKeyboard(Chat _) => Utils.NoKeyboard;
+
     protected BotBase(Config config)
     {
         ConfigBase = config;
@@ -117,8 +119,16 @@ public abstract class BotBase
     public Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
         IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
         bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
-        bool? allowSendingWithoutReply = null, IReplyMarkup? replyMarkup = null,
-        CancellationToken cancellationToken = default)
+        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
+    {
+        return SendTextMessageAsync(chat, text, GetDefaultKeyboard(chat), parseMode, entities, disableWebPagePreview,
+            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
+    }
+
+    public Task<Message> SendTextMessageAsync(Chat chat, string text, IReplyMarkup? replyMarkup,
+        ParseMode? parseMode = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
+        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
+        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendText, data: text);
@@ -156,7 +166,16 @@ public abstract class BotBase
     public Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, string? caption = null,
         ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
-        bool? allowSendingWithoutReply = null, IReplyMarkup? replyMarkup = null,
+        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
+    {
+        return SendPhotoAsync(chat, photo, GetDefaultKeyboard(chat), caption, parseMode, captionEntities,
+            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
+    }
+
+    public Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, IReplyMarkup? replyMarkup,
+        string? caption = null, ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
+        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
+        bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
@@ -167,7 +186,15 @@ public abstract class BotBase
 
     public Task<Message> SendStickerAsync(Chat chat, InputOnlineFile sticker, bool? disableNotification = null,
         bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
-        IReplyMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
+    {
+        return SendStickerAsync(chat, sticker, GetDefaultKeyboard(chat), disableNotification, protectContent,
+            replyToMessageId, allowSendingWithoutReply, cancellationToken);
+    }
+
+    public Task<Message> SendStickerAsync(Chat chat, InputOnlineFile sticker, IReplyMarkup? replyMarkup,
+        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
+        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendSticker);
@@ -207,6 +234,17 @@ public abstract class BotBase
             photoHeight, needName, needPhoneNumber, needEmail, needShippingAddress, sendPhoneNumberToProvider,
             sendEmailToProvider, isFlexible, disableNotification, protectContent, replyToMessageId,
             allowSendingWithoutReply, replyMarkup, cancellationToken);
+    }
+
+    public Task<Message> SendStatusMessageAsync(Chat chat, string text, bool? disableWebPagePreview = null,
+        bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        CancellationToken cancellationToken = default)
+    {
+        text = $"_{Utils.EscapeCharacters(text)}…_";
+        return SendTextMessageAsync(chat, text, null, ParseMode.MarkdownV2,
+            disableWebPagePreview: disableWebPagePreview, disableNotification: true, protectContent: protectContent,
+            replyToMessageId: replyToMessageId, allowSendingWithoutReply: allowSendingWithoutReply,
+            cancellationToken: cancellationToken);
     }
 
     public Task<Message> FinalizeStatusMessageAsync(Message message, string postfix = "")
