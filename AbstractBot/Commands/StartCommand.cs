@@ -11,7 +11,6 @@ public sealed class StartCommand : CommandBase
 
     public override async Task ExecuteAsync(Message message, Chat chat, string? payload)
     {
-        await BotBase.SetCommandsForAsync(chat);
         string text = $"{BotBase.About}";
         if (!string.IsNullOrWhiteSpace(BotBase.StartPostfix))
         {

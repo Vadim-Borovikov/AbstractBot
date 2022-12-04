@@ -84,17 +84,26 @@ public abstract class BotBase
         await Client.SetWebhookAsync(url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
         TickManager.Start(cancellationToken);
-        await Client.SetMyCommandsAsync(Commands.Where(c => c.Access == AccessType.Users),
-            cancellationToken: cancellationToken);
-    }
 
-    public async Task SetCommandsForAsync(Chat chat, CancellationToken cancellationToken = default)
-    {
-        AccessType access = GetMaximumAccessFor(chat.Id);
-        BotCommandScope scope = new BotCommandScopeChat { ChatId = chat };
-        DelayIfNeeded(chat, cancellationToken);
-        await Client.SetMyCommandsAsync(Commands.Where(c => c.Access <= access), scope,
+        await Client.DeleteMyCommandsAsync(cancellationToken: cancellationToken);
+        await Client.DeleteMyCommandsAsync(BotCommandScope.AllGroupChats(), cancellationToken: cancellationToken);
+        await Client.DeleteMyCommandsAsync(BotCommandScope.AllChatAdministrators(),
             cancellationToken: cancellationToken);
+
+        await Client.SetMyCommandsAsync(Commands.Where(c => c.Access == AccessType.Users),
+            BotCommandScope.AllPrivateChats(), cancellationToken: cancellationToken);
+
+        foreach (long adminId in AdminIds)
+        {
+            await Client.SetMyCommandsAsync(Commands.Where(c => c.Access <= AccessType.Admins),
+                BotCommandScope.Chat(adminId), cancellationToken: cancellationToken);
+        }
+
+        if (ConfigBase.SuperAdminId.HasValue)
+        {
+            await Client.SetMyCommandsAsync(Commands, BotCommandScope.Chat(ConfigBase.SuperAdminId.Value),
+                cancellationToken: cancellationToken);
+        }
     }
 
     public virtual Task StopAsync(CancellationToken cancellationToken)
