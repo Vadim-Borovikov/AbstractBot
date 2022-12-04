@@ -16,9 +16,9 @@ public abstract class CommandBase : BotCommand
         Description = description;
     }
 
-    public virtual bool IsInvokingBy(string? text, bool fromChat, string? botName, out string? payload)
+    public virtual bool IsInvokingBy(string? text, bool fromGroup, string? botName, out string? payload)
     {
-        if (!fromChat)
+        if (!fromGroup)
         {
             payload = text is null ? null : Utils.GetPostfix(text, $"/{Command} ");
             if (!string.IsNullOrWhiteSpace(payload))
@@ -29,7 +29,7 @@ public abstract class CommandBase : BotCommand
 
         payload = null;
 
-        return text == (fromChat ? $"/{Command}@{botName}" : $"/{Command}");
+        return text == (fromGroup ? $"/{Command}@{botName}" : $"/{Command}");
     }
 
     public Task ExecuteAsync(Message message, string? payload) => ExecuteAsync(message, message.Chat, payload);

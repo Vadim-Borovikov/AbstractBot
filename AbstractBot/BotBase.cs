@@ -377,18 +377,18 @@ public abstract class BotBase
 
     private async Task UpdateAsync(Message message)
     {
-        Chat senderChat = GetSenderChat(message);
-        bool fromChat = Utils.IsGroup(senderChat);
+        bool fromGroup = Utils.IsGroup(message.Chat);
         string? botName = null;
-        if (fromChat)
+        if (fromGroup)
         {
             User bot = await GetUserAsync();
             botName = bot.Username;
         }
 
+        Chat senderChat = GetSenderChat(message);
         foreach (CommandBase command in Commands)
         {
-            if (command.IsInvokingBy(message.Text, fromChat, botName, out string? payload))
+            if (command.IsInvokingBy(message.Text, fromGroup, botName, out string? payload))
             {
                 await UpdateAsync(message, senderChat, command, payload);
                 return;
