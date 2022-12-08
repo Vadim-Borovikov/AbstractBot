@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Commands;
+using AbstractBot.Operations;
 using GryphonUtilities;
 using JetBrains.Annotations;
 using Telegram.Bot;
@@ -20,13 +21,6 @@ namespace AbstractBot;
 [PublicAPI]
 public abstract class BotBase
 {
-    public enum AccessType
-    {
-        Users,
-        Admins,
-        SuperAdmin
-    }
-
     public readonly TelegramBotClient Client;
     public readonly Config ConfigBase;
     public readonly TimeManager TimeManager;
@@ -39,7 +33,7 @@ public abstract class BotBase
     public string Host { get; private set; } = "";
 
     protected readonly List<long> AdminIds;
-    protected readonly List<CommandBase> Commands;
+    protected readonly List<Operation> Operations;
     protected readonly InputOnlineFile DontUnderstandSticker;
     protected readonly InputOnlineFile ForbiddenSticker;
 
@@ -51,7 +45,7 @@ public abstract class BotBase
 
         Client = new TelegramBotClient(ConfigBase.Token);
 
-        Commands = new List<CommandBase>
+        Operations = new List<Operation>
         {
             new StartCommand(this),
             new HelpCommand(this)
@@ -73,37 +67,57 @@ public abstract class BotBase
         StartPostfix =
             ConfigBase.StartPostfix is null ? null : string.Join(Environment.NewLine, ConfigBase.StartPostfix);
         HelpPrefix = ConfigBase.HelpPrefix is null ? null : string.Join(Environment.NewLine, ConfigBase.HelpPrefix);
-        _extraCommands =
-            ConfigBase.ExtraCommands is null ? null : string.Join(Environment.NewLine, ConfigBase.ExtraCommands);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
+        Operations.Sort();
         Host = await GetHostAsync();
         string url = $"{Host}/{ConfigBase.Token}";
         await Client.SetWebhookAsync(url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
         TickManager.Start(cancellationToken);
 
+        await UpdateCommands(cancellationToken);
+
+        User = await Client.GetMeAsync(cancellationToken);
+    }
+
+    private async Task UpdateCommands(CancellationToken cancellationToken)
+    {
         await Client.DeleteMyCommandsAsync(cancellationToken: cancellationToken);
         await Client.DeleteMyCommandsAsync(BotCommandScope.AllGroupChats(), cancellationToken: cancellationToken);
         await Client.DeleteMyCommandsAsync(BotCommandScope.AllChatAdministrators(),
             cancellationToken: cancellationToken);
 
-        await Client.SetMyCommandsAsync(Commands.Where(c => c.Access == AccessType.Users),
+        List<CommandOperation> commands = Operations.OfType<CommandOperation>().ToList();
+        await Client.SetMyCommandsAsync(
+            commands.Where(c => c.AccessLevel == Operation.Access.Users).Select(ca => ca.Command),
             BotCommandScope.AllPrivateChats(), cancellationToken: cancellationToken);
 
         foreach (long adminId in AdminIds)
         {
-            await Client.SetMyCommandsAsync(Commands.Where(c => c.Access <= AccessType.Admins),
+            await Client.SetMyCommandsAsync(
+                commands.Where(c => c.AccessLevel <= Operation.Access.Admins).Select(ca => ca.Command),
                 BotCommandScope.Chat(adminId), cancellationToken: cancellationToken);
         }
 
         if (ConfigBase.SuperAdminId.HasValue)
         {
-            await Client.SetMyCommandsAsync(Commands, BotCommandScope.Chat(ConfigBase.SuperAdminId.Value),
-                cancellationToken: cancellationToken);
+            await Client.SetMyCommandsAsync(commands.Select(ca => ca.Command),
+                BotCommandScope.Chat(ConfigBase.SuperAdminId.Value), cancellationToken: cancellationToken);
         }
+    }
+
+    protected internal Task UpdateCommandsFor(Chat chat, CancellationToken cancellationToken = default)
+    {
+        return UpdateCommandsFor(Operations.OfType<CommandOperation>().ToList(), chat, cancellationToken);
+    }
+    private Task UpdateCommandsFor(List<CommandOperation> commands, Chat chat, CancellationToken cancellationToken)
+    {
+        Operation.Access access = GetMaximumAccessFor(chat.Id);
+        return Client.SetMyCommandsAsync(commands.Where(c => c.AccessLevel <= access).Select(ca => ca.Command),
+            BotCommandScope.Chat(chat), cancellationToken: cancellationToken);
     }
 
     public virtual Task StopAsync(CancellationToken cancellationToken)
@@ -113,16 +127,14 @@ public abstract class BotBase
 
     public void Update(Update update) => Utils.FireAndForget(_ => UpdateAsync(update));
 
-    public Task<User> GetUserAsync() => Client.GetMeAsync();
-
     public bool IsAdmin(long userId) => AdminIds.Contains(userId);
     public bool IsSuperAdmin(long userId) => ConfigBase.SuperAdminId == userId;
 
-    public AccessType GetMaximumAccessFor(long userId)
+    public Operation.Access GetMaximumAccessFor(long userId)
     {
         return IsSuperAdmin(userId)
-            ? AccessType.SuperAdmin
-            : IsAdmin(userId) ? AccessType.Admins : AccessType.Users;
+            ? Operation.Access.SuperAdmin
+            : IsAdmin(userId) ? Operation.Access.Admins : Operation.Access.Users;
     }
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
@@ -245,97 +257,63 @@ public abstract class BotBase
             allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
-    internal string GetCommandsDescriptionFor(long userId)
+    internal string GetOperationsDescriptionFor(long userId)
     {
-        AccessType access = GetMaximumAccessFor(userId);
+        Operation.Access access = GetMaximumAccessFor(userId);
 
         StringBuilder builder = new();
-        List<CommandBase> userCommands = Commands.Where(c => c.Access == AccessType.Users).ToList();
-        if (access != AccessType.Users)
+        List<Operation> operations = Operations.Where(o => o.MenuDescription is not null).ToList();
+        List<Operation> userOperations = operations.Where(o => o.AccessLevel == Operation.Access.Users).ToList();
+        if (access != Operation.Access.Users)
         {
-            List<CommandBase> adminCommands = Commands.Where(c => c.Access == AccessType.Admins).ToList();
-            if (access == AccessType.SuperAdmin)
+            List<Operation> adminOperations = operations.Where(o => o.AccessLevel == Operation.Access.Admins).ToList();
+            if (access == Operation.Access.SuperAdmin)
             {
-                List<CommandBase> superAdminCommands =
-                    Commands.Where(c => c.Access == AccessType.SuperAdmin).ToList();
-                if (superAdminCommands.Any())
+                List<Operation> superAdminOperations =
+                    operations.Where(o => o.AccessLevel == Operation.Access.SuperAdmin).ToList();
+                if (superAdminOperations.Any())
                 {
-                    builder.AppendLine(superAdminCommands.Count > 1 ? "Команды суперадмина:" : "Команда суперадмина:");
-                    foreach (CommandBase command in superAdminCommands)
+                    builder.AppendLine(superAdminOperations.Count > 1 ? "Команды суперадмина:" : "Команда суперадмина:");
+                    foreach (Operation operation in superAdminOperations)
                     {
-                        builder.AppendLine(command.GetEscapedLine());
+                        builder.AppendLine(operation.MenuDescription);
                     }
-                    if (adminCommands.Any() || userCommands.Any())
+                    if (adminOperations.Any() || userOperations.Any())
                     {
                         builder.AppendLine();
                     }
                 }
             }
 
-            if (adminCommands.Any())
+            if (adminOperations.Any())
             {
-                builder.AppendLine(adminCommands.Count > 1 ? "Админские команды:" : "Админская команда:");
-                foreach (CommandBase command in adminCommands)
+                builder.AppendLine(adminOperations.Count > 1 ? "Админские команды:" : "Админская команда:");
+                foreach (Operation operation in adminOperations)
                 {
-                    builder.AppendLine(command.GetEscapedLine());
+                    builder.AppendLine(operation.MenuDescription);
                 }
-                if (userCommands.Any())
+                if (userOperations.Any())
                 {
                     builder.AppendLine();
                 }
             }
         }
 
-        if (userCommands.Any())
+        if (userOperations.Any())
         {
-            builder.AppendLine(userCommands.Count > 1 ? "Команды:" : "Команда:");
-            foreach (CommandBase command in userCommands)
+            builder.AppendLine(userOperations.Count > 1 ? "Команды:" : "Команда:");
+            foreach (Operation operation in userOperations)
             {
-                builder.AppendLine(command.GetEscapedLine());
+                builder.AppendLine(operation.MenuDescription);
             }
-        }
-
-        if (!string.IsNullOrWhiteSpace(_extraCommands))
-        {
-            builder.AppendLine(_extraCommands);
         }
 
         return builder.ToString();
     }
 
-    protected virtual Task UpdateAsync(Message message, Chat senderChat, CommandBase? command = null,
-        string? payload = null)
-    {
-        return message.Type switch
-        {
-            MessageType.Text              => ProcessTextMessageAsync(message, senderChat, command, payload),
-            MessageType.SuccessfulPayment => ProcessSuccessfulPaymentMessageAsync(message, senderChat),
-            _                             => SendStickerAsync(message.Chat, DontUnderstandSticker,
-                                                              replyToMessageId: message.MessageId)
-        };
-    }
+    protected virtual Task UpdateAsync(CallbackQuery callbackQuery) => Task.CompletedTask;
 
-    protected virtual Task ProcessTextMessageAsync(Message textMessage, Chat senderChat, CommandBase? command = null,
-        string? payload = null)
-    {
-        if (command is null)
-        {
-            return SendStickerAsync(textMessage.Chat, DontUnderstandSticker, replyToMessageId: textMessage.MessageId);
-        }
-
-        return GetMaximumAccessFor(senderChat.Id) >= command.Access
-            ? command.ExecuteAsync(textMessage, payload)
-            : SendStickerAsync(textMessage.Chat, ForbiddenSticker, replyToMessageId: textMessage.MessageId);
-    }
-
-    protected virtual Task ProcessCallbackAsync(CallbackQuery callback) => Task.CompletedTask;
-
-    protected virtual Task ProcessPreCheckoutAsync(PreCheckoutQuery preCheckout) => Task.CompletedTask;
-
-    protected virtual Task ProcessSuccessfulPaymentMessageAsync(Message successfulPaymentMessage, Chat senderChat)
-    {
-        return Task.CompletedTask;
-    }
+    protected virtual Task UpdateAsync(PreCheckoutQuery preCheckoutQuery) => Task.CompletedTask;
 
     private void DelayIfNeeded(Chat chat, CancellationToken cancellationToken)
     {
@@ -366,15 +344,16 @@ public abstract class BotBase
         return update.Type switch
         {
             UpdateType.Message => UpdateAsync(update.Message.GetValue(nameof(update.Message))),
-            UpdateType.CallbackQuery =>
-                ProcessCallbackAsync(update.CallbackQuery.GetValue(nameof(update.CallbackQuery))),
+            UpdateType.CallbackQuery => UpdateAsync(update.CallbackQuery.GetValue(nameof(update.CallbackQuery))),
             UpdateType.PreCheckoutQuery =>
-                ProcessPreCheckoutAsync(update.PreCheckoutQuery.GetValue(nameof(update.PreCheckoutQuery))),
+                UpdateAsync(update.PreCheckoutQuery.GetValue(nameof(update.PreCheckoutQuery))),
             _ => Task.CompletedTask
         };
     }
 
-    private static Chat GetSenderChat(Message message)
+    public virtual Chat GetReplyChatFor(Message message, Chat sender) => message.Chat;
+
+    internal static Chat GetSenderChat(Message message)
     {
         if (message.SenderChat is not null)
         {
@@ -384,27 +363,35 @@ public abstract class BotBase
         return Utils.GetChatWith(user);
     }
 
-    private async Task UpdateAsync(Message message)
+    protected virtual async Task UpdateAsync(Message message)
     {
-        bool fromGroup = Utils.IsGroup(message.Chat);
-        string? botName = null;
-        if (fromGroup)
+        Chat sender = GetSenderChat(message);
+        foreach (Operation operation in Operations)
         {
-            User bot = await GetUserAsync();
-            botName = bot.Username;
-        }
-
-        Chat senderChat = GetSenderChat(message);
-        foreach (CommandBase command in Commands)
-        {
-            if (command.IsInvokingBy(message.Text, fromGroup, botName, out string? payload))
+            Operation.ExecutionResult result = await operation.TryExecuteAsync(message, sender);
+            switch (result)
             {
-                await UpdateAsync(message, senderChat, command, payload);
-                return;
+                case Operation.ExecutionResult.UnsuitableOperation: continue;
+                case Operation.ExecutionResult.InsufficentAccess:
+                    await ProcessInsufficientAccess(message, sender, operation);
+                    return;
+                case Operation.ExecutionResult.Success: return;
+                default: throw new ArgumentOutOfRangeException(nameof(result));
             }
         }
+        await ProcessUnclearOperation(message, sender);
+    }
 
-        await UpdateAsync(message, senderChat);
+    protected internal virtual Task ProcessUnclearOperation(Message message, Chat sender)
+    {
+        Chat chat = GetReplyChatFor(message, sender);
+        return SendStickerAsync(chat, DontUnderstandSticker, replyToMessageId: message.MessageId);
+    }
+
+    protected virtual Task ProcessInsufficientAccess(Message message, Chat sender, Operation operation)
+    {
+        Chat chat = GetReplyChatFor(message, sender);
+        return SendStickerAsync(chat, ForbiddenSticker, replyToMessageId: message.MessageId);
     }
 
     private Task<string> GetHostAsync()
@@ -434,7 +421,7 @@ public abstract class BotBase
         return new List<long>();
     }
 
-    private readonly string? _extraCommands;
+    public User? User;
 
     private readonly Dictionary<long, DateTimeFull> _lastUpdates = new();
     private DateTimeFull? _lastUpdateGlobal;

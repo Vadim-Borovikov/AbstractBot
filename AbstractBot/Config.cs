@@ -45,7 +45,6 @@ public class Config
     public List<string?> About { get; init; } = null!;
     public List<string?>? StartPostfix { get; init; }
     public List<string?>? HelpPrefix { get; init; }
-    public List<string?>? ExtraCommands { get; init; }
 
     public List<long>? AdminIds { get; init; }
     public string? AdminIdsJson { get; init; }

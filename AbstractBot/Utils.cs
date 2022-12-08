@@ -75,11 +75,6 @@ public static class Utils
                 .Replace("!", "\\!");
     }
 
-    public static string? GetPostfix(string text, string prefix)
-    {
-        return text.StartsWith(prefix, StringComparison.Ordinal) ? text[prefix.Length..] : null;
-    }
-
     internal static async Task<string> GetNgrokHostAsync(JsonSerializerOptions options)
     {
         ListTunnelsResult listTunnels = await Provider.ListTunnels(options);
