@@ -6,17 +6,22 @@ using Telegram.Bot.Types.Enums;
 
 namespace AbstractBot.Commands;
 
-internal sealed class StartCommand : CommandOperation
+public sealed class StartCommand : CommandOperation
 {
-    protected internal override byte MenuOrder => 0;
+    protected override byte MenuOrder => 0;
 
-    public StartCommand(BotBase bot) : base(bot, "start", "приветствие") { }
+    internal StartCommand(BotBase bot) : base(bot, "start", "приветствие") { }
 
-    protected override async Task ExecuteAsync(Message message, Chat sender, string? _)
+    protected override Task ExecuteAsync(Message message, long senderId, string? payload)
     {
-        Chat chat = BotBase.GetReplyChatFor(message, sender);
+        return payload is null
+            ? Greet(message.Chat)
+            : BotBase.OnStartCommand(this, message, senderId, payload);
+    }
 
-        await BotBase.UpdateCommandsFor(chat);
+    internal async Task Greet(Chat chat)
+    {
+        await BotBase.UpdateCommandsFor(chat.Id);
 
         string text = $"{BotBase.About}";
         if (!string.IsNullOrWhiteSpace(BotBase.StartPostfix))

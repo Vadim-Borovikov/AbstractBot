@@ -32,15 +32,6 @@ public class StatusMessage : IAsyncDisposable
         return new StatusMessage(bot, message, postfixProvider, cancellationToken);
     }
 
-    private StatusMessage(BotBase bot, Message message, Func<string>? postfixProvider,
-        CancellationToken cancellationToken)
-    {
-        _bot = bot;
-        _message = message;
-        _postfixProvider = postfixProvider;
-        _cancellationToken = cancellationToken;
-    }
-
     public async ValueTask DisposeAsync()
     {
         string text = _message.Text.GetValue(nameof(_message.Text));
@@ -48,6 +39,15 @@ public class StatusMessage : IAsyncDisposable
         text = $"_{Utils.EscapeCharacters(text)}_ Готово\\.{postfix}";
         await _bot.EditMessageTextAsync(_message.Chat, _message.MessageId, text, ParseMode.MarkdownV2,
             cancellationToken: _cancellationToken);
+    }
+
+    private StatusMessage(BotBase bot, Message message, Func<string>? postfixProvider,
+        CancellationToken cancellationToken)
+    {
+        _bot = bot;
+        _message = message;
+        _postfixProvider = postfixProvider;
+        _cancellationToken = cancellationToken;
     }
 
     private readonly BotBase _bot;

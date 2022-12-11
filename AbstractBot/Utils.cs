@@ -19,24 +19,6 @@ public static class Utils
 
     public static readonly LogManager LogManager = new();
 
-    public static Chat GetChat(long id, ChatType type = ChatType.Private)
-    {
-        return new Chat
-        {
-            Id = id,
-            Type = type
-        };
-    }
-
-    public static Chat GetChatWith(User user)
-    {
-        Chat result = GetChat(user.Id);
-        result.FirstName = user.FirstName;
-        result.LastName = user.LastName;
-        result.Username = user.Username;
-        return result;
-    }
-
     public static bool IsGroup(Chat chat) => chat.Type is ChatType.Group or ChatType.Supergroup;
 
     public static void StartLogWith(string systemTimeZoneId)
@@ -82,18 +64,18 @@ public static class Utils
         return url.GetValue("Can't retrieve NGrok host");
     }
 
-    internal static TimeSpan? Max(TimeSpan? a, TimeSpan? b)
+    internal static TimeSpan? Max(TimeSpan? left, TimeSpan? right)
     {
-        if (a is null)
+        if (left is null)
         {
-            return b;
+            return right;
         }
 
-        return a.Value.CompareTo(b) switch
+        return left.Value.CompareTo(right) switch
         {
-            0  => a,
-            1  => a,
-            -1 => b,
+            0  => left,
+            1  => left,
+            -1 => right,
             _  => throw new InvalidOperationException()
         };
     }

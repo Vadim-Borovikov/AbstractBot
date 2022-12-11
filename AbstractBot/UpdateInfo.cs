@@ -4,7 +4,6 @@ using Telegram.Bot.Types;
 
 namespace AbstractBot;
 
-[PublicAPI]
 public static class UpdateInfo
 {
     public enum Type
@@ -20,6 +19,7 @@ public static class UpdateInfo
         SendInvoice
     }
 
+    [PublicAPI]
     public static void LogRefused(Chat chat, Type type, int? messageId = null, string? data = null)
     {
         string log = GetLog(chat, type, messageId, data);

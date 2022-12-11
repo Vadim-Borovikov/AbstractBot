@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
 namespace AbstractBot.Operations;
@@ -8,8 +9,8 @@ public abstract class Operation : IComparable<Operation>
 {
     public enum Access
     {
-        Users,
-        Admins,
+        User,
+        Admin,
         SuperAdmin
     }
 
@@ -20,19 +21,16 @@ public abstract class Operation : IComparable<Operation>
         Success
     }
 
-    protected internal virtual Access AccessLevel => Access.Users;
+    [PublicAPI]
+    protected internal virtual Access AccessLevel => Access.User;
 
-    protected bool IsAccessSuffice(long userId) => BotBase.GetMaximumAccessFor(userId) >= AccessLevel;
+    internal string? MenuDescription { get; init; }
 
-    protected internal abstract Task<ExecutionResult> TryExecuteAsync(Message message, Chat sender);
-
-    protected internal abstract byte MenuOrder { get; }
-
-    public string? MenuDescription { get; protected init; }
-
-    protected Operation(BotBase bot) => BotBase = bot;
+    protected abstract byte MenuOrder { get; }
 
     protected readonly BotBase BotBase;
+
+    protected Operation(BotBase bot) => BotBase = bot;
 
     public int CompareTo(Operation? other)
     {
@@ -48,4 +46,8 @@ public abstract class Operation : IComparable<Operation>
 
         return MenuOrder.CompareTo(other.MenuOrder);
     }
+
+    protected internal abstract Task<ExecutionResult> TryExecuteAsync(Message message, long senderId);
+
+    protected bool IsAccessSuffice(long userId) => BotBase.GetMaximumAccessFor(userId) >= AccessLevel;
 }

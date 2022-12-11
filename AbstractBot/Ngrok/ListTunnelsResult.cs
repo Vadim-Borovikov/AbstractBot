@@ -3,15 +3,16 @@ using JetBrains.Annotations;
 
 namespace AbstractBot.Ngrok;
 
-[PublicAPI]
 internal sealed class ListTunnelsResult
 {
-    [PublicAPI]
     public sealed class Tunnel
     {
+        [UsedImplicitly]
         public string? Proto;
+        [UsedImplicitly]
         public string? PublicUrl;
     }
 
+    [UsedImplicitly]
     public List<Tunnel?>? Tunnels;
 }

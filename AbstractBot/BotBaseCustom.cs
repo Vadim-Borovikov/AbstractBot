@@ -3,9 +3,9 @@ using JetBrains.Annotations;
 namespace AbstractBot;
 
 [PublicAPI]
-public abstract class BotBaseCustom<TConfig> : BotBase where TConfig : Config
+public abstract class BotBaseCustom<T> : BotBase where T : Config
 {
-    public readonly TConfig Config;
+    public readonly T Config;
 
-    protected BotBaseCustom(TConfig config) : base(config) => Config = config;
+    protected BotBaseCustom(T config) : base(config) => Config = config;
 }

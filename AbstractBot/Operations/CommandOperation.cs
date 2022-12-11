@@ -20,23 +20,23 @@ public abstract class CommandOperation : Operation
             $"/{Utils.EscapeCharacters(Command.Command)} – {Utils.EscapeCharacters(Command.Description)}";
     }
 
-    protected internal override async Task<ExecutionResult> TryExecuteAsync(Message message, Chat sender)
+    protected internal override async Task<ExecutionResult> TryExecuteAsync(Message message, long senderId)
     {
         if (!IsInvokingBy(message, out string? payload))
         {
             return ExecutionResult.UnsuitableOperation;
         }
 
-        if (!IsAccessSuffice(sender.Id))
+        if (!IsAccessSuffice(senderId))
         {
             return ExecutionResult.InsufficentAccess;
         }
 
-        await ExecuteAsync(message, sender, payload);
+        await ExecuteAsync(message, senderId, payload);
         return ExecutionResult.Success;
     }
 
-    protected abstract Task ExecuteAsync(Message message, Chat sender, string? payload);
+    protected abstract Task ExecuteAsync(Message message, long senderId, string? payload);
 
     private bool IsInvokingBy(Message message, out string? payload)
     {
@@ -66,8 +66,6 @@ public abstract class CommandOperation : Operation
         }
 
         payload = postfix.Trim();
-        return (postfix[0] != payload[0]) && IsAcceptable(payload);
+        return postfix[0] != payload[0];
     }
-
-    protected virtual bool IsAcceptable(string payload) => false;
 }
