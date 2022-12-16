@@ -8,7 +8,7 @@ internal static class Provider
 {
     public static Task<ListTunnelsResult> ListTunnels(JsonSerializerOptions options)
     {
-        return RestHelper.CallGetMethodAsync<ListTunnelsResult>(ApiProvider, Method, options: options);
+        return RestManager<ListTunnelsResult>.GetAsync(ApiProvider, Method, options: options);
     }
 
     private const string ApiProvider = "http://127.0.0.1:4040/api";

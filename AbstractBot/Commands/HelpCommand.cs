@@ -13,26 +13,26 @@ internal sealed class HelpCommand : CommandOperation
 {
     protected override byte MenuOrder => 1;
 
-    public HelpCommand(BotBase bot) : base(bot, "help", "инструкция") { }
+    public HelpCommand(Bot bot) : base(bot, "help", "инструкция") { }
 
     protected override Task ExecuteAsync(Message message, long _, string? __)
     {
-        string text = $"{BotBase.About}{Environment.NewLine}{Environment.NewLine}";
-        if (!string.IsNullOrWhiteSpace(BotBase.HelpPrefix))
+        string text = $"{Bot.About}{Environment.NewLine}{Environment.NewLine}";
+        if (!string.IsNullOrWhiteSpace(Bot.HelpPrefix))
         {
-            text += $"{BotBase.HelpPrefix}{Environment.NewLine}{Environment.NewLine}";
+            text += $"{Bot.HelpPrefix}{Environment.NewLine}{Environment.NewLine}";
         }
 
         text += GetOperationsDescriptionFor(message.Chat.Id);
-        return BotBase.SendTextMessageAsync(message.Chat, text, ParseMode.MarkdownV2);
+        return Bot.SendTextMessageAsync(message.Chat, text, ParseMode.MarkdownV2);
     }
 
     private string GetOperationsDescriptionFor(long userId)
     {
-        Access access = BotBase.GetMaximumAccessFor(userId);
+        Access access = Bot.GetMaximumAccessFor(userId);
 
         StringBuilder builder = new();
-        List<Operation> operations = BotBase.Operations.Where(o => o.MenuDescription is not null).ToList();
+        List<Operation> operations = Bot.Operations.Where(o => o.MenuDescription is not null).ToList();
         List<Operation> userOperations = operations.Where(o => o.AccessLevel == Access.User).ToList();
         if (access != Access.User)
         {

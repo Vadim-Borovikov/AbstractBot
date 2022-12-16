@@ -24,13 +24,13 @@ public abstract class Operation : IComparable<Operation>
     [PublicAPI]
     protected internal virtual Access AccessLevel => Access.User;
 
-    internal string? MenuDescription { get; init; }
+    protected internal string? MenuDescription { get; protected init; }
 
     protected abstract byte MenuOrder { get; }
 
-    protected readonly BotBase BotBase;
+    protected readonly Bot Bot;
 
-    protected Operation(BotBase bot) => BotBase = bot;
+    protected Operation(Bot bot) => Bot = bot;
 
     public int CompareTo(Operation? other)
     {
@@ -49,5 +49,5 @@ public abstract class Operation : IComparable<Operation>
 
     protected internal abstract Task<ExecutionResult> TryExecuteAsync(Message message, long senderId);
 
-    protected bool IsAccessSuffice(long userId) => BotBase.GetMaximumAccessFor(userId) >= AccessLevel;
+    protected bool IsAccessSuffice(long userId) => Bot.GetMaximumAccessFor(userId) >= AccessLevel;
 }

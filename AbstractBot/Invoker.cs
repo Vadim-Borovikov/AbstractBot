@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using GryphonUtilities;
 using JetBrains.Annotations;
 
 namespace AbstractBot;
@@ -8,16 +9,23 @@ namespace AbstractBot;
 [PublicAPI]
 public static class Invoker
 {
-    public static void DoAfterDelay(Func<CancellationToken, Task> doWork, TimeSpan delay,
+    public static void DoAfterDelay(Func<CancellationToken, Task> doWork, TimeSpan delay, Logger logger,
         CancellationToken cancellationToken)
     {
-        Utils.FireAndForget(ct => DoAfterDelayAsync(doWork, delay, ct), cancellationToken);
+        FireAndForget(ct => DoAfterDelayAsync(doWork, delay, ct), logger, cancellationToken);
     }
 
     public static void DoPeriodically(Func<CancellationToken, Task> doWork, TimeSpan interval, bool doNow,
-        CancellationToken cancellationToken)
+        Logger logger, CancellationToken cancellationToken)
     {
-        Utils.FireAndForget(ct => DoPeriodicallyAsync(doWork, interval, doNow, ct), cancellationToken);
+        FireAndForget(ct => DoPeriodicallyAsync(doWork, interval, doNow, ct), logger, cancellationToken);
+    }
+
+    public static void FireAndForget(Func<CancellationToken, Task> doWork, Logger logger,
+        CancellationToken cancellationToken = default)
+    {
+        Task.Run(() => doWork(cancellationToken), cancellationToken)
+            .ContinueWith(logger.LogExceptionIfPresents, cancellationToken);
     }
 
     private static async Task DoAfterDelayAsync(Func<CancellationToken, Task> doWork, TimeSpan delay,

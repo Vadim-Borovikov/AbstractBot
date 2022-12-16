@@ -10,24 +10,24 @@ public sealed class StartCommand : CommandOperation
 {
     protected override byte MenuOrder => 0;
 
-    internal StartCommand(BotBase bot) : base(bot, "start", "приветствие") { }
+    internal StartCommand(Bot bot) : base(bot, "start", "приветствие") { }
 
     protected override Task ExecuteAsync(Message message, long senderId, string? payload)
     {
         return payload is null
             ? Greet(message.Chat)
-            : BotBase.OnStartCommand(this, message, senderId, payload);
+            : Bot.OnStartCommand(this, message, senderId, payload);
     }
 
     internal async Task Greet(Chat chat)
     {
-        await BotBase.UpdateCommandsFor(chat.Id);
+        await Bot.UpdateCommandsFor(chat.Id);
 
-        string text = $"{BotBase.About}";
-        if (!string.IsNullOrWhiteSpace(BotBase.StartPostfix))
+        string text = $"{Bot.About}";
+        if (!string.IsNullOrWhiteSpace(Bot.StartPostfix))
         {
-            text += $"{Environment.NewLine}{BotBase.StartPostfix}";
+            text += $"{Environment.NewLine}{Bot.StartPostfix}";
         }
-        await BotBase.SendTextMessageAsync(chat, text, ParseMode.MarkdownV2);
+        await Bot.SendTextMessageAsync(chat, text, ParseMode.MarkdownV2);
     }
 }

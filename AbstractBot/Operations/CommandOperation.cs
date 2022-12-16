@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AbstractBot.Extensions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -9,15 +10,14 @@ public abstract class CommandOperation : Operation
 {
     protected internal readonly BotCommand Command;
 
-    protected CommandOperation(BotBase bot, string command, string description) : base(bot)
+    protected CommandOperation(Bot bot, string command, string description) : base(bot)
     {
         Command = new BotCommand
         {
             Command = command,
             Description = description
         };
-        MenuDescription =
-            $"/{Utils.EscapeCharacters(Command.Command)} – {Utils.EscapeCharacters(Command.Description)}";
+        MenuDescription = $"/{Bot.EscapeCharacters(Command.Command)} – {Bot.EscapeCharacters(Command.Description)}";
     }
 
     protected internal override async Task<ExecutionResult> TryExecuteAsync(Message message, long senderId)
@@ -38,7 +38,7 @@ public abstract class CommandOperation : Operation
 
     protected abstract Task ExecuteAsync(Message message, long senderId, string? payload);
 
-    private bool IsInvokingBy(Message message, out string? payload)
+    protected virtual bool IsInvokingBy(Message message, out string? payload)
     {
         payload = null;
         if ((message.Type != MessageType.Text) || string.IsNullOrWhiteSpace(message.Text))
@@ -47,7 +47,7 @@ public abstract class CommandOperation : Operation
         }
 
         string mainPart =
-            Utils.IsGroup(message.Chat) ? $"/{Command.Command}@{BotBase.User?.Username}" : $"/{Command.Command}";
+            message.Chat.IsGroup() ? $"/{Command.Command}@{Bot.User?.Username}" : $"/{Command.Command}";
 
         if (message.Text == mainPart)
         {

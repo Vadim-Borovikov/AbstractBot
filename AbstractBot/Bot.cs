@@ -5,8 +5,10 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Commands;
+using AbstractBot.Extensions;
 using AbstractBot.Operations;
 using GryphonUtilities;
+using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -18,16 +20,18 @@ using Telegram.Bot.Types.ReplyMarkups;
 namespace AbstractBot;
 
 [PublicAPI]
-public abstract class BotBase
+public abstract class Bot
 {
     public string Host { get; private set; } = "";
 
     public readonly TelegramBotClient Client;
-    public readonly Config ConfigBase;
+    public readonly Config Config;
     public readonly TimeManager TimeManager;
     public readonly JsonSerializerOptionsProvider JsonSerializerOptionsProvider;
 
     public User? User;
+
+    protected static readonly ReplyKeyboardRemove NoKeyboard = new();
 
     protected internal readonly List<Operation> Operations;
 
@@ -39,11 +43,13 @@ public abstract class BotBase
     protected readonly InputOnlineFile DontUnderstandSticker;
     protected readonly InputOnlineFile ForbiddenSticker;
 
-    protected BotBase(Config config)
-    {
-        ConfigBase = config;
+    protected readonly Logger Logger;
 
-        Client = new TelegramBotClient(ConfigBase.Token);
+    protected Bot(Config config)
+    {
+        Config = config;
+
+        Client = new TelegramBotClient(Config.Token);
 
         Operations = new List<Operation>
         {
@@ -51,10 +57,12 @@ public abstract class BotBase
             new HelpCommand(this)
         };
 
-        DontUnderstandSticker = new InputOnlineFile(ConfigBase.DontUnderstandStickerFileId);
-        ForbiddenSticker = new InputOnlineFile(ConfigBase.ForbiddenStickerFileId);
+        DontUnderstandSticker = new InputOnlineFile(Config.DontUnderstandStickerFileId);
+        ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
 
-        TimeManager = new TimeManager(ConfigBase.SystemTimeZoneId);
+        TimeManager = new TimeManager(Config.SystemTimeZoneId);
+        Logger = new Logger(TimeManager);
+        _ticker = new Ticker(Logger);
 
         JsonSerializerOptionsProvider = new JsonSerializerOptionsProvider(TimeManager);
 
@@ -63,31 +71,53 @@ public abstract class BotBase
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
         AdminIds = GetAdminIds();
 
-        About = string.Join(Environment.NewLine, ConfigBase.About);
+        About = string.Join(Environment.NewLine, Config.About);
         StartPostfix =
-            ConfigBase.StartPostfix is null ? null : string.Join(Environment.NewLine, ConfigBase.StartPostfix);
-        HelpPrefix = ConfigBase.HelpPrefix is null ? null : string.Join(Environment.NewLine, ConfigBase.HelpPrefix);
+            Config.StartPostfix is null ? null : string.Join(Environment.NewLine, Config.StartPostfix);
+        HelpPrefix = Config.HelpPrefix is null ? null : string.Join(Environment.NewLine, Config.HelpPrefix);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
         Operations.Sort();
         Host = await GetHostAsync();
-        string url = $"{Host}/{ConfigBase.Token}";
+        string url = $"{Host}/{Config.Token}";
         await Client.SetWebhookAsync(url, cancellationToken: cancellationToken,
             allowedUpdates: Array.Empty<UpdateType>());
-        TickManager.Start(cancellationToken);
+        _ticker.Start(cancellationToken);
 
         await UpdateCommands(cancellationToken);
 
         User = await Client.GetMeAsync(cancellationToken);
     }
 
-    public void Update(Update update) => Utils.FireAndForget(_ => UpdateAsync(update));
+    public void Update(Update update) => Invoker.FireAndForget(_ => UpdateAsync(update), Logger);
 
     public virtual Task StopAsync(CancellationToken cancellationToken)
     {
         return Client.DeleteWebhookAsync(false, cancellationToken);
+    }
+
+    public static string EscapeCharacters(string s)
+    {
+        return s.Replace("_", "\\_")
+                .Replace("*", "\\*")
+                .Replace("[", "\\[")
+                .Replace("]", "\\]")
+                .Replace("(", "\\(")
+                .Replace(")", "\\)")
+                .Replace("~", "\\~")
+                .Replace("`", "\\`")
+                .Replace(">", "\\>")
+                .Replace("#", "\\#")
+                .Replace("+", "\\+")
+                .Replace("-", "\\-")
+                .Replace("=", "\\=")
+                .Replace("|", "\\|")
+                .Replace("{", "\\{")
+                .Replace("}", "\\}")
+                .Replace(".", "\\.")
+                .Replace("!", "\\!");
     }
 
     public Operation.Access GetMaximumAccessFor(long userId)
@@ -112,7 +142,7 @@ public abstract class BotBase
         bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
-        UpdateInfo.Log(chat, UpdateInfo.Type.SendText, data: text);
+        UpdateInfo.Log(chat, UpdateInfo.Type.SendText, Logger, data: text);
         return Client.SendTextMessageAsync(chat.Id, text, parseMode, entities, disableWebPagePreview,
             disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, replyMarkup,
             cancellationToken);
@@ -123,7 +153,7 @@ public abstract class BotBase
         InlineKeyboardMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
-        UpdateInfo.Log(chat, UpdateInfo.Type.EditText, messageId, text);
+        UpdateInfo.Log(chat, UpdateInfo.Type.EditText, Logger, messageId, text);
         return Client.EditMessageTextAsync(chat.Id, messageId, text, parseMode, entities,
             disableWebPagePreview, replyMarkup, cancellationToken);
     }
@@ -131,7 +161,7 @@ public abstract class BotBase
     public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
-        UpdateInfo.Log(chat, UpdateInfo.Type.Delete, messageId);
+        UpdateInfo.Log(chat, UpdateInfo.Type.Delete, Logger, messageId);
         return Client.DeleteMessageAsync(chat.Id, messageId, cancellationToken);
     }
 
@@ -139,7 +169,7 @@ public abstract class BotBase
         bool? disableNotification = null, bool? protectContent = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
-        UpdateInfo.Log(chat, UpdateInfo.Type.Forward, data: $"message {messageId} from {fromChatId}");
+        UpdateInfo.Log(chat, UpdateInfo.Type.Forward, Logger, data: $"message {messageId} from {fromChatId}");
         return Client.ForwardMessageAsync(chat.Id, fromChatId, messageId, disableNotification, protectContent,
             cancellationToken);
     }
@@ -160,7 +190,7 @@ public abstract class BotBase
         CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
-        UpdateInfo.Log(chat, UpdateInfo.Type.SendPhoto, data: caption);
+        UpdateInfo.Log(chat, UpdateInfo.Type.SendPhoto, Logger, data: caption);
         return Client.SendPhotoAsync(chat.Id, photo, caption, parseMode, captionEntities, disableNotification,
             protectContent, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
@@ -178,7 +208,7 @@ public abstract class BotBase
         bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
-        UpdateInfo.Log(chat, UpdateInfo.Type.SendSticker);
+        UpdateInfo.Log(chat, UpdateInfo.Type.SendSticker, Logger);
         return Client.SendStickerAsync(chat.Id, sticker, disableNotification, protectContent, replyToMessageId,
             allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
@@ -187,14 +217,14 @@ public abstract class BotBase
         CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
-        UpdateInfo.Log(chat, UpdateInfo.Type.Pin, messageId);
+        UpdateInfo.Log(chat, UpdateInfo.Type.Pin, Logger, messageId);
         return Client.PinChatMessageAsync(chat.Id, messageId, disableNotification, cancellationToken);
     }
 
     public Task UnpinChatMessageAsync(Chat chat, int? messageId = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
-        UpdateInfo.Log(chat, UpdateInfo.Type.Unpin, messageId);
+        UpdateInfo.Log(chat, UpdateInfo.Type.Unpin, Logger, messageId);
         return Client.UnpinChatMessageAsync(chat.Id, messageId, cancellationToken);
     }
 
@@ -209,7 +239,7 @@ public abstract class BotBase
         CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
-        UpdateInfo.Log(chat, UpdateInfo.Type.SendInvoice, null, title);
+        UpdateInfo.Log(chat, UpdateInfo.Type.SendInvoice, Logger, null, title);
         return Client.SendInvoiceAsync(chat.Id, title, description, payload, providerToken, currency, prices,
             maxTipAmount, suggestedTipAmounts, startParameter, providerData, photoUrl, photoSize, photoWidth,
             photoHeight, needName, needPhoneNumber, needEmail, needShippingAddress, sendPhoneNumberToProvider,
@@ -229,7 +259,7 @@ public abstract class BotBase
 
     protected virtual async Task UpdateAsync(Message message)
     {
-        long senderId = GetSenderId(message);
+        long senderId = message.GetSenderId();
         foreach (Operation operation in Operations)
         {
             Operation.ExecutionResult result = await operation.TryExecuteAsync(message, senderId);
@@ -260,11 +290,11 @@ public abstract class BotBase
         return SendStickerAsync(message.Chat, ForbiddenSticker, replyToMessageId: message.MessageId);
     }
 
-    protected virtual IReplyMarkup GetDefaultKeyboard(Chat _) => Utils.NoKeyboard;
+    protected virtual IReplyMarkup GetDefaultKeyboard(Chat _) => NoKeyboard;
 
     private bool IsAdmin(long userId) => AdminIds.Contains(userId);
 
-    private bool IsSuperAdmin(long userId) => ConfigBase.SuperAdminId == userId;
+    private bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
 
     private Task UpdateAsync(Update update)
     {
@@ -297,10 +327,10 @@ public abstract class BotBase
                 BotCommandScope.Chat(adminId), cancellationToken: cancellationToken);
         }
 
-        if (ConfigBase.SuperAdminId.HasValue)
+        if (Config.SuperAdminId.HasValue)
         {
             await Client.SetMyCommandsAsync(commands.Select(ca => ca.Command),
-                BotCommandScope.Chat(ConfigBase.SuperAdminId.Value), cancellationToken: cancellationToken);
+                BotCommandScope.Chat(Config.SuperAdminId.Value), cancellationToken: cancellationToken);
         }
     }
 
@@ -324,7 +354,7 @@ public abstract class BotBase
             TimeSpan period = chat.Type == ChatType.Private ? _sendMessagePeriodPrivate : _sendMessagePeriodGroup;
             TimeSpan? beforeLocalUpdate = TimeManager.GetDelayUntil(lastUpdateLocal, period, now);
 
-            TimeSpan? maxDelay = Utils.Max(beforeGlobalUpdate, beforeLocalUpdate);
+            TimeSpan? maxDelay = TimeSpanExtensions.Max(beforeGlobalUpdate, beforeLocalUpdate);
             if (maxDelay.HasValue)
             {
                 Task.Delay(maxDelay.Value, cancellationToken).Wait(cancellationToken);
@@ -336,33 +366,23 @@ public abstract class BotBase
         }
     }
 
-    private static long GetSenderId(Message message)
-    {
-        if (message.SenderChat is not null)
-        {
-            return message.SenderChat.Id;
-        }
-        User user = message.From.GetValue(nameof(message.From));
-        return user.Id;
-    }
-
     private Task<string> GetHostAsync()
     {
-        return string.IsNullOrWhiteSpace(ConfigBase.Host)
-            ? Utils.GetNgrokHostAsync(JsonSerializerOptionsProvider.SnakeCaseOptions)
-            : Task.FromResult(ConfigBase.Host);
+        return string.IsNullOrWhiteSpace(Config.Host)
+            ? Ngrok.Manager.GetHostAsync(JsonSerializerOptionsProvider.SnakeCaseOptions)
+            : Task.FromResult(Config.Host);
     }
 
     private List<long> GetAdminIds()
     {
-        if (ConfigBase.AdminIds is not null && (ConfigBase.AdminIds.Count != 0))
+        if (Config.AdminIds is not null && (Config.AdminIds.Count != 0))
         {
-            return ConfigBase.AdminIds;
+            return Config.AdminIds;
         }
 
-        if (!string.IsNullOrWhiteSpace(ConfigBase.AdminIdsJson))
+        if (!string.IsNullOrWhiteSpace(Config.AdminIdsJson))
         {
-            List<long>? deserialized = JsonSerializer.Deserialize<List<long>>(ConfigBase.AdminIdsJson,
+            List<long>? deserialized = JsonSerializer.Deserialize<List<long>>(Config.AdminIdsJson,
                 JsonSerializerOptionsProvider.PascalCaseOptions);
             if (deserialized is not null)
             {
@@ -375,6 +395,8 @@ public abstract class BotBase
 
     private readonly Dictionary<long, DateTimeFull> _lastUpdates = new();
     private readonly object _delayLocker = new();
+
+    private readonly Ticker _ticker;
 
     private readonly TimeSpan _sendMessagePeriodPrivate;
     private readonly TimeSpan _sendMessagePeriodGlobal;

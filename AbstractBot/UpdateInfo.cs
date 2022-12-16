@@ -1,4 +1,5 @@
 ﻿using System;
+using GryphonUtilities;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -20,16 +21,16 @@ public static class UpdateInfo
     }
 
     [PublicAPI]
-    public static void LogRefused(Chat chat, Type type, int? messageId = null, string? data = null)
+    public static void LogRefused(Chat chat, Type type, Logger logger, int? messageId = null, string? data = null)
     {
         string log = GetLog(chat, type, messageId, data);
-        Utils.LogManager.LogTimedMessage($"Refuse to {log}");
+        logger.LogTimedMessage($"Refuse to {log}");
     }
 
-    internal static void Log(Chat chat, Type type, int? messageId = null, string? data = null)
+    internal static void Log(Chat chat, Type type, Logger logger, int? messageId = null, string? data = null)
     {
         string log = GetLog(chat, type, messageId, data);
-        Utils.LogManager.LogTimedMessage(log);
+        logger.LogTimedMessage(log);
     }
 
     private static string GetLog(Chat chat, Type type, int? messageId = null, string? data = null)
