@@ -27,6 +27,7 @@ public abstract class Bot
     public readonly TelegramBotClient Client;
     public readonly Config Config;
     public readonly TimeManager TimeManager;
+    public readonly Logger Logger;
     public readonly JsonSerializerOptionsProvider JsonSerializerOptionsProvider;
 
     public User? User;
@@ -42,8 +43,6 @@ public abstract class Bot
     protected readonly List<long> AdminIds;
     protected readonly InputOnlineFile DontUnderstandSticker;
     protected readonly InputOnlineFile ForbiddenSticker;
-
-    protected readonly Logger Logger;
 
     protected Bot(Config config)
     {
