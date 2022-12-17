@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AbstractBot.Bots;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AbstractBot.Bots;
 using AbstractBot.Extensions;
+using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -38,6 +40,7 @@ public abstract class CommandOperation : Operation
 
     protected abstract Task ExecuteAsync(Message message, long senderId, string? payload);
 
+    [PublicAPI]
     protected virtual bool IsInvokingBy(Message message, out string? payload)
     {
         payload = null;

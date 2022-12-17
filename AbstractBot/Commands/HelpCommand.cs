@@ -1,4 +1,5 @@
-﻿using AbstractBot.Operations;
+﻿using AbstractBot.Bots;
+using AbstractBot.Operations;
 using System;
 using System.Collections.Generic;
 using System.Linq;

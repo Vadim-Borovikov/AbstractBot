@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Commands;
+using AbstractBot.Configs;
 using AbstractBot.Extensions;
 using AbstractBot.Operations;
 using GryphonUtilities;
@@ -17,7 +18,7 @@ using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.Payments;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace AbstractBot;
+namespace AbstractBot.Bots;
 
 [PublicAPI]
 public abstract class Bot
@@ -299,7 +300,7 @@ public abstract class Bot
     {
         return update.Type switch
         {
-            UpdateType.Message       => UpdateAsync(update.Message.GetValue(nameof(update.Message))),
+            UpdateType.Message => UpdateAsync(update.Message.GetValue(nameof(update.Message))),
             UpdateType.CallbackQuery => UpdateAsync(update.CallbackQuery.GetValue(nameof(update.CallbackQuery))),
             UpdateType.PreCheckoutQuery =>
                 UpdateAsync(update.PreCheckoutQuery.GetValue(nameof(update.PreCheckoutQuery))),
@@ -374,7 +375,7 @@ public abstract class Bot
 
     private List<long> GetAdminIds()
     {
-        if (Config.AdminIds is not null && (Config.AdminIds.Count != 0))
+        if (Config.AdminIds is not null && (Config.AdminIds.Count > 0))
         {
             return Config.AdminIds;
         }

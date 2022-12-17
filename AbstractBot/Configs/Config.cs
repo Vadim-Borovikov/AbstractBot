@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 
 // ReSharper disable NullableWarningSuppressionIsUsed
 
-namespace AbstractBot;
+namespace AbstractBot.Configs;
 
 [PublicAPI]
 public class Config

@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 
 // ReSharper disable NullableWarningSuppressionIsUsed
 
-namespace AbstractBot;
+namespace AbstractBot.Configs;
 
 [PublicAPI]
 public class ConfigGoogleSheets : Config, IConfigGoogleSheets

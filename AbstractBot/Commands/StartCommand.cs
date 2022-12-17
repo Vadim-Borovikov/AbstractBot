@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AbstractBot.Bots;
 using AbstractBot.Operations;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
