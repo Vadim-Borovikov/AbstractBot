@@ -12,5 +12,17 @@ public abstract class BotWithSheets<T> : CustomBot<T>, IDisposable where T : Con
 
     protected BotWithSheets(T config) : base(config) => DocumentsManager = new DocumentsManager(Config);
 
-    public void Dispose() => DocumentsManager.Dispose();
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            DocumentsManager.Dispose();
+        }
+    }
 }
