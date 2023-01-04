@@ -17,7 +17,8 @@ public static class UpdateInfo
         SendSticker,
         Pin,
         Unpin,
-        SendInvoice
+        SendInvoice,
+        SendFiles
     }
 
     [PublicAPI]

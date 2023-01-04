@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -172,6 +173,50 @@ public abstract class Bot
         UpdateInfo.Log(chat, UpdateInfo.Type.Forward, Logger, data: $"message {messageId} from {fromChatId}");
         return Client.ForwardMessageAsync(chat.Id, fromChatId, messageId, disableNotification, protectContent,
             cancellationToken);
+    }
+
+    public async Task<Message[]> SendMediaGroupAsync(Chat chat, IList<string> paths, string? caption = null,
+        ParseMode? parseMode = null, bool? disableNotification = null, bool? protectContent = null,
+        int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        CancellationToken cancellationToken = default)
+    {
+        List<FileStream> streams = paths.Select(System.IO.File.OpenRead).ToList();
+
+        List<InputMediaDocument> media = new();
+        for (int i = 0; i < streams.Count; ++i)
+        {
+            InputMedia input = new(streams[i], Path.GetFileName(streams[i].Name));
+            bool addCaption = i == (streams.Count - 1);
+            InputMediaDocument doc = new(input)
+            {
+                Caption = addCaption ? caption : null,
+                ParseMode = parseMode
+            };
+            media.Add(doc);
+        }
+
+        Message[] messages = await SendMediaGroupAsync(chat, media, disableNotification, protectContent,
+            replyToMessageId, allowSendingWithoutReply, cancellationToken);
+
+        foreach (FileStream stream in streams)
+        {
+            await stream.DisposeAsync();
+        }
+        Parallel.ForEach(paths, System.IO.File.Delete);
+
+        return messages;
+    }
+
+    public Task<Message[]> SendMediaGroupAsync(Chat chat, IEnumerable<IAlbumInputMedia> media,
+        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
+        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
+    {
+        DelayIfNeeded(chat, cancellationToken);
+        List<IAlbumInputMedia> all = new(media);
+        string captions = string.Join(", ", all.Select(m => m.Caption).RemoveNulls());
+        UpdateInfo.Log(chat, UpdateInfo.Type.SendFiles, Logger, data: captions);
+        return Client.SendMediaGroupAsync(chat.Id, all, disableNotification, protectContent, replyToMessageId,
+            allowSendingWithoutReply, cancellationToken);
     }
 
     public Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, string? caption = null,
