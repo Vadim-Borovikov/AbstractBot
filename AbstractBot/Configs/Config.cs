@@ -41,6 +41,10 @@ public class Config
     [Range(double.Epsilon, double.MaxValue)]
     public double UpdatesPerSecondLimitGlobal { get; set; }
 
+    [Required]
+    [Range(double.Epsilon, double.MaxValue)]
+    public double RestartPeriodHours { get; set; }
+
     public string? Host { get; init; }
 
     public List<string?> About { get; init; } = null!;

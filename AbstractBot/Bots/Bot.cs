@@ -90,6 +90,9 @@ public abstract class Bot
         await UpdateCommands(cancellationToken);
 
         User = await Client.GetMeAsync(cancellationToken);
+
+        Invoker.DoPeriodically(ReconnectAsync, TimeSpan.FromHours(Config.RestartPeriodHours), false, Logger,
+            cancellationToken);
     }
 
     public void Update(Update update) => Invoker.FireAndForget(_ => UpdateAsync(update), Logger);
@@ -436,6 +439,18 @@ public abstract class Bot
         }
 
         return new List<long>();
+    }
+
+    private async Task ReconnectAsync(CancellationToken cancellationToken = default)
+    {
+        Logger.LogTimedMessage("Reconnecting to Telegram...");
+
+        await Client.DeleteWebhookAsync(false, cancellationToken);
+
+        string url = $"{Host}/{Config.Token}";
+        await Client.SetWebhookAsync(url, allowedUpdates: Array.Empty<UpdateType>(), cancellationToken: cancellationToken);
+
+        Logger.LogTimedMessage("...connected.");
     }
 
     private readonly Dictionary<long, DateTimeFull> _lastUpdates = new();
