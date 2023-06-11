@@ -25,6 +25,9 @@ public abstract class Operation : IComparable<Operation>
     [PublicAPI]
     protected internal virtual Access AccessLevel => Access.User;
 
+    [PublicAPI]
+    protected internal virtual bool EnabledInGroups => false;
+
     protected internal string? MenuDescription { get; protected init; }
 
     protected abstract byte MenuOrder { get; }

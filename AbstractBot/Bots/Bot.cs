@@ -308,8 +308,16 @@ public abstract class Bot
     protected virtual async Task UpdateAsync(Message message)
     {
         long senderId = message.GetSenderId();
+
+        bool isGroup = message.Chat.IsGroup();
+
         foreach (Operation operation in Operations)
         {
+            if (isGroup && !operation.EnabledInGroups)
+            {
+                continue;
+            }
+
             Operation.ExecutionResult result = await operation.TryExecuteAsync(message, senderId);
             switch (result)
             {
@@ -321,7 +329,11 @@ public abstract class Bot
                 default: throw new ArgumentOutOfRangeException(nameof(result));
             }
         }
-        await ProcessUnclearOperation(message, senderId);
+
+        if (!isGroup)
+        {
+            await ProcessUnclearOperation(message, senderId);
+        }
     }
 
     protected virtual Task UpdateAsync(CallbackQuery _) => Task.CompletedTask;

@@ -10,7 +10,8 @@ namespace AbstractBot.Operations;
 
 public abstract class CommandOperation : Operation
 {
-    protected internal readonly BotCommand Command;
+    [PublicAPI]
+    public readonly BotCommand Command;
 
     protected CommandOperation(Bot bot, string command, string description) : base(bot)
     {
