@@ -15,7 +15,6 @@ using JetBrains.Annotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.Payments;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -41,8 +40,8 @@ public abstract class Bot
     internal readonly string About;
 
     protected readonly List<long> AdminIds;
-    protected readonly InputOnlineFile DontUnderstandSticker;
-    protected readonly InputOnlineFile ForbiddenSticker;
+    protected readonly InputFileId DontUnderstandSticker;
+    protected readonly InputFileId ForbiddenSticker;
 
     protected Bot(Config config)
     {
@@ -56,8 +55,8 @@ public abstract class Bot
             new HelpCommand(this)
         };
 
-        DontUnderstandSticker = new InputOnlineFile(Config.DontUnderstandStickerFileId);
-        ForbiddenSticker = new InputOnlineFile(Config.ForbiddenStickerFileId);
+        DontUnderstandSticker = new InputFileId(Config.DontUnderstandStickerFileId);
+        ForbiddenSticker = new InputFileId(Config.ForbiddenStickerFileId);
 
         TimeManager = new TimeManager(Config.SystemTimeZoneId);
         Logger = new Logger(TimeManager);
@@ -127,24 +126,25 @@ public abstract class Bot
     }
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
-        IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
+        int? messageThreadId = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
         bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
         bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
     {
-        return SendTextMessageAsync(chat, text, GetDefaultKeyboard(chat), parseMode, entities, disableWebPagePreview,
-            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
+        return SendTextMessageAsync(chat, text, GetDefaultKeyboard(chat), parseMode, messageThreadId, entities,
+            disableWebPagePreview, disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply,
+            cancellationToken);
     }
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, IReplyMarkup? replyMarkup,
-        ParseMode? parseMode = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
-        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
-        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
+        ParseMode? parseMode = null, int? messageThreadId = null, IEnumerable<MessageEntity>? entities = null,
+        bool? disableWebPagePreview = null, bool? disableNotification = null, bool? protectContent = null,
+        int? replyToMessageId = null, bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendText, Logger, data: text);
-        return Client.SendTextMessageAsync(chat.Id, text, parseMode, entities, disableWebPagePreview,
-            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, replyMarkup,
-            cancellationToken);
+        return Client.SendTextMessageAsync(chat.Id, text, messageThreadId, parseMode, entities, disableWebPagePreview,
+            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply,
+            replyMarkup, cancellationToken);
     }
 
     public Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text, ParseMode? parseMode = null,
@@ -164,18 +164,18 @@ public abstract class Bot
         return Client.DeleteMessageAsync(chat.Id, messageId, cancellationToken);
     }
 
-    public Task<Message> ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId,
+    public Task<Message> ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId, int? messageThreadId = null,
         bool? disableNotification = null, bool? protectContent = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.Forward, Logger, data: $"message {messageId} from {fromChatId}");
-        return Client.ForwardMessageAsync(chat.Id, fromChatId, messageId, disableNotification, protectContent,
-            cancellationToken);
+        return Client.ForwardMessageAsync(chat.Id, fromChatId, messageId, messageThreadId, disableNotification,
+            protectContent, cancellationToken);
     }
 
     public async Task<Message[]> SendMediaGroupAsync(Chat chat, IList<string> paths, string? caption = null,
-        ParseMode? parseMode = null, bool? disableNotification = null, bool? protectContent = null,
-        int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        ParseMode? parseMode = null, int? messageThreadId = null, bool? disableNotification = null,
+        bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
         List<FileStream> streams = paths.Select(System.IO.File.OpenRead).ToList();
@@ -183,7 +183,7 @@ public abstract class Bot
         List<InputMediaDocument> media = new();
         for (int i = 0; i < streams.Count; ++i)
         {
-            InputMedia input = new(streams[i], Path.GetFileName(streams[i].Name));
+            InputFileStream input = new(streams[i], Path.GetFileName(streams[i].Name));
             bool addCaption = i == (streams.Count - 1);
             InputMediaDocument doc = new(input)
             {
@@ -193,8 +193,8 @@ public abstract class Bot
             media.Add(doc);
         }
 
-        Message[] messages = await SendMediaGroupAsync(chat, media, disableNotification, protectContent,
-            replyToMessageId, allowSendingWithoutReply, cancellationToken);
+        Message[] messages = await SendMediaGroupAsync(chat, media, messageThreadId, disableNotification,
+            protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
 
         foreach (FileStream stream in streams)
         {
@@ -206,54 +206,60 @@ public abstract class Bot
     }
 
     public Task<Message[]> SendMediaGroupAsync(Chat chat, IEnumerable<IAlbumInputMedia> media,
-        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
-        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
+        int? messageThreadId = null, bool? disableNotification = null, bool? protectContent = null,
+        int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         List<IAlbumInputMedia> all = new(media);
-        string captions = string.Join(", ", all.Select(m => m.Caption).RemoveNulls());
+        string captions = string.Join(", ", all.OfType<InputMedia>().Select(m => m.Caption).RemoveNulls());
         UpdateInfo.Log(chat, UpdateInfo.Type.SendFiles, Logger, data: captions);
-        return Client.SendMediaGroupAsync(chat.Id, all, disableNotification, protectContent, replyToMessageId,
+        return Client.SendMediaGroupAsync(chat.Id, all, messageThreadId, disableNotification, protectContent,
+            replyToMessageId, allowSendingWithoutReply, cancellationToken);
+    }
+
+    public Task<Message> SendPhotoAsync(Chat chat, InputFile photo, int? messageThreadId = null,
+        string? caption = null, ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
+        bool? hasSpoiler = null, bool? disableNotification = null, bool? protectContent = null,
+        int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        CancellationToken cancellationToken = default)
+    {
+        return SendPhotoAsync(chat, photo, GetDefaultKeyboard(chat), messageThreadId, caption, parseMode,
+            captionEntities, hasSpoiler, disableNotification, protectContent, replyToMessageId,
             allowSendingWithoutReply, cancellationToken);
     }
 
-    public Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, string? caption = null,
-        ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
-        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
-        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
-    {
-        return SendPhotoAsync(chat, photo, GetDefaultKeyboard(chat), caption, parseMode, captionEntities,
-            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
-    }
-
-    public Task<Message> SendPhotoAsync(Chat chat, InputOnlineFile photo, IReplyMarkup? replyMarkup,
-        string? caption = null, ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
-        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
-        bool? allowSendingWithoutReply = null,
+    public Task<Message> SendPhotoAsync(Chat chat, InputFile photo, IReplyMarkup? replyMarkup,
+        int? messageThreadId = null, string? caption = null, ParseMode? parseMode = null,
+        IEnumerable<MessageEntity>? captionEntities = null, bool? hasSpoiler = null, bool? disableNotification = null,
+        bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendPhoto, Logger, data: caption);
-        return Client.SendPhotoAsync(chat.Id, photo, caption, parseMode, captionEntities, disableNotification,
-            protectContent, replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
+        return Client.SendPhotoAsync(chat.Id, photo, messageThreadId, caption, parseMode, captionEntities, hasSpoiler,
+            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, replyMarkup,
+            cancellationToken);
     }
 
-    public Task<Message> SendStickerAsync(Chat chat, InputOnlineFile sticker, bool? disableNotification = null,
+    public Task<Message> SendStickerAsync(Chat chat, InputFile sticker, int? messageThreadId = null,
+        string? emoji = null, bool? disableNotification = null, bool? protectContent = null,
+        int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        CancellationToken cancellationToken = default)
+    {
+        return SendStickerAsync(chat, sticker, GetDefaultKeyboard(chat), messageThreadId, emoji,
+            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
+    }
+
+    public Task<Message> SendStickerAsync(Chat chat, InputFile sticker, IReplyMarkup? replyMarkup,
+        int? messageThreadId = null, string? emoji = null, bool? disableNotification = null,
         bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
-        return SendStickerAsync(chat, sticker, GetDefaultKeyboard(chat), disableNotification, protectContent,
-            replyToMessageId, allowSendingWithoutReply, cancellationToken);
-    }
-
-    public Task<Message> SendStickerAsync(Chat chat, InputOnlineFile sticker, IReplyMarkup? replyMarkup,
-        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
-        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
-    {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendSticker, Logger);
-        return Client.SendStickerAsync(chat.Id, sticker, disableNotification, protectContent, replyToMessageId,
-            allowSendingWithoutReply, replyMarkup, cancellationToken);
+        return Client.SendStickerAsync(chat.Id, sticker, messageThreadId, emoji, disableNotification, protectContent,
+            replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
     public Task PinChatMessageAsync(Chat chat, int messageId, bool? disableNotification = null,
@@ -271,8 +277,8 @@ public abstract class Bot
         return Client.UnpinChatMessageAsync(chat.Id, messageId, cancellationToken);
     }
 
-    public Task SendInvoiceAsync(Chat chat, string title, string description, string payload,
-        string providerToken, string currency, IEnumerable<LabeledPrice> prices, int? maxTipAmount = null,
+    public Task SendInvoiceAsync(Chat chat, string title, string description, string payload, string providerToken,
+        string currency, IEnumerable<LabeledPrice> prices, int? messageThreadId = null, int? maxTipAmount = null,
         IEnumerable<int>? suggestedTipAmounts = null, string? startParameter = null, string? providerData = null,
         string? photoUrl = null, int? photoSize = null, int? photoWidth = null, int? photoHeight = null,
         bool? needName = null, bool? needPhoneNumber = null, bool? needEmail = null, bool? needShippingAddress = null,
@@ -284,10 +290,10 @@ public abstract class Bot
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendInvoice, Logger, null, title);
         return Client.SendInvoiceAsync(chat.Id, title, description, payload, providerToken, currency, prices,
-            maxTipAmount, suggestedTipAmounts, startParameter, providerData, photoUrl, photoSize, photoWidth,
-            photoHeight, needName, needPhoneNumber, needEmail, needShippingAddress, sendPhoneNumberToProvider,
-            sendEmailToProvider, isFlexible, disableNotification, protectContent, replyToMessageId,
-            allowSendingWithoutReply, replyMarkup, cancellationToken);
+            messageThreadId, maxTipAmount, suggestedTipAmounts, startParameter, providerData, photoUrl, photoSize,
+            photoWidth, photoHeight, needName, needPhoneNumber, needEmail, needShippingAddress,
+            sendPhoneNumberToProvider, sendEmailToProvider, isFlexible, disableNotification, protectContent,
+            replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
     protected internal virtual Task OnStartCommand(StartCommand start, Message message, long senderId, string payload)
