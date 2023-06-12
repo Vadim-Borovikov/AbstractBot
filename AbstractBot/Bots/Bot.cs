@@ -39,8 +39,6 @@ public abstract class Bot
     protected internal readonly List<Operation> Operations;
 
     internal readonly string About;
-    internal readonly string? StartPostfix;
-    internal readonly string? HelpPrefix;
 
     protected readonly List<long> AdminIds;
     protected readonly InputOnlineFile DontUnderstandSticker;
@@ -72,10 +70,7 @@ public abstract class Bot
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
         AdminIds = GetAdminIds();
 
-        About = string.Join(Environment.NewLine, Config.About);
-        StartPostfix =
-            Config.StartPostfix is null ? null : string.Join(Environment.NewLine, Config.StartPostfix);
-        HelpPrefix = Config.HelpPrefix is null ? null : string.Join(Environment.NewLine, Config.HelpPrefix);
+        About = Text.JoinLines(Config.AboutLines);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)

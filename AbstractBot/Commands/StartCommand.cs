@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AbstractBot.Bots;
 using AbstractBot.Operations;
+using GryphonUtilities;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -25,9 +26,9 @@ public sealed class StartCommand : CommandOperation
         await Bot.UpdateCommandsFor(chat.Id);
 
         string text = $"{Bot.About}";
-        if (!string.IsNullOrWhiteSpace(Bot.StartPostfix))
+        if (Bot.Config.StartPostfixLines is not null)
         {
-            text += $"{Environment.NewLine}{Bot.StartPostfix}";
+            text += $"{Environment.NewLine}{Text.JoinLines(Bot.Config.StartPostfixLines)}";
         }
         await Bot.SendTextMessageAsync(chat, text, ParseMode.MarkdownV2);
     }

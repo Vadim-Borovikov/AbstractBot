@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GryphonUtilities;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -19,9 +20,9 @@ internal sealed class HelpCommand : CommandOperation
     protected override Task ExecuteAsync(Message message, long _, string? __)
     {
         string text = $"{Bot.About}{Environment.NewLine}{Environment.NewLine}";
-        if (!string.IsNullOrWhiteSpace(Bot.HelpPrefix))
+        if (Bot.Config.HelpPrefixLines is not null)
         {
-            text += $"{Bot.HelpPrefix}{Environment.NewLine}{Environment.NewLine}";
+            text += $"{Text.JoinLines(Bot.Config.HelpPrefixLines)}{Environment.NewLine}{Environment.NewLine}";
         }
 
         text += GetOperationsDescriptionFor(message.Chat.Id);
