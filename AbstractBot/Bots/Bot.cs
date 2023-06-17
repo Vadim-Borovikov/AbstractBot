@@ -324,7 +324,10 @@ public abstract class Bot
             {
                 case Operation.ExecutionResult.UnsuitableOperation: continue;
                 case Operation.ExecutionResult.InsufficentAccess:
-                    await ProcessInsufficientAccess(message, senderId, operation);
+                    if (!isGroup)
+                    {
+                        await ProcessInsufficientAccess(message, senderId, operation);
+                    }
                     return;
                 case Operation.ExecutionResult.Success: return;
                 default: throw new ArgumentOutOfRangeException(nameof(result));
