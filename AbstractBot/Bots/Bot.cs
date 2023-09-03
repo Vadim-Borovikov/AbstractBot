@@ -379,7 +379,7 @@ public abstract class Bot
         await Client.DeleteMyCommandsAsync(BotCommandScope.AllChatAdministrators(),
             cancellationToken: cancellationToken);
 
-        List<CommandOperation> commands = Operations.OfType<CommandOperation>().ToList();
+        List<CommandOperation> commands = Operations.OfType<CommandOperation>().Where(c => !c.HideFromMenu).ToList();
         await Client.SetMyCommandsAsync(
             commands.Where(c => c.AccessLevel == Operation.Access.User).Select(ca => ca.Command),
             BotCommandScope.AllPrivateChats(), cancellationToken: cancellationToken);

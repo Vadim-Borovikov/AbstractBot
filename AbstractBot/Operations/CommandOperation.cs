@@ -13,6 +13,9 @@ public abstract class CommandOperation : Operation
     [PublicAPI]
     public readonly BotCommand Command;
 
+    [PublicAPI]
+    protected internal virtual bool HideFromMenu => false;
+
     protected CommandOperation(Bot bot, string command, string description) : base(bot)
     {
         Command = new BotCommand
