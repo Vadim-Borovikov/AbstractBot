@@ -47,9 +47,8 @@ public class Config
 
     public string? Host { get; init; }
 
-    public List<string?> AboutLines { get; init; } = null!;
-    public List<string?>? StartPostfixLines { get; init; }
-    public List<string?>? HelpPrefixLines { get; init; }
+    [Required]
+    public Texts Texts { get; init; } = null!;
 
     public List<long>? AdminIds { get; init; }
     public string? AdminIdsJson { get; init; }

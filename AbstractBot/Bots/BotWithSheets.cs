@@ -6,11 +6,13 @@ using JetBrains.Annotations;
 namespace AbstractBot.Bots;
 
 [PublicAPI]
-public abstract class BotWithSheets<T> : CustomBot<T>, IDisposable where T : ConfigGoogleSheets
+public abstract class BotWithSheets<TConfig, TTexts> : CustomBot<TConfig, TTexts>, IDisposable
+    where TConfig : ConfigGoogleSheets<TTexts>
+    where TTexts : Texts
 {
     protected readonly DocumentsManager DocumentsManager;
 
-    protected BotWithSheets(T config) : base(config) => DocumentsManager = new DocumentsManager(Config);
+    protected BotWithSheets(TConfig config) : base(config) => DocumentsManager = new DocumentsManager(Config);
 
     public void Dispose()
     {

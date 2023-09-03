@@ -8,7 +8,8 @@ using JetBrains.Annotations;
 namespace AbstractBot.Configs;
 
 [PublicAPI]
-public class ConfigGoogleSheets : Config, IConfigGoogleSheets
+public class ConfigGoogleSheets<T> : CustomConfig<T>, IConfigGoogleSheets
+    where T : Texts
 {
     public Dictionary<string, string>? GoogleCredential { get; init; }
     public string? GoogleCredentialJson { get; init; }

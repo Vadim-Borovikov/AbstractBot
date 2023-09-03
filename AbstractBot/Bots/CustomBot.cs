@@ -4,9 +4,11 @@ using JetBrains.Annotations;
 namespace AbstractBot.Bots;
 
 [PublicAPI]
-public abstract class CustomBot<T> : Bot where T : Config
+public abstract class CustomBot<TConfig, TTexts> : Bot
+    where TConfig : CustomConfig<TTexts>
+    where TTexts : Texts
 {
-    public new readonly T Config;
+    public new readonly TConfig Config;
 
-    protected CustomBot(T config) : base(config) => Config = config;
+    protected CustomBot(TConfig config) : base(config) => Config = config;
 }

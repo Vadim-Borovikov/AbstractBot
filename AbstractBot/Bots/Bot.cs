@@ -69,7 +69,7 @@ public abstract class Bot
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
         AdminIds = GetAdminIds();
 
-        About = Text.JoinLines(Config.AboutLines);
+        About = Text.JoinLines(Config.Texts.AboutLines);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
