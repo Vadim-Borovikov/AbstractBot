@@ -20,4 +20,5 @@ public class Texts
     public List<string?>? AboutLinesMarkdownV2 { get; init; }
     public List<string?>? StartPostfixLinesMarkdownV2 { get; init; }
     public List<string?>? HelpPrefixLinesMarkdownV2 { get; init; }
+    public List<string?>? HelpPostfixLinesMarkdownV2 { get; init; }
 }

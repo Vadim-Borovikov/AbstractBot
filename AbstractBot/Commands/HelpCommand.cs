@@ -13,20 +13,25 @@ namespace AbstractBot.Commands;
 
 internal sealed class HelpCommand : CommandOperation
 {
-    protected override byte MenuOrder => 1;
+    protected override byte MenuOrder => Bot.Config.HelpCommandMenuOrder;
 
     public HelpCommand(Bot bot) : base(bot, "help", bot.Config.Texts.HelpCommandDescription) { }
 
     protected override Task ExecuteAsync(Message message, long _, string? __)
     {
-        string text = $"{Bot.About}{Environment.NewLine}{Environment.NewLine}";
+        string text = $"{Bot.About}{Environment.NewLine}";
         if (Bot.Config.Texts.HelpPrefixLinesMarkdownV2 is not null)
         {
-            text +=
-                $"{Text.JoinLines(Bot.Config.Texts.HelpPrefixLinesMarkdownV2)}{Environment.NewLine}{Environment.NewLine}";
+            text += $"{Text.JoinLines(Bot.Config.Texts.HelpPrefixLinesMarkdownV2)}{Environment.NewLine}";
         }
 
         text += GetOperationsDescriptionFor(message.Chat.Id);
+
+        if (Bot.Config.Texts.HelpPostfixLinesMarkdownV2 is not null)
+        {
+            text += $"{Text.JoinLines(Bot.Config.Texts.HelpPostfixLinesMarkdownV2)}";
+        }
+
         return Bot.SendTextMessageAsync(message.Chat, text, ParseMode.MarkdownV2);
     }
 

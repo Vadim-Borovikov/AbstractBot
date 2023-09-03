@@ -54,4 +54,6 @@ public class Config
     public string? AdminIdsJson { get; init; }
 
     public long? SuperAdminId { get; init; }
+
+    public byte HelpCommandMenuOrder { get; init; } = 1;
 }
