@@ -15,7 +15,7 @@ internal sealed class HelpCommand : CommandOperation
 {
     protected override byte MenuOrder => 1;
 
-    public HelpCommand(Bot bot) : base(bot, "help", "инструкция") { }
+    public HelpCommand(Bot bot) : base(bot, "help", bot.Config.Texts.HelpCommandDescription) { }
 
     protected override Task ExecuteAsync(Message message, long _, string? __)
     {
