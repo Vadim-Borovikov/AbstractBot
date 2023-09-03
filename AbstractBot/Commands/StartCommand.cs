@@ -26,9 +26,9 @@ public sealed class StartCommand : CommandOperation
         await Bot.UpdateCommandsFor(chat.Id);
 
         string text = $"{Bot.About}";
-        if (Bot.Config.Texts.StartPostfixLines is not null)
+        if (Bot.Config.Texts.StartPostfixLinesMarkdownV2 is not null)
         {
-            text += $"{Environment.NewLine}{Text.JoinLines(Bot.Config.Texts.StartPostfixLines)}";
+            text += $"{Environment.NewLine}{Text.JoinLines(Bot.Config.Texts.StartPostfixLinesMarkdownV2)}";
         }
         await Bot.SendTextMessageAsync(chat, text, ParseMode.MarkdownV2);
     }

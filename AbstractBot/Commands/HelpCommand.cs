@@ -20,9 +20,10 @@ internal sealed class HelpCommand : CommandOperation
     protected override Task ExecuteAsync(Message message, long _, string? __)
     {
         string text = $"{Bot.About}{Environment.NewLine}{Environment.NewLine}";
-        if (Bot.Config.Texts.HelpPrefixLines is not null)
+        if (Bot.Config.Texts.HelpPrefixLinesMarkdownV2 is not null)
         {
-            text += $"{Text.JoinLines(Bot.Config.Texts.HelpPrefixLines)}{Environment.NewLine}{Environment.NewLine}";
+            text +=
+                $"{Text.JoinLines(Bot.Config.Texts.HelpPrefixLinesMarkdownV2)}{Environment.NewLine}{Environment.NewLine}";
         }
 
         text += GetOperationsDescriptionFor(message.Chat.Id);
