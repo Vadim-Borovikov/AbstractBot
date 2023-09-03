@@ -23,7 +23,7 @@ public abstract class CommandOperation : Operation
             Command = command,
             Description = description
         };
-        MenuDescription = $"/{Bot.EscapeCharacters(Command.Command)} – {Bot.EscapeCharacters(Command.Description)}";
+        MenuDescription = $"/{Command.Command} – {Bot.EscapeCharacters(Command.Description)}";
     }
 
     protected internal override async Task<ExecutionResult> TryExecuteAsync(Message message, long senderId)
