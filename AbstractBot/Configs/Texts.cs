@@ -17,7 +17,7 @@ public class Texts
     [MinLength(1)]
     public string HelpCommandDescription { get; init; } = null!;
 
-    public List<string?> AboutLines { get; init; } = null!;
+    public List<string?>? AboutLines { get; init; }
     public List<string?>? StartPostfixLines { get; init; }
     public List<string?>? HelpPrefixLines { get; init; }
 }
