@@ -179,22 +179,10 @@ public abstract class Bot
         CancellationToken cancellationToken = default)
     {
         List<FileStream> streams = paths.Select(System.IO.File.OpenRead).ToList();
+        List<InputFile> inputFiles = streams.Select(FileStreamExtensions.ToInputFileStream).Cast<InputFile>().ToList();
 
-        List<InputMediaDocument> media = new();
-        for (int i = 0; i < streams.Count; ++i)
-        {
-            InputFileStream input = new(streams[i], Path.GetFileName(streams[i].Name));
-            bool addCaption = i == (streams.Count - 1);
-            InputMediaDocument doc = new(input)
-            {
-                Caption = addCaption ? caption : null,
-                ParseMode = parseMode
-            };
-            media.Add(doc);
-        }
-
-        Message[] messages = await SendMediaGroupAsync(chat, media, messageThreadId, disableNotification,
-            protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
+        Message[] messages = await SendMediaGroupAsync(chat, inputFiles, caption, parseMode, messageThreadId,
+            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
 
         foreach (FileStream stream in streams)
         {
@@ -203,6 +191,27 @@ public abstract class Bot
         Parallel.ForEach(paths, System.IO.File.Delete);
 
         return messages;
+    }
+
+    public Task<Message[]> SendMediaGroupAsync(Chat chat, IList<InputFile> inputFiles, string? caption = null,
+        ParseMode? parseMode = null, int? messageThreadId = null, bool? disableNotification = null,
+        bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
+        CancellationToken cancellationToken = default)
+    {
+        List<InputMediaDocument> media = new();
+        for (int i = 0; i < inputFiles.Count; ++i)
+        {
+            bool addCaption = i == (inputFiles.Count - 1);
+            InputMediaDocument doc = new(inputFiles[i])
+            {
+                Caption = addCaption ? caption : null,
+                ParseMode = parseMode
+            };
+            media.Add(doc);
+        }
+
+        return SendMediaGroupAsync(chat, media, messageThreadId, disableNotification, protectContent, replyToMessageId,
+            allowSendingWithoutReply, cancellationToken);
     }
 
     public Task<Message[]> SendMediaGroupAsync(Chat chat, IEnumerable<IAlbumInputMedia> media,
