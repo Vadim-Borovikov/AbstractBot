@@ -21,4 +21,12 @@ public class Texts
     public List<string?>? StartPostfixLinesMarkdownV2 { get; init; }
     public List<string?>? HelpPrefixLinesMarkdownV2 { get; init; }
     public List<string?>? HelpPostfixLinesMarkdownV2 { get; init; }
+
+    [Required]
+    [MinLength(1)]
+    public string StatusMessageStartFormatMarkdownV2 { get; init; } = null!;
+
+    [Required]
+    [MinLength(1)]
+    public string StatusMessageEndFormatMarkdownV2 { get; init; } = null!;
 }
