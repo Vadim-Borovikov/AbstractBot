@@ -96,28 +96,6 @@ public abstract class BotBase
         return Client.DeleteWebhookAsync(false, cancellationToken);
     }
 
-    public static string EscapeCharacters(string s)
-    {
-        return s.Replace("_", "\\_")
-                .Replace("*", "\\*")
-                .Replace("[", "\\[")
-                .Replace("]", "\\]")
-                .Replace("(", "\\(")
-                .Replace(")", "\\)")
-                .Replace("~", "\\~")
-                .Replace("`", "\\`")
-                .Replace(">", "\\>")
-                .Replace("#", "\\#")
-                .Replace("+", "\\+")
-                .Replace("-", "\\-")
-                .Replace("=", "\\=")
-                .Replace("|", "\\|")
-                .Replace("{", "\\{")
-                .Replace("}", "\\}")
-                .Replace(".", "\\.")
-                .Replace("!", "\\!");
-    }
-
     public Operation.Access GetMaximumAccessFor(long userId)
     {
         return IsSuperAdmin(userId)
