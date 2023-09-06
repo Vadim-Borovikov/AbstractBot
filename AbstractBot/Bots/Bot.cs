@@ -13,7 +13,7 @@ public abstract class Bot<TConfig, TTexts, TData> : BotBase
 {
     public new readonly TConfig Config;
 
-    protected SaveManager<TData> SaveManager { get; init; }
+    protected readonly SaveManager<TData> SaveManager;
 
     protected Bot(TConfig config) : base(config)
     {
