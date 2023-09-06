@@ -1,5 +1,4 @@
 using AbstractBot.Configs;
-using AbstractBot.Save;
 using GryphonUtilities;
 using JetBrains.Annotations;
 
@@ -9,7 +8,7 @@ namespace AbstractBot.Bots;
 public abstract class Bot<TConfig, TTexts, TData> : BotBase
     where TConfig : CustomConfig<TTexts>
     where TTexts : Texts
-    where TData : Data, new()
+    where TData : SaveData, new()
 {
     public new readonly TConfig Config;
 

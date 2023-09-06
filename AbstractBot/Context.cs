@@ -1,4 +1,4 @@
-﻿namespace AbstractBot.Save;
+﻿namespace AbstractBot;
 
 public abstract class Context
 {

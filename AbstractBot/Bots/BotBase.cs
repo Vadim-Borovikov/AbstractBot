@@ -31,6 +31,8 @@ public abstract class BotBase
     public readonly Logger Logger;
     public readonly JsonSerializerOptionsProvider JsonSerializerOptionsProvider;
 
+    public readonly Dictionary<long, Context> Contexts = new();
+
     public User? User;
 
     protected static readonly ReplyKeyboardRemove NoKeyboard = new();
@@ -102,6 +104,8 @@ public abstract class BotBase
             ? Operation.Access.SuperAdmin
             : IsAdmin(userId) ? Operation.Access.Admin : Operation.Access.User;
     }
+
+    public T? GetContext<T>(long key) where T : Context => Contexts.ContainsKey(key) ? Contexts[key] as T : null;
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
         int? messageThreadId = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
