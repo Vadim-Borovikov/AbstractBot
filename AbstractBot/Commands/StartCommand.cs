@@ -12,7 +12,7 @@ public sealed class StartCommand : CommandOperation
 {
     protected override byte MenuOrder => 0;
 
-    internal StartCommand(Bot bot) : base(bot, "start", bot.Config.Texts.StartCommandDescription) { }
+    internal StartCommand(BotBase bot) : base(bot, "start", bot.Config.Texts.StartCommandDescription) { }
 
     protected override Task ExecuteAsync(Message message, long senderId, string? payload)
     {

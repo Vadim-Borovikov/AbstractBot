@@ -1,14 +1,16 @@
 using System;
 using AbstractBot.Configs;
+using AbstractBot.Save;
 using GoogleSheetsManager.Documents;
 using JetBrains.Annotations;
 
 namespace AbstractBot.Bots;
 
 [PublicAPI]
-public abstract class BotWithSheets<TConfig, TTexts> : CustomBot<TConfig, TTexts>, IDisposable
+public abstract class BotWithSheets<TConfig, TTexts, TData> : Bot<TConfig, TTexts, TData>, IDisposable
     where TConfig : ConfigGoogleSheets<TTexts>
     where TTexts : Texts
+    where TData : Data, new()
 {
     protected readonly DocumentsManager DocumentsManager;
 

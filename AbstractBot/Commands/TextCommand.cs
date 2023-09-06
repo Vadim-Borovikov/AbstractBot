@@ -10,7 +10,8 @@ namespace AbstractBot.Commands;
 [PublicAPI]
 public abstract class TextCommand : CommandOperation
 {
-    protected TextCommand(Bot bot, string command, string description, string text) : base(bot, command, description)
+    protected TextCommand(BotBase bot, string command, string description, string text)
+        : base(bot, command, description)
     {
         _bot = bot;
         _text = text;
@@ -21,6 +22,6 @@ public abstract class TextCommand : CommandOperation
         return _bot.SendTextMessageAsync(message.Chat, _text, ParseMode.MarkdownV2);
     }
 
-    private readonly Bot _bot;
+    private readonly BotBase _bot;
     private readonly string _text;
 }

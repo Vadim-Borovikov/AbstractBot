@@ -16,14 +16,14 @@ public abstract class CommandOperation : Operation
     [PublicAPI]
     protected internal virtual bool HideFromMenu => false;
 
-    protected CommandOperation(Bot bot, string command, string description) : base(bot)
+    protected CommandOperation(BotBase bot, string command, string description) : base(bot)
     {
         Command = new BotCommand
         {
             Command = command,
             Description = description
         };
-        MenuDescription = $"/{Command.Command} – {Bot.EscapeCharacters(Command.Description)}";
+        MenuDescription = $"/{Command.Command} – {BotBase.EscapeCharacters(Command.Description)}";
     }
 
     protected internal override async Task<ExecutionResult> TryExecuteAsync(Message message, long senderId)

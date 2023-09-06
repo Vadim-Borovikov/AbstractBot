@@ -32,9 +32,9 @@ public abstract class Operation : IComparable<Operation>
 
     protected abstract byte MenuOrder { get; }
 
-    protected readonly Bot Bot;
+    protected readonly BotBase Bot;
 
-    protected Operation(Bot bot) => Bot = bot;
+    protected Operation(BotBase bot) => Bot = bot;
 
     public int CompareTo(Operation? other)
     {

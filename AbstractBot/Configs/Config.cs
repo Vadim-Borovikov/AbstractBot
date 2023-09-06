@@ -55,5 +55,9 @@ public class Config
 
     public long? SuperAdminId { get; init; }
 
+    [Required]
+    [MinLength(1)]
+    public string SavePath { get; init; } = null!;
+
     public byte HelpCommandMenuOrder { get; init; } = 1;
 }
