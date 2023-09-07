@@ -7,7 +7,7 @@ namespace AbstractBot.Bots;
 
 [PublicAPI]
 public abstract class BotWithSheets<TConfig, TTexts, TData> : Bot<TConfig, TTexts, TData>, IDisposable
-    where TConfig : ConfigGoogleSheets<TTexts>
+    where TConfig : ConfigWithSheets<TTexts>
     where TTexts : Texts
     where TData : SaveData, new()
 {

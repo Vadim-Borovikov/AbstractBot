@@ -5,8 +5,8 @@ using JetBrains.Annotations;
 namespace AbstractBot.Bots;
 
 [PublicAPI]
-public abstract class Bot<TConfig, TTexts, TData> : BotBase
-    where TConfig : CustomConfig<TTexts>
+public abstract class Bot<TConfig, TTexts, TData> : BotBasic
+    where TConfig : Config<TTexts>
     where TTexts : Texts
     where TData : SaveData, new()
 {

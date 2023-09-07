@@ -13,7 +13,7 @@ namespace AbstractBot;
 [PublicAPI]
 public class StatusMessage : IAsyncDisposable
 {
-    public static Task<StatusMessage> CreateAsync(BotBase bot, Chat chat, string text,
+    public static Task<StatusMessage> CreateAsync(BotBasic bot, Chat chat, string text,
         string postfix, bool? disableWebPagePreview = null, bool? protectContent = null, int? replyToMessageId = null,
         bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
     {
@@ -21,7 +21,7 @@ public class StatusMessage : IAsyncDisposable
             allowSendingWithoutReply, cancellationToken);
     }
 
-    public static async Task<StatusMessage> CreateAsync(BotBase bot, Chat chat, string text,
+    public static async Task<StatusMessage> CreateAsync(BotBasic bot, Chat chat, string text,
         Func<string>? postfixProvider = null, bool? disableWebPagePreview = null, bool? protectContent = null,
         int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
@@ -43,7 +43,7 @@ public class StatusMessage : IAsyncDisposable
             cancellationToken: _cancellationToken);
     }
 
-    private StatusMessage(BotBase bot, Message message, Func<string>? postfixProvider,
+    private StatusMessage(BotBasic bot, Message message, Func<string>? postfixProvider,
         CancellationToken cancellationToken)
     {
         _bot = bot;
@@ -52,7 +52,7 @@ public class StatusMessage : IAsyncDisposable
         _cancellationToken = cancellationToken;
     }
 
-    private readonly BotBase _bot;
+    private readonly BotBasic _bot;
     private readonly Message _message;
     private readonly Func<string>? _postfixProvider;
     private readonly CancellationToken _cancellationToken;

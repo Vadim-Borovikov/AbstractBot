@@ -6,52 +6,89 @@ using Telegram.Bot.Types;
 
 namespace AbstractBot.Operations;
 
-public abstract class Operation : IComparable<Operation>
+[PublicAPI]
+public abstract class Operation<T> : OperationBasic
+    where T : class
 {
-    public enum Access
+    protected Operation(BotBasic bot) : base(bot) { }
+
+    internal override async Task<ExecutionResult> TryExecuteAsync(Message message, User sender,
+        string? callbackQueryData)
     {
-        User,
-        Admin,
-        SuperAdmin
-    }
-
-    public enum ExecutionResult
-    {
-        UnsuitableOperation,
-        InsufficentAccess,
-        Success
-    }
-
-    [PublicAPI]
-    protected internal virtual Access AccessLevel => Access.User;
-
-    [PublicAPI]
-    protected internal virtual bool EnabledInGroups => false;
-
-    protected internal string? MenuDescription { get; protected init; }
-
-    protected abstract byte MenuOrder { get; }
-
-    protected readonly BotBase Bot;
-
-    protected Operation(BotBase bot) => Bot = bot;
-
-    public int CompareTo(Operation? other)
-    {
-        if (ReferenceEquals(this, other))
+        if (AccessLevel > Bot.GetMaximumAccessFor(sender.Id))
         {
-            return 0;
+            return ExecutionResult.InsufficentAccess;
         }
 
-        if (other is null)
+        T? info;
+        string? callbackQueryDataCore = null;
+        if (callbackQueryData is null)
         {
-            return 1;
+            if (!IsInvokingBy(message, sender, out info))
+            {
+                return ExecutionResult.UnsuitableOperation;
+            }
+        }
+        else
+        {
+            if (!callbackQueryData.StartsWith(GetType().Name, StringComparison.InvariantCulture))
+            {
+                return ExecutionResult.UnsuitableOperation;
+            }
+
+            callbackQueryDataCore = callbackQueryData[GetType().Name.Length..];
+            if (!IsInvokingBy(message, sender, callbackQueryDataCore, out info))
+            {
+                return ExecutionResult.UnsuitableOperation;
+            }
         }
 
-        return MenuOrder.CompareTo(other.MenuOrder);
+        if (callbackQueryDataCore is null)
+        {
+            if (info is null)
+            {
+                await ExecuteAsync(message, sender);
+            }
+            else
+            {
+                await ExecuteAsync(info, message, sender);
+            }
+        }
+        else
+        {
+            if (info is null)
+            {
+                await ExecuteAsync(message, sender, callbackQueryDataCore);
+            }
+            else
+            {
+                await ExecuteAsync(info, message, sender, callbackQueryDataCore);
+            }
+        }
+        return ExecutionResult.Success;
     }
 
-    protected internal abstract Task<ExecutionResult> TryExecuteAsync(Message message, long senderId);
+    protected virtual bool IsInvokingBy(Message message, User sender, out T? info)
+    {
+        info = null;
+        return true;
+    }
 
-    protected bool IsAccessSuffice(long userId) => Bot.GetMaximumAccessFor(userId) >= AccessLevel;
+    protected virtual bool IsInvokingBy(Message message, User sender, string callbackQueryDataCore, out T? info)
+    {
+        info = null;
+        return false;
+    }
+
+    protected virtual Task ExecuteAsync(Message message, User sender) => Task.CompletedTask;
+    protected virtual Task ExecuteAsync(T info, Message message, User sender) => ExecuteAsync(message, sender);
+    protected virtual Task ExecuteAsync(Message message, User sender, string callbackQueryDataCore)
+    {
+        return ExecuteAsync(message, sender);
+    }
+
+    protected virtual Task ExecuteAsync(T info, Message message, User sender, string callbackQueryDataCore)
+    {
+        return ExecuteAsync(info, message, sender);
+    }
 }
