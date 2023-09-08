@@ -182,16 +182,16 @@ public abstract class BotBasic
         bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
-        List<InputMediaDocument> media = new();
+        List<InputMediaPhoto> media = new();
         for (int i = 0; i < inputFiles.Count; ++i)
         {
             bool addCaption = i == (inputFiles.Count - 1);
-            InputMediaDocument doc = new(inputFiles[i])
+            InputMediaPhoto photo = new(inputFiles[i])
             {
                 Caption = addCaption ? caption : null,
                 ParseMode = parseMode
             };
-            media.Add(doc);
+            media.Add(photo);
         }
 
         return SendMediaGroupAsync(chat, media, messageThreadId, disableNotification, protectContent, replyToMessageId,
