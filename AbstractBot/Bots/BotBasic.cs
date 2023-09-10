@@ -54,7 +54,6 @@ public abstract class BotBasic
 
         Operations = new List<OperationBasic>
         {
-            new Start(this),
             new Help(this)
         };
 
@@ -287,11 +286,6 @@ public abstract class BotBasic
             photoWidth, photoHeight, needName, needPhoneNumber, needEmail, needShippingAddress,
             sendPhoneNumberToProvider, sendEmailToProvider, isFlexible, disableNotification, protectContent,
             replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
-    }
-
-    protected internal virtual Task OnStartCommand(Start start, Message message, User sender, string payload)
-    {
-        return start.Greet(message.Chat);
     }
 
     protected internal Task UpdateCommandsFor(long chatId, CancellationToken cancellationToken = default)

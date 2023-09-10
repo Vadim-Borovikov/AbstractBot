@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using AbstractBot.Bots;
 using AbstractBot.Extensions;
 using AbstractBot.Operations.Infos;
@@ -10,7 +11,7 @@ namespace AbstractBot.Operations.Commands;
 
 [PublicAPI]
 public abstract class Command<T> : Operation<T>, ICommand
-    where T : InfoCommand
+    where T : class, ICommandInfo<T>
 {
     public BotCommand BotCommand { get; init; }
 
@@ -36,15 +37,29 @@ public abstract class Command<T> : Operation<T>, ICommand
             return false;
         }
 
-        string trigger =
-            message.Chat.IsGroup() ? $"/{BotCommand.Command}@{Bot.User?.Username}" : $"/{BotCommand.Command}";
-        if (!message.Text.StartsWith(trigger, StringComparison.Ordinal))
+        string[] splitted = message.Text.Split((char[]?) null, StringSplitOptions.RemoveEmptyEntries);
+        if (splitted.Length == 0)
         {
             return false;
         }
 
-        string payload = message.Text[trigger.Length..];
-        return IsInvokingByPayload(message, sender, payload, out info);
+        string trigger = GetTrigger(message.Chat.IsGroup());
+        if (!splitted.First().Equals(trigger, StringComparison.InvariantCultureIgnoreCase))
+        {
+            return false;
+        }
+
+        if (splitted.Length == 1)
+        {
+            return true;
+        }
+
+        info = T.From(splitted.Skip(1).ToArray());
+        return info is not null;
     }
 
-    protected abstract bool IsInvokingByPayload(Message message, User sender, string payload, out T info);}
+    protected string GetTrigger(bool isGroup)
+    {
+        return isGroup ? $"/{BotCommand.Command}@{Bot.User?.Username}" : $"/{BotCommand.Command}";
+    }
+}

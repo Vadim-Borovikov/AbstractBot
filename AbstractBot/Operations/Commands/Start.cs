@@ -8,22 +8,24 @@ using Telegram.Bot.Types.Enums;
 
 namespace AbstractBot.Operations.Commands;
 
-public sealed class Start : CommandSimple
+public sealed class Start<T> : Command<T>
+    where T : class, ICommandInfo<T>
 {
+    private readonly Func<T, Message, User, Task> _onStart;
     protected override byte Order => 0;
 
-    internal Start(BotBasic bot) : base(bot, "start", bot.Config.Texts.StartCommandDescription) { }
-
-    protected override bool IsInvokingByPayload(Message message, User sender, string payload, out InfoCommand info)
+    internal Start(BotBasic bot, Func<T, Message, User, Task> onStart)
+        : base(bot, "start", bot.Config.Texts.StartCommandDescription)
     {
-        info = new InfoCommand(payload);
-        return true;
+        _onStart = onStart;
     }
 
-    protected override Task ExecuteAsync(InfoCommand info, Message message, User sender)
+    protected override Task ExecuteAsync(T info, Message message, User sender)
     {
-        return info.Payload == "" ? Greet(message.Chat) : Bot.OnStartCommand(this, message, sender, info.Payload);
+        return _onStart(info, message, sender);
     }
+
+    protected override Task ExecuteAsync(Message message, User sender) => Greet(message.Chat);
 
     internal async Task Greet(Chat chat)
     {
