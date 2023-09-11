@@ -13,7 +13,7 @@ public static class MessageExtensions
         {
             return message.SenderChat.Id;
         }
-        User user = message.From.GetValue(nameof(message.From));
+        User user = message.From.Denull(nameof(message.From));
         return user.Id;
     }
 }

@@ -36,7 +36,7 @@ public class StatusMessage : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        string text = _message.Text.GetValue(nameof(_message.Text));
+        string text = _message.Text.Denull(nameof(_message.Text));
         string? postfix = _postfixProvider?.Invoke();
         text = string.Format(_bot.Config.Texts.StatusMessageEndFormatMarkdownV2, text.Escape(), postfix);
         await _bot.EditMessageTextAsync(_message.Chat, _message.MessageId, text, ParseMode.MarkdownV2,

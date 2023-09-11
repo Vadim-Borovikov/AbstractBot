@@ -372,10 +372,10 @@ public abstract class BotBasic
     {
         return update.Type switch
         {
-            UpdateType.Message => UpdateAsync(update.Message.GetValue(nameof(update.Message))),
-            UpdateType.CallbackQuery => UpdateAsync(update.CallbackQuery.GetValue(nameof(update.CallbackQuery))),
+            UpdateType.Message => UpdateAsync(update.Message.Denull(nameof(update.Message))),
+            UpdateType.CallbackQuery => UpdateAsync(update.CallbackQuery.Denull(nameof(update.CallbackQuery))),
             UpdateType.PreCheckoutQuery =>
-                UpdateAsync(update.PreCheckoutQuery.GetValue(nameof(update.PreCheckoutQuery))),
+                UpdateAsync(update.PreCheckoutQuery.Denull(nameof(update.PreCheckoutQuery))),
             _ => Task.CompletedTask
         };
     }

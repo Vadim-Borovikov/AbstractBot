@@ -14,7 +14,7 @@ internal static class Manager
         {
             ListTunnelsResult listTunnels = await Provider.ListTunnels(options);
             string? url = listTunnels.Tunnels?.Where(t => t?.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
-            return url.GetValue(ErrorMessage);
+            return url.Denull(ErrorMessage);
         }
         catch (Exception e)
         {

@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <Version>71.0.0-b33</Version>
+    <Version>71.0.0-b34</Version>
     <Authors>Vadim Borovikov</Authors>
     <Company>Care Space</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GoogleSheetsManager" Version="30.3.1" />
+    <PackageReference Include="GoogleSheetsManager" Version="31.0.0-a00" />
     <PackageReference Include="Telegram.Bot" Version="19.0.0" />
   </ItemGroup>
 
