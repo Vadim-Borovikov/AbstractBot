@@ -105,7 +105,10 @@ public abstract class BotBasic
             : IsAdmin(userId) ? OperationBasic.Access.Admin : OperationBasic.Access.User;
     }
 
-    public T? GetContext<T>(long key) where T : Context => Contexts.ContainsKey(key) ? Contexts[key] as T : null;
+    public T? TryGetContext<T>(long key) where T : Context
+    {
+        return Contexts.TryGetValue(key, out Context? value) ? value as T : null;
+    }
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
         int? messageThreadId = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
