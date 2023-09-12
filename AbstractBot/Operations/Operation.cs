@@ -15,11 +15,6 @@ public abstract class Operation<T> : OperationBasic
     internal override async Task<ExecutionResult> TryExecuteAsync(Message message, User sender,
         string? callbackQueryData)
     {
-        if (AccessLevel > Bot.GetMaximumAccessFor(sender.Id))
-        {
-            return ExecutionResult.InsufficentAccess;
-        }
-
         T? info;
         string? callbackQueryDataCore = null;
         if (callbackQueryData is null)
@@ -41,6 +36,11 @@ public abstract class Operation<T> : OperationBasic
             {
                 return ExecutionResult.UnsuitableOperation;
             }
+        }
+
+        if (AccessLevel > Bot.GetMaximumAccessFor(sender.Id))
+        {
+            return ExecutionResult.InsufficentAccess;
         }
 
         if (callbackQueryDataCore is null)
