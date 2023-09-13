@@ -143,6 +143,16 @@ public abstract class BotBasic
             disableWebPagePreview, replyMarkup, cancellationToken);
     }
 
+    public Task<Message> EditMessageCaptionAsync(Chat chat, int messageId, string? caption, ParseMode? parseMode = null,
+        IEnumerable<MessageEntity>? captionEntities = null, InlineKeyboardMarkup? replyMarkup = null,
+        CancellationToken cancellationToken = default)
+    {
+        DelayIfNeeded(chat, cancellationToken);
+        UpdateInfo.Log(chat, UpdateInfo.Type.EditText, Logger, messageId);
+        return Client.EditMessageCaptionAsync(chat.Id, messageId, caption, parseMode, captionEntities, replyMarkup,
+            cancellationToken);
+    }
+
     public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
