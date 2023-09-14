@@ -343,6 +343,11 @@ public abstract class BotBasic
                 continue;
             }
 
+            if ((message.Chat.Type == ChatType.Channel) && !operation.EnabledInChannels)
+            {
+                continue;
+            }
+
             OperationBasic.ExecutionResult result =
                 await operation.TryExecuteAsync(message, sender, callbackQueryData);
             switch (result)

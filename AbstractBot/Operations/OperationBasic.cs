@@ -26,6 +26,7 @@ public abstract class OperationBasic : IComparable<OperationBasic>
     public virtual Access AccessLevel => Access.User;
 
     protected internal virtual bool EnabledInGroups => false;
+    protected internal virtual bool EnabledInChannels => false;
 
     protected internal string? MenuDescription { get; protected init; }
 
