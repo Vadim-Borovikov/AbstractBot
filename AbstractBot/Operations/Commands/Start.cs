@@ -25,17 +25,16 @@ public sealed class Start<T> : Command<T>
         return _onStart(info, message, sender);
     }
 
-    protected override Task ExecuteAsync(Message message, User sender) => Greet(message.Chat);
+    protected override Task ExecuteAsync(Message message, User sender) => Greet(message.Chat, sender);
 
-    internal async Task Greet(Chat chat)
+    internal async Task Greet(Chat chat, User sender)
     {
-        await Bot.UpdateCommandsFor(chat.Id);
+        await Bot.UpdateCommandsFor(sender.Id);
 
-        string text = $"{Bot.About}";
-        if (Bot.Config.Texts.StartPostfixLinesMarkdownV2 is not null)
-        {
-            text += $"{Environment.NewLine}{Text.JoinLines(Bot.Config.Texts.StartPostfixLinesMarkdownV2)}";
-        }
+        string text = Bot.Config.Texts.StartLinesFormatMarkdownV2 is null
+            ? Bot.About
+            : Text.FormatLines(Bot.Config.Texts.StartLinesFormatMarkdownV2, Bot.About);
+
         await Bot.SendTextMessageAsync(chat, text, ParseMode.MarkdownV2);
     }
 }

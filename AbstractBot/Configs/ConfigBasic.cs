@@ -50,10 +50,8 @@ public class ConfigBasic
     [Required]
     public Texts Texts { get; init; } = null!;
 
-    public List<long>? AdminIds { get; init; }
-    public string? AdminIdsJson { get; init; }
-
-    public long? SuperAdminId { get; init; }
+    public Dictionary<long, int>? Accesses { get; init; }
+    public string? AccessesJson { get; init; }
 
     [Required]
     [MinLength(1)]

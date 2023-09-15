@@ -32,7 +32,7 @@ public abstract class Bot<TConfig, TTexts, TData, TStartInfo> : BotBasic
 
     protected internal virtual Task OnStartCommand(TStartInfo info, Message message, User sender)
     {
-        return Start.Greet(message.Chat);
+        return Start.Greet(message.Chat, sender);
     }
 
     protected readonly Start<TStartInfo> Start;

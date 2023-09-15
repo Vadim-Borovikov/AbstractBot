@@ -38,7 +38,7 @@ public abstract class Operation<T> : OperationBasic
             }
         }
 
-        if (AccessLevel > Bot.GetMaximumAccessFor(sender.Id))
+        if (!AccessHelpers.IsSufficient(Bot.GetAccess(sender.Id), AccessRequired))
         {
             return ExecutionResult.InsufficentAccess;
         }

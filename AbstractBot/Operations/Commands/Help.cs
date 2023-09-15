@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using GryphonUtilities;
+using GryphonUtilities.Extensions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -18,74 +18,25 @@ internal sealed class Help : CommandSimple
 
     protected override Task ExecuteAsync(Message message, User sender)
     {
-        string text = $"{Bot.About}{Environment.NewLine}";
-        if (Bot.Config.Texts.HelpPrefixLinesMarkdownV2 is not null)
-        {
-            text += $"{Text.JoinLines(Bot.Config.Texts.HelpPrefixLinesMarkdownV2)}{Environment.NewLine}";
-        }
+        string descriptions = GetOperationsDescriptionFor(sender.Id);
 
-        text += GetOperationsDescriptionFor(message.Chat.Id);
-
-        if (Bot.Config.Texts.HelpPostfixLinesMarkdownV2 is not null)
-        {
-            text += $"{Text.JoinLines(Bot.Config.Texts.HelpPostfixLinesMarkdownV2)}";
-        }
+        string text = Bot.Config.Texts.HelpLinesFormatMarkdownV2 is null
+            ? $"{Bot.About}{Environment.NewLine}{descriptions}"
+            : Text.FormatLines(Bot.Config.Texts.HelpLinesFormatMarkdownV2, Bot.About, descriptions);
 
         return Bot.SendTextMessageAsync(message.Chat, text, ParseMode.MarkdownV2);
     }
 
     private string GetOperationsDescriptionFor(long userId)
     {
-        Access access = Bot.GetMaximumAccessFor(userId);
+        int access = Bot.GetAccess(userId);
 
-        StringBuilder builder = new();
-        List<OperationBasic> operations = Bot.Operations.Where(o => o.MenuDescription is not null).ToList();
-        List<OperationBasic> userOperations = operations.Where(o => o.AccessLevel == Access.User).ToList();
-        if (access != Access.User)
-        {
-            List<OperationBasic> adminOperations = operations.Where(o => o.AccessLevel == Access.Admin).ToList();
-            if (access == Access.SuperAdmin)
-            {
-                List<OperationBasic> superAdminOperations =
-                    operations.Where(o => o.AccessLevel == Access.SuperAdmin).ToList();
-                if (superAdminOperations.Any())
-                {
-                    builder.AppendLine(
-                        superAdminOperations.Count > 1 ? "Команды суперадмина:" : "Команда суперадмина:");
-                    foreach (OperationBasic operation in superAdminOperations)
-                    {
-                        builder.AppendLine(operation.MenuDescription);
-                    }
-                    if (adminOperations.Any() || userOperations.Any())
-                    {
-                        builder.AppendLine();
-                    }
-                }
-            }
+        IEnumerable<string> descriptions =
+            Bot.Operations
+               .Where(o => AccessHelpers.IsSufficient(access, o.AccessRequired))
+               .Select(o => o.MenuDescription)
+               .RemoveNulls();
 
-            if (adminOperations.Any())
-            {
-                builder.AppendLine(adminOperations.Count > 1 ? "Админские команды:" : "Админская команда:");
-                foreach (OperationBasic operation in adminOperations)
-                {
-                    builder.AppendLine(operation.MenuDescription);
-                }
-                if (userOperations.Any())
-                {
-                    builder.AppendLine();
-                }
-            }
-        }
-
-        if (userOperations.Any())
-        {
-            builder.AppendLine(userOperations.Count > 1 ? "Команды:" : "Команда:");
-            foreach (OperationBasic operation in userOperations)
-            {
-                builder.AppendLine(operation.MenuDescription);
-            }
-        }
-
-        return builder.ToString();
+        return string.Join(Environment.NewLine, descriptions);
     }
 }

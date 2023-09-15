@@ -34,6 +34,8 @@ public abstract class BotBasic
 
     public readonly Dictionary<long, Context> Contexts = new();
 
+    public const int DefaultAccess = 1;
+
     public User? User;
 
     protected static readonly ReplyKeyboardRemove NoKeyboard = new();
@@ -42,7 +44,7 @@ public abstract class BotBasic
 
     internal readonly string About;
 
-    protected readonly List<long> AdminIds;
+    protected readonly Dictionary<long, int> Accesses;
     protected readonly InputFileId DontUnderstandSticker;
     protected readonly InputFileId ForbiddenSticker;
 
@@ -69,7 +71,7 @@ public abstract class BotBasic
         _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitPrivate);
         _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitGlobal);
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
-        AdminIds = GetAdminIds();
+        Accesses = GetAccesses();
 
         About = Config.Texts.AboutLinesMarkdownV2 is null ? "" : Text.JoinLines(Config.Texts.AboutLinesMarkdownV2);
     }
@@ -98,12 +100,7 @@ public abstract class BotBasic
         return Client.DeleteWebhookAsync(false, cancellationToken);
     }
 
-    public OperationBasic.Access GetMaximumAccessFor(long userId)
-    {
-        return IsSuperAdmin(userId)
-            ? OperationBasic.Access.SuperAdmin
-            : IsAdmin(userId) ? OperationBasic.Access.Admin : OperationBasic.Access.User;
-    }
+    public int GetAccess(long userId) => Accesses.ContainsKey(userId) ? Accesses[userId] : DefaultAccess;
 
     public T? TryGetContext<T>(long key) where T : Context
     {
@@ -301,12 +298,13 @@ public abstract class BotBasic
             replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
     }
 
-    protected internal Task UpdateCommandsFor(long chatId, CancellationToken cancellationToken = default)
+    protected internal Task UpdateCommandsFor(long userId, CancellationToken cancellationToken = default)
     {
         IEnumerable<ICommand> commands = GetMenuCommands();
-        OperationBasic.Access access = GetMaximumAccessFor(chatId);
-        return Client.SetMyCommandsAsync(commands.Where(c => c.AccessLevel <= access).Select(ca => ca.BotCommand),
-            BotCommandScope.Chat(chatId), cancellationToken: cancellationToken);
+        int access = GetAccess(userId);
+        return Client.SetMyCommandsAsync(commands.Where(c => AccessHelpers.IsSufficient(access, c.AccessRequired))
+                                                 .Select(ca => ca.BotCommand),
+            BotCommandScope.Chat(userId), cancellationToken: cancellationToken);
     }
 
     protected virtual Task UpdateAsync(Message message)
@@ -382,10 +380,6 @@ public abstract class BotBasic
 
     protected virtual IReplyMarkup GetDefaultKeyboard(Chat _) => NoKeyboard;
 
-    private bool IsAdmin(long userId) => AdminIds.Contains(userId);
-
-    private bool IsSuperAdmin(long userId) => Config.SuperAdminId == userId;
-
     private Task UpdateAsync(Update update)
     {
         return update.Type switch
@@ -407,20 +401,16 @@ public abstract class BotBasic
 
         List<ICommand> commands = GetMenuCommands().ToList();
         await Client.SetMyCommandsAsync(
-            commands.Where(c => c.AccessLevel == OperationBasic.Access.User).Select(ca => ca.BotCommand),
+            commands.Where(c => AccessHelpers.IsSufficient(DefaultAccess, c.AccessRequired))
+                    .Select(ca => ca.BotCommand),
             BotCommandScope.AllPrivateChats(), cancellationToken: cancellationToken);
 
-        foreach (long adminId in AdminIds)
+        foreach (long userId in Accesses.Keys)
         {
             await Client.SetMyCommandsAsync(
-                commands.Where(c => c.AccessLevel <= OperationBasic.Access.Admin).Select(ca => ca.BotCommand),
-                BotCommandScope.Chat(adminId), cancellationToken: cancellationToken);
-        }
-
-        if (Config.SuperAdminId.HasValue)
-        {
-            await Client.SetMyCommandsAsync(commands.Select(ca => ca.BotCommand),
-                BotCommandScope.Chat(Config.SuperAdminId.Value), cancellationToken: cancellationToken);
+                commands.Where(c => AccessHelpers.IsSufficient(Accesses[userId], c.AccessRequired))
+                        .Select(ca => ca.BotCommand),
+                BotCommandScope.Chat(userId), cancellationToken: cancellationToken);
         }
     }
 
@@ -455,24 +445,25 @@ public abstract class BotBasic
             : Task.FromResult(Config.Host);
     }
 
-    private List<long> GetAdminIds()
+    private Dictionary<long, int> GetAccesses()
     {
-        if (Config.AdminIds is not null && (Config.AdminIds.Count > 0))
+        if (Config.Accesses is not null && (Config.Accesses.Count > 0))
         {
-            return Config.AdminIds;
+            return Config.Accesses;
         }
 
-        if (!string.IsNullOrWhiteSpace(Config.AdminIdsJson))
+        if (!string.IsNullOrWhiteSpace(Config.AccessesJson))
         {
-            List<long>? deserialized = JsonSerializer.Deserialize<List<long>>(Config.AdminIdsJson,
-                JsonSerializerOptionsProvider.PascalCaseOptions);
+            Dictionary<long, int>? deserialized =
+                JsonSerializer.Deserialize<Dictionary<long, int>>(Config.AccessesJson,
+                    JsonSerializerOptionsProvider.PascalCaseOptions);
             if (deserialized is not null)
             {
                 return deserialized;
             }
         }
 
-        return new List<long>();
+        return new Dictionary<long, int>();
     }
 
     private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => !c.HideFromMenu);

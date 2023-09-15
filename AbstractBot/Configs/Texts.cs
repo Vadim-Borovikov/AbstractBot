@@ -18,9 +18,8 @@ public class Texts
     public string HelpCommandDescription { get; init; } = null!;
 
     public List<string?>? AboutLinesMarkdownV2 { get; init; }
-    public List<string?>? StartPostfixLinesMarkdownV2 { get; init; }
-    public List<string?>? HelpPrefixLinesMarkdownV2 { get; init; }
-    public List<string?>? HelpPostfixLinesMarkdownV2 { get; init; }
+    public List<string?>? StartLinesFormatMarkdownV2 { get; init; }
+    public List<string?>? HelpLinesFormatMarkdownV2 { get; init; }
 
     [Required]
     [MinLength(1)]

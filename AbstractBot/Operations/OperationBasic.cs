@@ -9,13 +9,6 @@ namespace AbstractBot.Operations;
 [PublicAPI]
 public abstract class OperationBasic : IComparable<OperationBasic>
 {
-    public enum Access
-    {
-        User,
-        Admin,
-        SuperAdmin
-    }
-
     internal enum ExecutionResult
     {
         UnsuitableOperation,
@@ -23,7 +16,7 @@ public abstract class OperationBasic : IComparable<OperationBasic>
         Success
     }
 
-    public virtual Access AccessLevel => Access.User;
+    public virtual int AccessRequired => BotBasic.DefaultAccess;
 
     protected internal virtual bool EnabledInGroups => false;
     protected internal virtual bool EnabledInChannels => false;
