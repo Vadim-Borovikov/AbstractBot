@@ -80,9 +80,9 @@ public abstract class BotBasic
     {
         Operations.Sort();
         Host = await GetHostAsync();
-        string url = $"{Host}/{Config.Token}";
-        await Client.SetWebhookAsync(url, cancellationToken: cancellationToken,
-            allowedUpdates: Array.Empty<UpdateType>());
+
+        await ConnectAsync(cancellationToken);
+
         _ticker.Start(cancellationToken);
 
         await UpdateCommands(cancellationToken);
@@ -474,11 +474,16 @@ public abstract class BotBasic
 
         await Client.DeleteWebhookAsync(false, cancellationToken);
 
-        string url = $"{Host}/{Config.Token}";
-        await Client.SetWebhookAsync(url, allowedUpdates: Array.Empty<UpdateType>(),
-            cancellationToken: cancellationToken);
+        await ConnectAsync(cancellationToken);
 
         Logger.LogTimedMessage("...connected.");
+    }
+
+    private Task ConnectAsync(CancellationToken cancellationToken)
+    {
+        string url = $"{Host}/{Config.Token}";
+        return Client.SetWebhookAsync(url, allowedUpdates: Array.Empty<UpdateType>(),
+            cancellationToken: cancellationToken);
     }
 
     private readonly Dictionary<long, DateTimeFull> _lastUpdates = new();
