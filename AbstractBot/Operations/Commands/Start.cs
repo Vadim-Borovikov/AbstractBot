@@ -12,7 +12,6 @@ public sealed class Start<T> : Command<T>
     where T : class, ICommandInfo<T>
 {
     private readonly Func<T, Message, User, Task> _onStart;
-    protected override byte Order => 0;
 
     internal Start(BotBasic bot, Func<T, Message, User, Task> onStart)
         : base(bot, "start", bot.Config.Texts.StartCommandDescription)

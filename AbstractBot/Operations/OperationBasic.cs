@@ -23,7 +23,7 @@ public abstract class OperationBasic : IComparable<OperationBasic>
 
     protected internal string? MenuDescription { get; protected init; }
 
-    protected abstract byte Order { get; }
+    protected virtual byte Order => 0;
 
     protected readonly BotBasic Bot;
 
