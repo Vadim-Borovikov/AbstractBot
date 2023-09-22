@@ -23,7 +23,7 @@ public abstract class Bot<TConfig, TTexts, TData, TStartInfo> : BotBasic
     {
         Config = config;
 
-        SaveManager = new SaveManager<TData>(Config.SavePath, TimeManager);
+        SaveManager = new SaveManager<TData>(Config.SavePath, TimeManager, AfterLoad, BeforeSave);
         SaveManager.Load();
 
         Start = new Start<TStartInfo>(this, OnStartCommand);
@@ -34,6 +34,10 @@ public abstract class Bot<TConfig, TTexts, TData, TStartInfo> : BotBasic
     {
         return Start.Greet(message.Chat, sender);
     }
+
+    protected virtual void AfterLoad() { }
+
+    protected virtual void BeforeSave() { }
 
     protected readonly Start<TStartInfo> Start;
 }
