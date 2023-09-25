@@ -26,9 +26,18 @@ public abstract class BotWithSheets<TConfig, TTexts, TData, TStartInfo>
 
     protected virtual void Dispose(bool disposing)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         if (disposing)
         {
             DocumentsManager.Dispose();
         }
+
+        _disposed = true;
     }
+
+    private bool _disposed;
 }
