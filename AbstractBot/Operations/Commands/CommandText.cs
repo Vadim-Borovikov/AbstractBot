@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AbstractBot.Bots;
+using AbstractBot.Configs;
+using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -16,11 +18,21 @@ public abstract class CommandText : CommandSimple
         _text = text;
     }
 
+    protected CommandText(BotBasic bot, string command, string description, MessageText messageText)
+        : base(bot, command, description)
+    {
+        _bot = bot;
+        _messageText = messageText;
+    }
+
     protected override Task ExecuteAsync(Message message, User sender)
     {
-        return _bot.SendTextMessageAsync(message.Chat, _text, ParseMode.MarkdownV2);
+        return _messageText is null
+            ? _bot.SendTextMessageAsync(message.Chat, _text.Denull(), ParseMode.MarkdownV2)
+            : _messageText.SendAsync(_bot, message.Chat);
     }
 
     private readonly BotBasic _bot;
-    private readonly string _text;
+    private readonly MessageText? _messageText;
+    private readonly string? _text;
 }

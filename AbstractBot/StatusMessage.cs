@@ -6,44 +6,46 @@ using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using AbstractBot.Bots;
-using AbstractBot.Extensions;
+using System.Collections.Generic;
+using AbstractBot.Configs;
 
 namespace AbstractBot;
 
 [PublicAPI]
 public class StatusMessage : IAsyncDisposable
 {
-    public static Task<StatusMessage> CreateAsync(BotBasic bot, Chat chat, string text,
-        string postfix, bool? disableWebPagePreview = null, bool? protectContent = null, int? replyToMessageId = null,
+    public static Task<StatusMessage> CreateAsync(BotBasic bot, Chat chat, MessageText messageText,
+        MessageText postfix, int? messageThreadId = null, IEnumerable<MessageEntity>? entities = null,
+        bool? disableWebPagePreview = null, bool? protectContent = null, int? replyToMessageId = null,
         bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
     {
-        return CreateAsync(bot, chat, text, () => postfix, disableWebPagePreview, protectContent, replyToMessageId,
-            allowSendingWithoutReply, cancellationToken);
+        return CreateAsync(bot, chat, messageText, () => postfix, messageThreadId, entities, disableWebPagePreview,
+            protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
     }
 
-    public static async Task<StatusMessage> CreateAsync(BotBasic bot, Chat chat, string text,
-        Func<string>? postfixProvider = null, bool? disableWebPagePreview = null, bool? protectContent = null,
+    public static async Task<StatusMessage> CreateAsync(BotBasic bot, Chat chat, MessageText messageText,
+        Func<MessageText>? postfixProvider = null, int? messageThreadId = null,
+        IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null, bool? protectContent = null,
         int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
-        text = string.Format(bot.Config.Texts.StatusMessageStartFormatMarkdownV2, text.Escape());
-        Message message = await bot.SendTextMessageAsync(chat, text, null, ParseMode.MarkdownV2,
-            disableWebPagePreview: disableWebPagePreview, disableNotification: true, protectContent: protectContent,
-            replyToMessageId: replyToMessageId, allowSendingWithoutReply: allowSendingWithoutReply,
-            cancellationToken: cancellationToken);
+        MessageText formatted = bot.Config.Texts.StatusMessageStartFormat.Format(messageText);
+        Message message = await formatted.SendAsync(bot, chat, null, messageThreadId, entities, disableWebPagePreview,
+            true, protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
         return new StatusMessage(bot, message, postfixProvider, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
     {
         string text = _message.Text.Denull(nameof(_message.Text));
-        string? postfix = _postfixProvider?.Invoke();
-        text = string.Format(_bot.Config.Texts.StatusMessageEndFormatMarkdownV2, text.Escape(), postfix);
-        await _bot.EditMessageTextAsync(_message.Chat, _message.MessageId, text, ParseMode.MarkdownV2,
+        MessageText? postfix = _postfixProvider?.Invoke();
+        MessageText formatted = _bot.Config.Texts.StatusMessageEndFormat.Format(text, postfix);
+        string result = formatted.EscapeIfNeeded();
+        await _bot.EditMessageTextAsync(_message.Chat, _message.MessageId, result, ParseMode.MarkdownV2,
             cancellationToken: _cancellationToken);
     }
 
-    private StatusMessage(BotBasic bot, Message message, Func<string>? postfixProvider,
+    private StatusMessage(BotBasic bot, Message message, Func<MessageText>? postfixProvider,
         CancellationToken cancellationToken)
     {
         _bot = bot;
@@ -54,6 +56,6 @@ public class StatusMessage : IAsyncDisposable
 
     private readonly BotBasic _bot;
     private readonly Message _message;
-    private readonly Func<string>? _postfixProvider;
+    private readonly Func<MessageText>? _postfixProvider;
     private readonly CancellationToken _cancellationToken;
 }

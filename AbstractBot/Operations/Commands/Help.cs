@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GryphonUtilities;
+using AbstractBot.Configs;
+using AbstractBot.Extensions;
 using GryphonUtilities.Extensions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -20,11 +21,13 @@ internal sealed class Help : CommandSimple
     {
         string descriptions = GetOperationsDescriptionFor(sender.Id);
 
-        string text = Bot.Config.Texts.HelpLinesFormatMarkdownV2 is null
-            ? $"{Bot.About}{Environment.NewLine}{descriptions}"
-            : Text.FormatLines(Bot.Config.Texts.HelpLinesFormatMarkdownV2, Bot.About, descriptions);
+        if (Bot.Config.Texts.HelpFormat is null)
+        {
+            return Bot.SendTextMessageAsync(message.Chat, descriptions.Escape(), ParseMode.MarkdownV2);
+        }
 
-        return Bot.SendTextMessageAsync(message.Chat, text, ParseMode.MarkdownV2);
+        MessageText formatted = Bot.Config.Texts.HelpFormat.Format(descriptions);
+        return formatted.SendAsync(Bot, message.Chat);
     }
 
     private string GetOperationsDescriptionFor(long userId)

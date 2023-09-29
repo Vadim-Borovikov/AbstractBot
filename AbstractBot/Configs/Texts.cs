@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
 
@@ -17,15 +16,14 @@ public class Texts
     [MinLength(1)]
     public string HelpCommandDescription { get; init; } = null!;
 
-    public List<string?>? AboutLinesMarkdownV2 { get; init; }
-    public List<string?>? StartLinesFormatMarkdownV2 { get; init; }
-    public List<string?>? HelpLinesFormatMarkdownV2 { get; init; }
+    [Required]
+    public MessageText Start { get; init; } = null!;
+
+    public MessageText? HelpFormat { get; init; }
 
     [Required]
-    [MinLength(1)]
-    public string StatusMessageStartFormatMarkdownV2 { get; init; } = null!;
+    public MessageText StatusMessageStartFormat { get; init; } = null!;
 
     [Required]
-    [MinLength(1)]
-    public string StatusMessageEndFormatMarkdownV2 { get; init; } = null!;
+    public MessageText StatusMessageEndFormat { get; init; } = null!;
 }

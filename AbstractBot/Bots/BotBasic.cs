@@ -42,8 +42,6 @@ public abstract class BotBasic
 
     protected internal readonly List<OperationBasic> Operations;
 
-    internal readonly string About;
-
     protected readonly Dictionary<long, int> Accesses;
     protected readonly InputFileId DontUnderstandSticker;
     protected readonly InputFileId ForbiddenSticker;
@@ -72,8 +70,6 @@ public abstract class BotBasic
         _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitGlobal);
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
         Accesses = GetAccesses();
-
-        About = Config.Texts.AboutLinesMarkdownV2 is null ? "" : Text.JoinLines(Config.Texts.AboutLinesMarkdownV2);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
@@ -378,7 +374,7 @@ public abstract class BotBasic
             : SendStickerAsync(message.Chat, ForbiddenSticker, replyToMessageId: message.MessageId);
     }
 
-    protected virtual IReplyMarkup GetDefaultKeyboard(Chat _) => NoKeyboard;
+    protected internal virtual IReplyMarkup GetDefaultKeyboard(Chat _) => NoKeyboard;
 
     private Task UpdateAsync(Update update)
     {

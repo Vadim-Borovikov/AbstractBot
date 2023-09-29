@@ -2,9 +2,7 @@
 using System.Threading.Tasks;
 using AbstractBot.Bots;
 using AbstractBot.Operations.Infos;
-using GryphonUtilities;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace AbstractBot.Operations.Commands;
 
@@ -30,10 +28,6 @@ public sealed class Start<T> : Command<T>
     {
         await Bot.UpdateCommandsFor(sender.Id);
 
-        string text = Bot.Config.Texts.StartLinesFormatMarkdownV2 is null
-            ? Bot.About
-            : Text.FormatLines(Bot.Config.Texts.StartLinesFormatMarkdownV2, Bot.About);
-
-        await Bot.SendTextMessageAsync(chat, text, ParseMode.MarkdownV2);
+        await Bot.Config.Texts.Start.SendAsync(Bot, chat);
     }
 }
