@@ -38,8 +38,6 @@ public abstract class BotBasic
 
     public User? User;
 
-    protected static readonly ReplyKeyboardRemove NoKeyboard = new();
-
     protected internal readonly List<OperationBasic> Operations;
 
     protected readonly Dictionary<long, int> Accesses;
@@ -103,27 +101,18 @@ public abstract class BotBasic
         return Contexts.TryGetValue(key, out Context? value) ? value as T : null;
     }
 
-    public Task<Message> SendTextMessageAsync(Chat chat, string text, ParseMode? parseMode = null,
-        int? messageThreadId = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
-        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
-        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
-    {
-        return SendTextMessageAsync(chat, text, GetDefaultKeyboard(chat), parseMode, messageThreadId, entities,
-            disableWebPagePreview, disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply,
-            cancellationToken);
-    }
-
-    public Task<Message> SendTextMessageAsync(Chat chat, string text, IReplyMarkup? replyMarkup,
+    public Task<Message> SendTextMessageAsync(Chat chat, string text, KeyboardProvider? keyboardProvider = null,
         ParseMode? parseMode = null, int? messageThreadId = null, IEnumerable<MessageEntity>? entities = null,
         bool? disableWebPagePreview = null, bool? disableNotification = null, bool? protectContent = null,
         int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
+        keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendText, Logger, data: text);
         return Client.SendTextMessageAsync(chat.Id, text, messageThreadId, parseMode, entities, disableWebPagePreview,
             disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply,
-            replyMarkup, cancellationToken);
+            keyboardProvider.Keyboard, cancellationToken);
     }
 
     public Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text, ParseMode? parseMode = null,
@@ -136,9 +125,9 @@ public abstract class BotBasic
             disableWebPagePreview, replyMarkup, cancellationToken);
     }
 
-    public Task<Message> EditMessageCaptionAsync(Chat chat, int messageId, string? caption, ParseMode? parseMode = null,
-        IEnumerable<MessageEntity>? captionEntities = null, InlineKeyboardMarkup? replyMarkup = null,
-        CancellationToken cancellationToken = default)
+    public Task<Message> EditMessageCaptionAsync(Chat chat, int messageId, string? caption,
+        ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
+        InlineKeyboardMarkup? replyMarkup = null, CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.EditText, Logger, messageId);
@@ -216,48 +205,30 @@ public abstract class BotBasic
             replyToMessageId, allowSendingWithoutReply, cancellationToken);
     }
 
-    public Task<Message> SendPhotoAsync(Chat chat, InputFile photo, int? messageThreadId = null,
-        string? caption = null, ParseMode? parseMode = null, IEnumerable<MessageEntity>? captionEntities = null,
-        bool? hasSpoiler = null, bool? disableNotification = null, bool? protectContent = null,
-        int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
-        CancellationToken cancellationToken = default)
-    {
-        return SendPhotoAsync(chat, photo, GetDefaultKeyboard(chat), messageThreadId, caption, parseMode,
-            captionEntities, hasSpoiler, disableNotification, protectContent, replyToMessageId,
-            allowSendingWithoutReply, cancellationToken);
-    }
-
-    public Task<Message> SendPhotoAsync(Chat chat, InputFile photo, IReplyMarkup? replyMarkup,
+    public Task<Message> SendPhotoAsync(Chat chat, InputFile photo, KeyboardProvider? keyboardProvider = null,
         int? messageThreadId = null, string? caption = null, ParseMode? parseMode = null,
         IEnumerable<MessageEntity>? captionEntities = null, bool? hasSpoiler = null, bool? disableNotification = null,
         bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
+        keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendPhoto, Logger, data: caption);
         return Client.SendPhotoAsync(chat.Id, photo, messageThreadId, caption, parseMode, captionEntities, hasSpoiler,
-            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, replyMarkup,
+            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, keyboardProvider.Keyboard,
             cancellationToken);
     }
 
-    public Task<Message> SendStickerAsync(Chat chat, InputFile sticker, int? messageThreadId = null,
-        string? emoji = null, bool? disableNotification = null, bool? protectContent = null,
-        int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
-        CancellationToken cancellationToken = default)
-    {
-        return SendStickerAsync(chat, sticker, GetDefaultKeyboard(chat), messageThreadId, emoji,
-            disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
-    }
-
-    public Task<Message> SendStickerAsync(Chat chat, InputFile sticker, IReplyMarkup? replyMarkup,
+    public Task<Message> SendStickerAsync(Chat chat, InputFile sticker, KeyboardProvider? keyboardProvider = null,
         int? messageThreadId = null, string? emoji = null, bool? disableNotification = null,
         bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
+        keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         DelayIfNeeded(chat, cancellationToken);
         UpdateInfo.Log(chat, UpdateInfo.Type.SendSticker, Logger);
         return Client.SendStickerAsync(chat.Id, sticker, messageThreadId, emoji, disableNotification, protectContent,
-            replyToMessageId, allowSendingWithoutReply, replyMarkup, cancellationToken);
+            replyToMessageId, allowSendingWithoutReply, keyboardProvider.Keyboard, cancellationToken);
     }
 
     public Task PinChatMessageAsync(Chat chat, int messageId, bool? disableNotification = null,
@@ -374,7 +345,7 @@ public abstract class BotBasic
             : SendStickerAsync(message.Chat, ForbiddenSticker, replyToMessageId: message.MessageId);
     }
 
-    protected internal virtual IReplyMarkup GetDefaultKeyboard(Chat _) => NoKeyboard;
+    protected virtual KeyboardProvider GetDefaultKeyboardProvider(Chat _) => KeyboardProvider.Remove;
 
     private Task UpdateAsync(Update update)
     {

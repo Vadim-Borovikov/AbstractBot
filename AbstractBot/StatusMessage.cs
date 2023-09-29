@@ -30,8 +30,9 @@ public class StatusMessage : IAsyncDisposable
         CancellationToken cancellationToken = default)
     {
         MessageText formatted = bot.Config.Texts.StatusMessageStartFormat.Format(messageText);
-        Message message = await formatted.SendAsync(bot, chat, null, messageThreadId, entities, disableWebPagePreview,
-            true, protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
+        Message message = await formatted.SendAsync(bot, chat, KeyboardProvider.Same, messageThreadId, entities,
+            disableWebPagePreview, true, protectContent, replyToMessageId, allowSendingWithoutReply,
+            cancellationToken);
         return new StatusMessage(bot, message, postfixProvider, cancellationToken);
     }
 

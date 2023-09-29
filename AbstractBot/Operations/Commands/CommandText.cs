@@ -28,7 +28,7 @@ public abstract class CommandText : CommandSimple
     protected override Task ExecuteAsync(Message message, User sender)
     {
         return _messageText is null
-            ? _bot.SendTextMessageAsync(message.Chat, _text.Denull(), ParseMode.MarkdownV2)
+            ? _bot.SendTextMessageAsync(message.Chat, _text.Denull(), parseMode: ParseMode.MarkdownV2)
             : _messageText.SendAsync(_bot, message.Chat);
     }
 

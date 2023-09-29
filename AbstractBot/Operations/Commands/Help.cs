@@ -23,7 +23,7 @@ internal sealed class Help : CommandSimple
 
         if (Bot.Config.Texts.HelpFormat is null)
         {
-            return Bot.SendTextMessageAsync(message.Chat, descriptions.Escape(), ParseMode.MarkdownV2);
+            return Bot.SendTextMessageAsync(message.Chat, descriptions.Escape(), parseMode: ParseMode.MarkdownV2);
         }
 
         MessageText formatted = Bot.Config.Texts.HelpFormat.Format(descriptions);

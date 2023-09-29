@@ -8,7 +8,6 @@ using AbstractBot.Extensions;
 using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Types;
 
 // ReSharper disable NullableWarningSuppressionIsUsed
@@ -64,23 +63,13 @@ public class MessageText
         return new MessageText(text, MarkdownV2);
     }
 
-    public Task<Message> SendAsync(BotBasic bot, Chat chat, int? messageThreadId = null,
-        IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
+    public Task<Message> SendAsync(BotBasic bot, Chat chat, KeyboardProvider? keyboardProvider = null,
+        int? messageThreadId = null, IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
         bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
         bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
     {
-        IReplyMarkup replyMarkup = bot.GetDefaultKeyboard(chat);
-        return SendAsync(bot, chat, replyMarkup, messageThreadId, entities, disableWebPagePreview, disableNotification,
-            protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken);
-    }
-
-    public Task<Message> SendAsync(BotBasic bot, Chat chat, IReplyMarkup? replyMarkup, int? messageThreadId = null,
-        IEnumerable<MessageEntity>? entities = null, bool? disableWebPagePreview = null,
-        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
-        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
-    {
-        return bot.SendTextMessageAsync(chat, EscapeIfNeeded(), replyMarkup, ParseMode.MarkdownV2, messageThreadId,
-            entities, disableWebPagePreview, disableNotification, protectContent, replyToMessageId,
+        return bot.SendTextMessageAsync(chat, EscapeIfNeeded(), keyboardProvider, ParseMode.MarkdownV2,
+            messageThreadId, entities, disableWebPagePreview, disableNotification, protectContent, replyToMessageId,
             allowSendingWithoutReply, cancellationToken);
     }
 }
