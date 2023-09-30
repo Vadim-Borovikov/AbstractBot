@@ -18,7 +18,7 @@ public abstract class CommandText : CommandSimple
         _text = text;
     }
 
-    protected CommandText(BotBasic bot, string command, string description, MessageText messageText)
+    protected CommandText(BotBasic bot, string command, string description, MessageTemplate messageText)
         : base(bot, command, description)
     {
         _bot = bot;
@@ -33,6 +33,6 @@ public abstract class CommandText : CommandSimple
     }
 
     private readonly BotBasic _bot;
-    private readonly MessageText? _messageText;
+    private readonly MessageTemplate? _messageText;
     private readonly string? _text;
 }

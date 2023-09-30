@@ -17,13 +17,13 @@ public class Texts
     public string HelpCommandDescription { get; init; } = null!;
 
     [Required]
-    public MessageText Start { get; init; } = null!;
+    public MessageTemplate Start { get; init; } = null!;
 
-    public MessageText? HelpFormat { get; init; }
-
-    [Required]
-    public MessageText StatusMessageStartFormat { get; init; } = null!;
+    public MessageTemplate? HelpFormat { get; init; }
 
     [Required]
-    public MessageText StatusMessageEndFormat { get; init; } = null!;
+    public MessageTemplate StatusMessageStartFormat { get; init; } = null!;
+
+    [Required]
+    public MessageTemplate StatusMessageEndFormat { get; init; } = null!;
 }

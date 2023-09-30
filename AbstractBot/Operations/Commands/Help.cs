@@ -26,7 +26,7 @@ internal sealed class Help : CommandSimple
             return Bot.SendTextMessageAsync(message.Chat, descriptions.Escape(), parseMode: ParseMode.MarkdownV2);
         }
 
-        MessageText formatted = Bot.Config.Texts.HelpFormat.Format(descriptions);
+        MessageTemplate formatted = Bot.Config.Texts.HelpFormat.Format(descriptions);
         return formatted.SendAsync(Bot, message.Chat);
     }
 
