@@ -18,7 +18,9 @@ public static class UpdateInfo
         Pin,
         Unpin,
         SendInvoice,
-        SendFiles
+        SendFiles,
+        ReceiveMessage,
+        ReceiveCallback
     }
 
     [PublicAPI]

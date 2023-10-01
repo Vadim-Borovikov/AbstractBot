@@ -372,6 +372,17 @@ public abstract class BotBasic
 
     protected virtual async Task UpdateAsync(Message message, User sender, string? callbackQueryData = null)
     {
+        if (string.IsNullOrWhiteSpace(callbackQueryData))
+        {
+            UpdateInfo.Log(message.Chat, UpdateInfo.Type.ReceiveMessage, Logger, message.MessageId,
+                $"{message.Text}{message.Caption}");
+        }
+        else
+        {
+            UpdateInfo.Log(message.Chat, UpdateInfo.Type.ReceiveCallback, Logger, message.MessageId,
+                callbackQueryData);
+        }
+
         foreach (OperationBasic operation in Operations)
         {
             if (message.Chat.IsGroup() && !operation.EnabledInGroups)
