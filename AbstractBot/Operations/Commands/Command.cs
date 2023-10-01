@@ -17,7 +17,7 @@ public abstract class Command<T> : Operation<T>, ICommand
 
 
     [PublicAPI]
-    public virtual bool HideFromMenu => false;
+    public virtual bool ShowInMenu => true;
 
     protected Command(BotBasic bot, string command, string description) : base(bot)
     {

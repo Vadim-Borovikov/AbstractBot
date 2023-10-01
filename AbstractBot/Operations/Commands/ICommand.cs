@@ -5,6 +5,6 @@ namespace AbstractBot.Operations.Commands;
 internal interface ICommand
 {
     public BotCommand BotCommand { get; }
-    public bool HideFromMenu { get; }
+    public bool ShowInMenu { get; }
     public int AccessRequired { get; }
 }

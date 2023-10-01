@@ -504,7 +504,7 @@ public abstract class BotBasic
         return new Dictionary<long, int>();
     }
 
-    private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => !c.HideFromMenu);
+    private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => c.ShowInMenu);
 
     private async Task ReconnectAsync(CancellationToken cancellationToken = default)
     {
