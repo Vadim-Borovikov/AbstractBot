@@ -17,7 +17,7 @@ public class Texts
     public string HelpCommandDescription { get; init; } = null!;
 
     [Required]
-    public MessageTemplate Start { get; init; } = null!;
+    public MessageTemplate StartFormat { get; init; } = null!;
 
     public MessageTemplate? HelpFormat { get; init; }
 

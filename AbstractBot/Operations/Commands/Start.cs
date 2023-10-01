@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AbstractBot.Bots;
+using AbstractBot.Configs;
 using AbstractBot.Operations.Infos;
+using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
 namespace AbstractBot.Operations.Commands;
 
+[PublicAPI]
 public sealed class Start<T> : Command<T>
     where T : class, ICommandInfo<T>
 {
@@ -15,7 +18,10 @@ public sealed class Start<T> : Command<T>
         : base(bot, "start", bot.Config.Texts.StartCommandDescription)
     {
         _onStart = onStart;
+        _messageTemplate = Bot.Config.Texts.StartFormat;
     }
+
+    public void Format(params object?[] args) => _messageTemplate = Bot.Config.Texts.StartFormat.Format(args);
 
     protected override Task ExecuteAsync(T info, Message message, User sender)
     {
@@ -28,6 +34,8 @@ public sealed class Start<T> : Command<T>
     {
         await Bot.UpdateCommandsFor(sender.Id);
 
-        await Bot.Config.Texts.Start.SendAsync(Bot, chat);
+        await _messageTemplate.SendAsync(Bot, chat);
     }
+
+    private MessageTemplate _messageTemplate;
 }
