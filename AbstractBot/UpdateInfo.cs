@@ -40,6 +40,6 @@ public static class UpdateInfo
     {
         string? messageIdPart = messageId is null ? null : $"message {messageId} ";
         string? dataPart = data is null ? null : $"\"{data.ReplaceLineEndings().Replace(Environment.NewLine, "↵")}\" ";
-        return $"{type} {messageIdPart}{dataPart}in {chat.Type} chat {chat.Id}";
+        return $"{chat.Type} chat {chat.Id}: {type} {messageIdPart}{dataPart}";
     }
 }
