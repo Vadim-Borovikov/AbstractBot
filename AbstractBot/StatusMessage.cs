@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Threading;
-using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -33,29 +32,30 @@ public class StatusMessage : IAsyncDisposable
         Message message = await formatted.SendAsync(bot, chat, KeyboardProvider.Same, messageThreadId, entities, true,
             protectContent, replyToMessageId, allowSendingWithoutReply, cancellationToken,
             textDisableWebPagePreview: disableWebPagePreview);
-        return new StatusMessage(bot, message, postfixProvider, cancellationToken);
+        return new StatusMessage(bot, message, formatted, postfixProvider, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
     {
-        string text = _message.Text.Denull(nameof(_message.Text));
         MessageTemplate? postfix = _postfixProvider?.Invoke();
-        MessageTemplate formatted = _bot.Config.Texts.StatusMessageEndFormat.Format(text, postfix);
+        MessageTemplate formatted = _bot.Config.Texts.StatusMessageEndFormat.Format(_template, postfix);
         string result = formatted.EscapeIfNeeded();
         await _bot.EditMessageTextAsync(_message.Chat, _message.MessageId, result, ParseMode.MarkdownV2,
             cancellationToken: _cancellationToken);
     }
 
-    private StatusMessage(BotBasic bot, Message message, Func<MessageTemplate>? postfixProvider,
-        CancellationToken cancellationToken)
+    private StatusMessage(BotBasic bot, Message message, MessageTemplate template,
+        Func<MessageTemplate>? postfixProvider, CancellationToken cancellationToken)
     {
         _bot = bot;
+        _template = template;
         _message = message;
         _postfixProvider = postfixProvider;
         _cancellationToken = cancellationToken;
     }
 
     private readonly BotBasic _bot;
+    private readonly MessageTemplate _template;
     private readonly Message _message;
     private readonly Func<MessageTemplate>? _postfixProvider;
     private readonly CancellationToken _cancellationToken;
