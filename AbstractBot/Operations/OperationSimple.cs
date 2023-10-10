@@ -9,15 +9,15 @@ public abstract class OperationSimple : Operation<object>
 {
     protected OperationSimple(BotBasic bot) : base(bot) { }
 
-    protected override bool IsInvokingBy(Message message, User sender, out object? info)
+    protected override bool IsInvokingBy(Message message, User sender, out object? data)
     {
-        info = null;
+        data = null;
         return IsInvokingBy(message, sender);
     }
 
-    protected override bool IsInvokingBy(Message message, User sender, string callbackQueryDataCore, out object? info)
+    protected override bool IsInvokingBy(Message message, User sender, string callbackQueryDataCore, out object? data)
     {
-        info = null;
+        data = null;
         return IsInvokingBy(message, sender, callbackQueryDataCore);
     }
 

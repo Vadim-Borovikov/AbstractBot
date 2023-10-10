@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using AbstractBot.Bots;
 using AbstractBot.Configs;
-using AbstractBot.Operations.Infos;
+using AbstractBot.Operations.Data;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -10,7 +10,7 @@ namespace AbstractBot.Operations.Commands;
 
 [PublicAPI]
 public sealed class Start<T> : Command<T>
-    where T : class, ICommandInfo<T>
+    where T : class, ICommandData<T>
 {
     private readonly Func<T, Message, User, Task> _onStart;
 
@@ -23,9 +23,9 @@ public sealed class Start<T> : Command<T>
 
     public void Format(params object?[] args) => _messageTemplate = Bot.Config.Texts.StartFormat.Format(args);
 
-    protected override Task ExecuteAsync(T info, Message message, User sender)
+    protected override Task ExecuteAsync(T data, Message message, User sender)
     {
-        return _onStart(info, message, sender);
+        return _onStart(data, message, sender);
     }
 
     protected override Task ExecuteAsync(Message message, User sender) => Greet(message.Chat, sender);

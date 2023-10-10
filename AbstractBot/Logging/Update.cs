@@ -3,9 +3,9 @@ using GryphonUtilities;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
-namespace AbstractBot;
+namespace AbstractBot.Logging;
 
-public static class UpdateInfo
+public static class Update
 {
     public enum Type
     {

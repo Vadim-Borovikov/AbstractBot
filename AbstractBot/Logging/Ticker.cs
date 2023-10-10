@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GryphonUtilities;
 
-namespace AbstractBot;
+namespace AbstractBot.Logging;
 
 internal sealed class Ticker
 {

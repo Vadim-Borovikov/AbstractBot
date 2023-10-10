@@ -1,12 +1,12 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace AbstractBot;
+namespace AbstractBot.Helpers;
 
 [PublicAPI]
-public static class AccessHelpers
+public static class Access
 {
-    public static T ToEnum<T>(int access) where T : struct, Enum => (T) Enum.ToObject(typeof(T), access);
+    public static T ToEnum<T>(int access) where T : struct, Enum => (T)Enum.ToObject(typeof(T), access);
 
     public static int ToInt<T>(T access) where T : struct, Enum => Convert.ToInt32(access);
 

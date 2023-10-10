@@ -2,7 +2,7 @@
 using System.Linq;
 using AbstractBot.Bots;
 using AbstractBot.Extensions;
-using AbstractBot.Operations.Infos;
+using AbstractBot.Operations.Data;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -11,7 +11,7 @@ namespace AbstractBot.Operations.Commands;
 
 [PublicAPI]
 public abstract class Command<T> : Operation<T>, ICommand
-    where T : class, ICommandInfo<T>
+    where T : class, ICommandData<T>
 {
     public BotCommand BotCommand { get; init; }
 
@@ -29,9 +29,9 @@ public abstract class Command<T> : Operation<T>, ICommand
         MenuDescription = $"/{BotCommand.Command} – {BotCommand.Description.Escape()}";
     }
 
-    protected override bool IsInvokingBy(Message message, User sender, out T? info)
+    protected override bool IsInvokingBy(Message message, User sender, out T? data)
     {
-        info = null;
+        data = null;
         if ((message.Type != MessageType.Text) || string.IsNullOrWhiteSpace(message.Text))
         {
             return false;
@@ -54,8 +54,8 @@ public abstract class Command<T> : Operation<T>, ICommand
             return true;
         }
 
-        info = T.From(splitted.Skip(1).ToArray());
-        return info is not null;
+        data = T.From(splitted.Skip(1).ToArray());
+        return data is not null;
     }
 
     protected string GetTrigger(bool isGroup)

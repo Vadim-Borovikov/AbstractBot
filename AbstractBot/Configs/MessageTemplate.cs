@@ -32,7 +32,7 @@ public class MessageTemplate
         ImagePath = imagePath;
     }
 
-    private string Join() => GryphonUtilities.Text.JoinLines(Text);
+    private string Join() => GryphonUtilities.Helpers.Text.JoinLines(Text);
 
     public string EscapeIfNeeded() => MarkdownV2 ? Join() : Join().Escape();
 
@@ -45,7 +45,7 @@ public class MessageTemplate
             args =
                 args.Select(a => a is MessageTemplate mt ? mt.EscapeIfNeeded() : (object?) a?.ToString()?.Escape())
                     .ToArray();
-            text = GryphonUtilities.Text.FormatLines(Text, args);
+            text = GryphonUtilities.Helpers.Text.FormatLines(Text, args);
         }
         else
         {
@@ -60,7 +60,7 @@ public class MessageTemplate
                 }
             }
             args = args.Select(a => a is MessageTemplate mt ? mt.Join() : a).ToArray();
-            text = GryphonUtilities.Text.FormatLines(Text, args);
+            text = GryphonUtilities.Helpers.Text.FormatLines(Text, args);
         }
 
         return new MessageTemplate(text, MarkdownV2, ImagePath);

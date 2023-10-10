@@ -1,5 +1,5 @@
 ﻿using System;
-using GryphonUtilities;
+using GryphonUtilities.Helpers;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 

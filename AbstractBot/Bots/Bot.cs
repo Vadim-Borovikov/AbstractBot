@@ -1,36 +1,36 @@
 using AbstractBot.Configs;
 using AbstractBot.Operations.Commands;
-using GryphonUtilities;
 using JetBrains.Annotations;
 using System.Threading.Tasks;
-using AbstractBot.Operations.Infos;
+using GryphonUtilities;
 using Telegram.Bot.Types;
+using AbstractBot.Operations.Data;
 
 namespace AbstractBot.Bots;
 
 [PublicAPI]
-public abstract class Bot<TConfig, TTexts, TData, TStartInfo> : BotBasic
+public abstract class Bot<TConfig, TTexts, TSaveData, TStartData> : BotBasic
     where TConfig : Config<TTexts>
     where TTexts : Texts
-    where TData : SaveData, new()
-    where TStartInfo : class, ICommandInfo<TStartInfo>
+    where TSaveData : SaveData, new()
+    where TStartData : class, ICommandData<TStartData>
 {
     public new readonly TConfig Config;
 
-    protected internal readonly SaveManager<TData> SaveManager;
+    protected internal readonly SaveManager<TSaveData> SaveManager;
 
     protected Bot(TConfig config) : base(config)
     {
         Config = config;
 
-        SaveManager = new SaveManager<TData>(Config.SavePath, TimeManager, AfterLoad, BeforeSave);
+        SaveManager = new SaveManager<TSaveData>(Config.SavePath, Clock, AfterLoad, BeforeSave);
         SaveManager.Load();
 
-        Start = new Start<TStartInfo>(this, OnStartCommand);
+        Start = new Start<TStartData>(this, OnStartCommand);
         Operations.Add(Start);
     }
 
-    protected internal virtual Task OnStartCommand(TStartInfo info, Message message, User sender)
+    protected internal virtual Task OnStartCommand(TStartData data, Message message, User sender)
     {
         return Start.Greet(message.Chat, sender);
     }
@@ -39,5 +39,5 @@ public abstract class Bot<TConfig, TTexts, TData, TStartInfo> : BotBasic
 
     protected virtual void BeforeSave() { }
 
-    protected readonly Start<TStartInfo> Start;
+    protected readonly Start<TStartData> Start;
 }
