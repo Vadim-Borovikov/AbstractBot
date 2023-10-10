@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Configs;
 using AbstractBot.Extensions;
-using AbstractBot.Helpers;
 using AbstractBot.Logging;
 using AbstractBot.Operations;
 using AbstractBot.Operations.Commands;
@@ -37,13 +36,11 @@ public abstract class BotBasic
 
     public readonly Dictionary<long, Context> Contexts = new();
 
-    public const int DefaultAccess = 1;
-
     public User? User;
 
     protected internal readonly List<OperationBasic> Operations;
 
-    protected readonly Dictionary<long, int> Accesses;
+    protected readonly Dictionary<long, AccessData> Accesses;
     protected readonly InputFileId DontUnderstandSticker;
     protected readonly InputFileId ForbiddenSticker;
 
@@ -90,6 +87,14 @@ public abstract class BotBasic
             cancellationToken);
     }
 
+    public void AddOrUpdateAccesses(Dictionary<long, AccessData> toAdd)
+    {
+        foreach (long id in toAdd.Keys)
+        {
+            Accesses[id] = toAdd[id];
+        }
+    }
+
     public void Update(Telegram.Bot.Types.Update update) => Invoker.FireAndForget(_ => UpdateAsync(update), Logger);
 
     public virtual Task StopAsync(CancellationToken cancellationToken)
@@ -97,7 +102,7 @@ public abstract class BotBasic
         return Client.DeleteWebhookAsync(false, cancellationToken);
     }
 
-    public int GetAccess(long userId) => Accesses.ContainsKey(userId) ? Accesses[userId] : DefaultAccess;
+    public AccessData GetAccess(long userId) => Accesses.ContainsKey(userId) ? Accesses[userId] : AccessData.Default;
 
     public T? TryGetContext<T>(long key) where T : Context
     {
@@ -342,8 +347,7 @@ public abstract class BotBasic
     protected internal Task UpdateCommandsFor(long userId, CancellationToken cancellationToken = default)
     {
         IEnumerable<ICommand> commands = GetMenuCommands();
-        int access = GetAccess(userId);
-        return Client.SetMyCommandsAsync(commands.Where(c => Access.IsSufficient(access, c.AccessRequired))
+        return Client.SetMyCommandsAsync(commands.Where(c => Accesses[userId].IsSufficientAgainst(c.AccessRequired))
                                                  .Select(ca => ca.BotCommand),
             BotCommandScope.Chat(userId), cancellationToken: cancellationToken);
     }
@@ -403,8 +407,11 @@ public abstract class BotBasic
             switch (result)
             {
                 case OperationBasic.ExecutionResult.UnsuitableOperation: continue;
-                case OperationBasic.ExecutionResult.InsufficentAccess:
+                case OperationBasic.ExecutionResult.AccessInsufficent:
                     await ProcessInsufficientAccess(message, sender, operation);
+                    return;
+                case OperationBasic.ExecutionResult.AccessExpired:
+                    await ProcessExpiredAccess(message, sender, operation);
                     return;
                 case OperationBasic.ExecutionResult.Success: return;
                 default: throw new ArgumentOutOfRangeException(nameof(result));
@@ -430,6 +437,11 @@ public abstract class BotBasic
             : SendStickerAsync(message.Chat, ForbiddenSticker, replyToMessageId: message.MessageId);
     }
 
+    protected virtual Task ProcessExpiredAccess(Message message, User _, OperationBasic __)
+    {
+        return ProcessInsufficientAccess(message, _, __);
+    }
+
     protected virtual KeyboardProvider GetDefaultKeyboardProvider(Chat _) => KeyboardProvider.Remove;
 
     private Task UpdateAsync(Telegram.Bot.Types.Update update)
@@ -453,14 +465,14 @@ public abstract class BotBasic
 
         List<ICommand> commands = GetMenuCommands().ToList();
         await Client.SetMyCommandsAsync(
-            commands.Where(c => Access.IsSufficient(DefaultAccess, c.AccessRequired))
+            commands.Where(c => AccessData.Default.IsSufficientAgainst(c.AccessRequired))
                     .Select(ca => ca.BotCommand),
             BotCommandScope.AllPrivateChats(), cancellationToken: cancellationToken);
 
         foreach (long userId in Accesses.Keys)
         {
             await Client.SetMyCommandsAsync(
-                commands.Where(c => Access.IsSufficient(Accesses[userId], c.AccessRequired))
+                commands.Where(c => Accesses[userId].IsSufficientAgainst(c.AccessRequired))
                         .Select(ca => ca.BotCommand),
                 BotCommandScope.Chat(userId), cancellationToken: cancellationToken);
         }
@@ -497,17 +509,17 @@ public abstract class BotBasic
             : Task.FromResult(Config.Host);
     }
 
-    private Dictionary<long, int> GetAccesses()
+    private Dictionary<long, AccessData> GetAccesses()
     {
         if (Config.Accesses is not null && (Config.Accesses.Count > 0))
         {
-            return Config.Accesses;
+            return Config.Accesses.ToDictionary(p => p.Key, p => new AccessData(p.Value));
         }
 
         if (!string.IsNullOrWhiteSpace(Config.AccessesJson))
         {
-            Dictionary<long, int>? deserialized =
-                JsonSerializer.Deserialize<Dictionary<long, int>>(Config.AccessesJson,
+            Dictionary<long, AccessData>? deserialized =
+                JsonSerializer.Deserialize<Dictionary<long, AccessData>>(Config.AccessesJson,
                     JsonSerializerOptionsProvider.PascalCaseOptions);
             if (deserialized is not null)
             {
@@ -515,7 +527,7 @@ public abstract class BotBasic
             }
         }
 
-        return new Dictionary<long, int>();
+        return new Dictionary<long, AccessData>();
     }
 
     private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => c.ShowInMenu);

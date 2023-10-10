@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AbstractBot.Bots;
-using AbstractBot.Helpers;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -39,9 +38,11 @@ public abstract class Operation<T> : OperationBasic
             }
         }
 
-        if (!Access.IsSufficient(Bot.GetAccess(sender.Id), AccessRequired))
+        AccessData.Status status = Bot.GetAccess(sender.Id).CheckAgainst(AccessRequired);
+        switch (status)
         {
-            return ExecutionResult.InsufficentAccess;
+            case AccessData.Status.Insufficient: return ExecutionResult.AccessInsufficent;
+            case AccessData.Status.Expired: return ExecutionResult.AccessExpired;
         }
 
         if (callbackQueryDataCore is null)

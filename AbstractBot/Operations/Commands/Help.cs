@@ -8,7 +8,6 @@ using AbstractBot.Extensions;
 using GryphonUtilities.Extensions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using AbstractBot.Helpers;
 
 namespace AbstractBot.Operations.Commands;
 
@@ -33,11 +32,11 @@ internal sealed class Help : CommandSimple
 
     private string GetOperationsDescriptionFor(long userId)
     {
-        int access = Bot.GetAccess(userId);
+        AccessData access = Bot.GetAccess(userId);
 
         IEnumerable<string> descriptions =
             Bot.Operations
-               .Where(o => Access.IsSufficient(access, o.AccessRequired))
+               .Where(o => access.IsSufficientAgainst(o.AccessRequired))
                .Select(o => o.MenuDescription)
                .RemoveNulls();
 

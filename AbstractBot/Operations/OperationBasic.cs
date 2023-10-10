@@ -12,11 +12,12 @@ public abstract class OperationBasic : IComparable<OperationBasic>
     internal enum ExecutionResult
     {
         UnsuitableOperation,
-        InsufficentAccess,
+        AccessInsufficent,
+        AccessExpired,
         Success
     }
 
-    public virtual int AccessRequired => BotBasic.DefaultAccess;
+    public virtual Enum? AccessRequired => null;
 
     protected internal virtual bool EnabledInGroups => false;
     protected internal virtual bool EnabledInChannels => false;
