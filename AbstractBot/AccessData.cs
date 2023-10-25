@@ -24,7 +24,7 @@ public sealed class AccessData
 
     internal static readonly AccessData Default = new(DefaultAccess);
 
-    internal bool IsSufficientAgainst(Enum? required)
+    public bool IsSufficientAgainst(Enum? required)
     {
         return IsSufficientAgainst(required is null ? DefaultAccess : ToInt(required));
     }
