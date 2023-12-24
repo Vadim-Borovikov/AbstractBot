@@ -347,7 +347,7 @@ public abstract class BotBasic
     protected internal Task UpdateCommandsFor(long userId, CancellationToken cancellationToken = default)
     {
         IEnumerable<ICommand> commands = GetMenuCommands();
-        return Client.SetMyCommandsAsync(commands.Where(c => Accesses[userId].IsSufficientAgainst(c.AccessRequired))
+        return Client.SetMyCommandsAsync(commands.Where(c => GetAccess(userId).IsSufficientAgainst(c.AccessRequired))
                                                  .Select(ca => ca.BotCommand),
             BotCommandScope.Chat(userId), cancellationToken: cancellationToken);
     }
