@@ -12,8 +12,6 @@ namespace AbstractBot.Operations.Commands;
 public sealed class Start<T> : Command<T>
     where T : class, ICommandData<T>
 {
-    private readonly Func<T, Message, User, Task> _onStart;
-
     internal Start(BotBasic bot, Func<T, Message, User, Task> onStart)
         : base(bot, "start", bot.Config.Texts.StartCommandDescription)
     {
@@ -34,8 +32,9 @@ public sealed class Start<T> : Command<T>
     {
         await Bot.UpdateCommandsFor(sender.Id);
 
-        await _messageTemplate.SendAsync(Bot, chat);
+        await _messageTemplate.SendAsync(Bot, chat, Bot.StartKeyboardProvider);
     }
 
+    private readonly Func<T, Message, User, Task> _onStart;
     private MessageTemplate _messageTemplate;
 }

@@ -44,6 +44,8 @@ public abstract class BotBasic
     protected readonly InputFileId DontUnderstandSticker;
     protected readonly InputFileId ForbiddenSticker;
 
+    protected internal virtual KeyboardProvider? StartKeyboardProvider => null;
+
     protected BotBasic(ConfigBasic config)
     {
         Config = config;
