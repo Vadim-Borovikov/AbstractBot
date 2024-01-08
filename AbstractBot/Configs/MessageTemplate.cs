@@ -32,6 +32,23 @@ public class MessageTemplate
         ImagePath = imagePath;
     }
 
+    public static MessageTemplate? JoinTexts(IList<MessageTemplate> elements)
+    {
+        if (elements.Any(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
+        {
+            return null;
+        }
+
+        bool shouldEscape = elements.Any(e => e.MarkdownV2);
+        return new MessageTemplate
+        {
+            Text = shouldEscape
+                ? elements.Select(e => e.EscapeIfNeeded()).ToList()
+                : elements.SelectMany(e => e.Text).ToList(),
+            MarkdownV2 = shouldEscape
+        };
+    }
+
     private string Join() => GryphonUtilities.Helpers.Text.JoinLines(Text);
 
     public string EscapeIfNeeded() => MarkdownV2 ? Join() : Join().Escape();

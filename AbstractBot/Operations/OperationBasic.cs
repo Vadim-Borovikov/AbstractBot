@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AbstractBot.Bots;
+using AbstractBot.Configs;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -22,7 +23,7 @@ public abstract class OperationBasic : IComparable<OperationBasic>
     protected internal virtual bool EnabledInGroups => false;
     protected internal virtual bool EnabledInChannels => false;
 
-    protected internal string? MenuDescription { get; protected init; }
+    protected internal MessageTemplate? Description { get; protected init; }
 
     protected virtual byte Order => 0;
 

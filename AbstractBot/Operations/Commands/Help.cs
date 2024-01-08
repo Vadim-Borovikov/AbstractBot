@@ -1,13 +1,10 @@
 ﻿using AbstractBot.Bots;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AbstractBot.Configs;
-using AbstractBot.Extensions;
 using GryphonUtilities.Extensions;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace AbstractBot.Operations.Commands;
 
@@ -19,27 +16,25 @@ internal sealed class Help : CommandSimple
 
     protected override Task ExecuteAsync(Message message, User sender)
     {
-        string descriptions = GetOperationsDescriptionFor(sender.Id);
-
-        if (Bot.Config.Texts.HelpFormat is null)
+        MessageTemplate descriptions = GetOperationDescriptionsFor(sender.Id);
+        if (Bot.Config.Texts.HelpFormat is not null)
         {
-            return Bot.SendTextMessageAsync(message.Chat, descriptions.Escape(), parseMode: ParseMode.MarkdownV2);
+            descriptions = Bot.Config.Texts.HelpFormat.Format(descriptions);
         }
-
-        MessageTemplate formatted = Bot.Config.Texts.HelpFormat.Format(descriptions);
-        return formatted.SendAsync(Bot, message.Chat);
+        return descriptions.SendAsync(Bot, message.Chat);
     }
 
-    private string GetOperationsDescriptionFor(long userId)
+    private MessageTemplate GetOperationDescriptionsFor(long userId)
     {
         AccessData access = Bot.GetAccess(userId);
 
-        IEnumerable<string> descriptions =
+        List<MessageTemplate> descriptions =
             Bot.Operations
                .Where(o => access.IsSufficientAgainst(o.AccessRequired))
-               .Select(o => o.MenuDescription)
-               .RemoveNulls();
+               .Select(o => o.Description)
+               .RemoveNulls()
+               .ToList();
 
-        return string.Join(Environment.NewLine, descriptions);
+        return MessageTemplate.JoinTexts(descriptions.ToList()).Denull();
     }
 }
