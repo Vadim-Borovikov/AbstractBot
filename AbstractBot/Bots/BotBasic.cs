@@ -111,6 +111,15 @@ public abstract class BotBasic
         return Contexts.TryGetValue(key, out Context? value) ? value as T : null;
     }
 
+    protected virtual void AfterLoad() { }
+
+    protected virtual void BeforeSave() { }
+
+    protected Dictionary<long, T> FilterContextsByValueType<T>() where T : Context
+    {
+        return Contexts.FilterByValueType<long, Context, T>();
+    }
+
     private InputFileId? TryGetPhoto(string path)
     {
         return _photoCache.TryGetValue(path, out string? fileId) ? InputFile.FromFileId(fileId) : null;

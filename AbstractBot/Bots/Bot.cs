@@ -12,7 +12,7 @@ namespace AbstractBot.Bots;
 public abstract class Bot<TConfig, TTexts, TSaveData, TStartData> : BotBasic
     where TConfig : Config<TTexts>
     where TTexts : Texts
-    where TSaveData : SaveData, new()
+    where TSaveData : new()
     where TStartData : class, ICommandData<TStartData>
 {
     public new readonly TConfig Config;
@@ -34,10 +34,6 @@ public abstract class Bot<TConfig, TTexts, TSaveData, TStartData> : BotBasic
     {
         return Start.Greet(message.Chat, sender);
     }
-
-    protected virtual void AfterLoad() { }
-
-    protected virtual void BeforeSave() { }
 
     protected readonly Start<TStartData> Start;
 }

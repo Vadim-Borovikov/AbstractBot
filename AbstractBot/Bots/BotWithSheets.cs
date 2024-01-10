@@ -7,11 +7,11 @@ using JetBrains.Annotations;
 namespace AbstractBot.Bots;
 
 [PublicAPI]
-public abstract class BotWithSheets<TConfig, TTexts, TData, TStartData>
-    : Bot<TConfig, TTexts, TData, TStartData>, IDisposable
+public abstract class BotWithSheets<TConfig, TTexts, TSaveData, TStartData>
+    : Bot<TConfig, TTexts, TSaveData, TStartData>, IDisposable
     where TConfig : ConfigWithSheets<TTexts>
     where TTexts : Texts
-    where TData : SaveData, new()
+    where TSaveData : new()
     where TStartData : class, ICommandData<TStartData>
 {
     protected readonly Manager DocumentsManager;
