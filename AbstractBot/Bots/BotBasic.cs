@@ -262,7 +262,7 @@ public abstract class BotBasic
     {
         DelayIfNeeded(chat, cancellationToken);
         List<IAlbumInputMedia> all = new(media);
-        string captions = string.Join(", ", all.OfType<InputMedia>().Select(m => m.Caption).RemoveNulls());
+        string captions = string.Join(", ", all.OfType<InputMedia>().Select(m => m.Caption).SkipNulls());
         Logging.Update.Log(chat, Logging.Update.Type.SendFiles, Logger, data: captions);
         return Client.SendMediaGroupAsync(chat.Id, all, messageThreadId, disableNotification, protectContent,
             replyToMessageId, allowSendingWithoutReply, cancellationToken);

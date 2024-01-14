@@ -16,15 +16,15 @@ internal sealed class Help : CommandSimple
 
     protected override Task ExecuteAsync(Message message, User sender)
     {
-        MessageTemplate descriptions = GetOperationDescriptionsFor(sender.Id);
+        MessageTemplate? descriptions = GetOperationDescriptionsFor(sender.Id);
         if (Bot.Config.Texts.HelpFormat is not null)
         {
             descriptions = Bot.Config.Texts.HelpFormat.Format(descriptions);
         }
-        return descriptions.SendAsync(Bot, message.Chat);
+        return descriptions?.SendAsync(Bot, message.Chat) ?? Task.CompletedTask;
     }
 
-    private MessageTemplate GetOperationDescriptionsFor(long userId)
+    private MessageTemplate? GetOperationDescriptionsFor(long userId)
     {
         AccessData access = Bot.GetAccess(userId);
 
@@ -32,9 +32,9 @@ internal sealed class Help : CommandSimple
             Bot.Operations
                .Where(o => access.IsSufficientAgainst(o.AccessRequired))
                .Select(o => o.Description)
-               .RemoveNulls()
+               .SkipNulls()
                .ToList();
 
-        return MessageTemplate.JoinTexts(descriptions.ToList()).Denull();
+        return MessageTemplate.JoinTexts(descriptions.ToList());
     }
 }
