@@ -54,7 +54,7 @@ public abstract class Command<T> : Operation<T>, ICommand
             return true;
         }
 
-        data = T.From(splitted.Skip(1).ToArray());
+        data = T.From(message, sender, splitted.Skip(1).ToArray());
         return data is not null;
     }
 
