@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using AbstractBot.Bots;
-using AbstractBot.Configs;
+using AbstractBot.Configs.MessageTemplates;
 using AbstractBot.Extensions;
 using AbstractBot.Operations.Data;
 using JetBrains.Annotations;
@@ -26,7 +26,7 @@ public abstract class Command<T> : Operation<T>, ICommand
             Command = command,
             Description = description
         };
-        Description = new MessageTemplate($"/{command} – {description}");
+        Description = new MessageTemplateText($"/{command} – {description}");
     }
 
     protected override bool IsInvokingBy(Message message, User sender, out T? data)

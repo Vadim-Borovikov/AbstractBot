@@ -119,24 +119,23 @@ public abstract class BotBasic
         return Contexts.FilterByValueType<long, Context, T>();
     }
 
-    private InputFileId? TryGetPhoto(string path)
+    private InputFileId? TryGetFileId(string path)
     {
-        return _photoCache.TryGetValue(path, out string? fileId) ? InputFile.FromFileId(fileId) : null;
+        return _fileCache.TryGetValue(path, out string? fileId) ? InputFile.FromFileId(fileId) : null;
     }
 
-    private void AddPhotoIfNew(string path, PhotoSize[]? photoSizes)
+    private void AddFileIfNew(string path, FileBase? file)
     {
-        if (_photoCache.ContainsKey(path))
+        if (_fileCache.ContainsKey(path))
         {
             return;
         }
 
-        PhotoSize? largest = photoSizes.Largest();
-        if (largest is null)
+        if (file is null)
         {
             return;
         }
-        _photoCache[path] = largest.FileId;
+        _fileCache[path] = file.FileId;
     }
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, KeyboardProvider? keyboardProvider = null,
@@ -199,7 +198,7 @@ public abstract class BotBasic
 
         foreach (string path in paths)
         {
-            InputFile? photo = TryGetPhoto(path);
+            InputFile? photo = TryGetFileId(path);
             if (photo is null)
             {
                 FileStream stream = System.IO.File.OpenRead(path);
@@ -222,7 +221,7 @@ public abstract class BotBasic
             for (int i = 0; i < paths.Count; i++)
             {
                 string path = paths[i];
-                AddPhotoIfNew(path, messages[i].Photo);
+                AddFileIfNew(path, messages[i].Photo.Largest());
             }
         }
         else
@@ -273,7 +272,7 @@ public abstract class BotBasic
         bool? protectContent = null, int? replyToMessageId = null, bool? allowSendingWithoutReply = null,
         CancellationToken cancellationToken = default)
     {
-        InputFile? photo = TryGetPhoto(path);
+        InputFile? photo = TryGetFileId(path);
         if (photo is not null)
         {
             return await SendPhotoAsync(chat, photo, keyboardProvider, messageThreadId, caption, parseMode,
@@ -288,7 +287,7 @@ public abstract class BotBasic
                 captionEntities, hasSpoiler, disableNotification, protectContent, replyToMessageId,
                 allowSendingWithoutReply, cancellationToken);
 
-            AddPhotoIfNew(path, message.Photo);
+            AddFileIfNew(path, message.Photo.Largest());
 
             return message;
         }
@@ -306,6 +305,47 @@ public abstract class BotBasic
         return Client.SendPhotoAsync(chat.Id, photo, messageThreadId, caption, parseMode, captionEntities, hasSpoiler,
             disableNotification, protectContent, replyToMessageId, allowSendingWithoutReply, keyboardProvider.Keyboard,
             cancellationToken);
+    }
+
+    public async Task<Message> SendDocumentAsync(Chat chat, string path, KeyboardProvider? keyboardProvider = null,
+        int? messageThreadId = null, InputFile? thumbnail = null, string? caption = null, ParseMode? parseMode = null,
+        IEnumerable<MessageEntity>? captionEntities = null, bool? disableContentTypeDetection = null,
+        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
+        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
+    {
+        InputFile? file = TryGetFileId(path);
+        if (file is not null)
+        {
+            return await SendDocumentAsync(chat, file, keyboardProvider, messageThreadId, thumbnail, caption,
+                parseMode, captionEntities, disableContentTypeDetection, disableNotification, protectContent,
+                replyToMessageId, allowSendingWithoutReply, cancellationToken);
+        }
+
+        await using (FileStream stream = System.IO.File.OpenRead(path))
+        {
+            file = stream.ToInputFileStream();
+            Message message = await SendDocumentAsync(chat, file, keyboardProvider, messageThreadId, thumbnail,
+                caption, parseMode, captionEntities, disableContentTypeDetection, disableNotification, protectContent,
+                replyToMessageId, allowSendingWithoutReply, cancellationToken);
+
+            AddFileIfNew(path, message.Document);
+
+            return message;
+        }
+    }
+
+    public Task<Message> SendDocumentAsync(Chat chat, InputFile document, KeyboardProvider? keyboardProvider = null,
+        int? messageThreadId = null, InputFile? thumbnail = null, string? caption = null, ParseMode? parseMode = null,
+        IEnumerable<MessageEntity>? captionEntities = null, bool? disableContentTypeDetection = null,
+        bool? disableNotification = null, bool? protectContent = null, int? replyToMessageId = null,
+        bool? allowSendingWithoutReply = null, CancellationToken cancellationToken = default)
+    {
+        keyboardProvider ??= GetDefaultKeyboardProvider(chat);
+        DelayIfNeeded(chat, cancellationToken);
+        Logging.Update.Log(chat, Logging.Update.Type.SendPhoto, Logger, data: caption);
+        return Client.SendDocumentAsync(chat.Id, document, messageThreadId, thumbnail, caption, parseMode,
+            captionEntities, disableContentTypeDetection, disableNotification, protectContent, replyToMessageId,
+            allowSendingWithoutReply, keyboardProvider.Keyboard, cancellationToken);
     }
 
     public Task<Message> SendStickerAsync(Chat chat, InputFile sticker, KeyboardProvider? keyboardProvider = null,
@@ -546,7 +586,7 @@ public abstract class BotBasic
             cancellationToken: cancellationToken);
     }
 
-    private readonly Dictionary<string, string> _photoCache = new();
+    private readonly Dictionary<string, string> _fileCache = new();
 
     private readonly Dictionary<long, DateTimeFull> _lastUpdates = new();
     private readonly object _delayLocker = new();

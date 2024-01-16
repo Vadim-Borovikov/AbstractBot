@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AbstractBot.Bots;
-using AbstractBot.Configs;
+using AbstractBot.Configs.MessageTemplates;
 using AbstractBot.Operations.Data;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
@@ -32,9 +32,10 @@ public sealed class Start<T> : Command<T>
     {
         await Bot.UpdateCommandsFor(sender.Id);
 
-        await _messageTemplate.SendAsync(Bot, chat, Bot.StartKeyboardProvider);
+        _messageTemplate.KeyboardProvider = Bot.StartKeyboardProvider;
+        await _messageTemplate.SendAsync(Bot, chat);
     }
 
     private readonly Func<T, Message, User, Task> _onStart;
-    private MessageTemplate _messageTemplate;
+    private MessageTemplateText _messageTemplate;
 }

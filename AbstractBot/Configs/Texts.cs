@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AbstractBot.Configs.MessageTemplates;
 using JetBrains.Annotations;
 
 // ReSharper disable NullableWarningSuppressionIsUsed
@@ -17,13 +18,13 @@ public class Texts
     public string HelpCommandDescription { get; init; } = null!;
 
     [Required]
-    public MessageTemplate StartFormat { get; init; } = null!;
+    public MessageTemplateText StartFormat { get; init; } = null!;
 
-    public MessageTemplate? HelpFormat { get; init; }
-
-    [Required]
-    public MessageTemplate StatusMessageStartFormat { get; init; } = null!;
+    public MessageTemplateText? HelpFormat { get; init; }
 
     [Required]
-    public MessageTemplate StatusMessageEndFormat { get; init; } = null!;
+    public MessageTemplateText StatusMessageStartFormat { get; init; } = null!;
+
+    [Required]
+    public MessageTemplateText StatusMessageEndFormat { get; init; } = null!;
 }

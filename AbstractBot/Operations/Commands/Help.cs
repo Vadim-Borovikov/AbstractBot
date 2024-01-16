@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AbstractBot.Configs;
 using GryphonUtilities.Extensions;
 using Telegram.Bot.Types;
+using AbstractBot.Configs.MessageTemplates;
 
 namespace AbstractBot.Operations.Commands;
 
@@ -16,25 +16,25 @@ internal sealed class Help : CommandSimple
 
     protected override Task ExecuteAsync(Message message, User sender)
     {
-        MessageTemplate? descriptions = GetOperationDescriptionsFor(sender.Id);
+        MessageTemplateText descriptions = GetOperationDescriptionsFor(sender.Id);
         if (Bot.Config.Texts.HelpFormat is not null)
         {
             descriptions = Bot.Config.Texts.HelpFormat.Format(descriptions);
         }
-        return descriptions?.SendAsync(Bot, message.Chat) ?? Task.CompletedTask;
+        return descriptions.SendAsync(Bot, message.Chat);
     }
 
-    private MessageTemplate? GetOperationDescriptionsFor(long userId)
+    private MessageTemplateText GetOperationDescriptionsFor(long userId)
     {
         AccessData access = Bot.GetAccess(userId);
 
-        List<MessageTemplate> descriptions =
+        List<MessageTemplateText> descriptions =
             Bot.Operations
                .Where(o => access.IsSufficientAgainst(o.AccessRequired))
                .Select(o => o.Description)
                .SkipNulls()
                .ToList();
 
-        return MessageTemplate.JoinTexts(descriptions.ToList());
+        return MessageTemplateText.JoinTexts(descriptions.ToList());
     }
 }
