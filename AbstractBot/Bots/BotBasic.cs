@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Configs;
@@ -522,23 +521,9 @@ public abstract class BotBasic
 
     private Dictionary<long, AccessData> GetAccesses()
     {
-        if (Config.Accesses is not null && (Config.Accesses.Count > 0))
-        {
-            return Config.Accesses.ToDictionary(p => p.Key, p => new AccessData(p.Value));
-        }
-
-        if (!string.IsNullOrWhiteSpace(Config.AccessesJson))
-        {
-            Dictionary<long, AccessData>? deserialized =
-                JsonSerializer.Deserialize<Dictionary<long, AccessData>>(Config.AccessesJson,
-                    JsonSerializerOptionsProvider.PascalCaseOptions);
-            if (deserialized is not null)
-            {
-                return deserialized;
-            }
-        }
-
-        return new Dictionary<long, AccessData>();
+        return Config.Accesses.Count > 0
+            ? Config.Accesses.ToDictionary(p => p.Key, p => new AccessData(p.Value))
+            : new Dictionary<long, AccessData>();
     }
 
     private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => c.ShowInMenu);

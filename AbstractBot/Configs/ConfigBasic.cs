@@ -50,8 +50,8 @@ public class ConfigBasic
     [Required]
     public Texts Texts { get; init; } = null!;
 
-    public Dictionary<long, int>? Accesses { get; init; }
-    public string? AccessesJson { get; init; }
+    [Required]
+    public Dictionary<long, int> Accesses { get; init; } = null!;
 
     [Required]
     [MinLength(1)]
