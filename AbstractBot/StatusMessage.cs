@@ -22,6 +22,7 @@ public class StatusMessage : IAsyncDisposable
         Func<MessageTemplateText>? postfixProvider = null)
     {
         MessageTemplateText formatted = bot.Config.Texts.StatusMessageStartFormat.Format(messageText);
+        formatted.KeyboardProvider = KeyboardProvider.Same;
         Message message = await formatted.SendAsync(bot, chat);
         return new StatusMessage(bot, message, formatted, postfixProvider, messageText.CancellationToken);
     }
