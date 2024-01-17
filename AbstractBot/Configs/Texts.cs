@@ -27,4 +27,7 @@ public class Texts
 
     [Required]
     public MessageTemplateText StatusMessageEndFormat { get; init; } = null!;
+
+    [Required]
+    public MessageTemplateText CommandDescriptionFormat { get; init; } = null!;
 }

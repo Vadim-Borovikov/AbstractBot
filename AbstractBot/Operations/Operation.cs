@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AbstractBot.Bots;
+using AbstractBot.Configs.MessageTemplates;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -10,7 +11,7 @@ namespace AbstractBot.Operations;
 public abstract class Operation<T> : OperationBasic
     where T : class
 {
-    protected Operation(BotBasic bot) : base(bot) { }
+    protected Operation(BotBasic bot, MessageTemplateText? description = null) : base(bot, description) { }
 
     internal override async Task<ExecutionResult> TryExecuteAsync(Message message, User sender,
         string? callbackQueryData)

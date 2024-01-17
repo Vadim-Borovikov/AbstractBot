@@ -23,13 +23,17 @@ public abstract class OperationBasic : IComparable<OperationBasic>
     protected internal virtual bool EnabledInGroups => false;
     protected internal virtual bool EnabledInChannels => false;
 
-    protected internal MessageTemplateText? Description { get; protected init; }
+    protected internal readonly MessageTemplateText? Description;
 
     protected virtual byte Order => 0;
 
     protected readonly BotBasic Bot;
 
-    protected OperationBasic(BotBasic bot) => Bot = bot;
+    protected OperationBasic(BotBasic bot, MessageTemplateText? description = null)
+    {
+        Bot = bot;
+        Description = description;
+    }
 
     public int CompareTo(OperationBasic? other)
     {
