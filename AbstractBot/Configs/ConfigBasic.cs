@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
 
-// ReSharper disable NullableWarningSuppressionIsUsed
-
 namespace AbstractBot.Configs;
 
 [PublicAPI]

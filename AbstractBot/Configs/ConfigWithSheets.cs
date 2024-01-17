@@ -3,8 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using GoogleSheetsManager;
 using JetBrains.Annotations;
 
-// ReSharper disable NullableWarningSuppressionIsUsed
-
 namespace AbstractBot.Configs;
 
 [PublicAPI]
