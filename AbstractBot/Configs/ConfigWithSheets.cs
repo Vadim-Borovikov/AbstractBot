@@ -3,19 +3,16 @@ using System.ComponentModel.DataAnnotations;
 using GoogleSheetsManager;
 using JetBrains.Annotations;
 
-// ReSharper disable NullableWarningSuppressionIsUsed
-
 namespace AbstractBot.Configs;
 
 [PublicAPI]
 public class ConfigWithSheets<T> : Config<T>, IConfigGoogleSheets
     where T : Texts
 {
-    public Dictionary<string, string>? GoogleCredential { get; init; }
-    public string? GoogleCredentialJson { get; init; }
+    public Dictionary<string, string> Credential => GoogleCredential;
 
-    public Dictionary<string, string>? Credential => GoogleCredential;
-    public string? CredentialJson => GoogleCredentialJson;
+    [Required]
+    public Dictionary<string, string> GoogleCredential { get; init; } = null!;
 
     [Required]
     [MinLength(1)]

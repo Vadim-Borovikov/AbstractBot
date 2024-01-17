@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
 
-// ReSharper disable NullableWarningSuppressionIsUsed
-
 namespace AbstractBot.Configs;
 
 [PublicAPI]
@@ -50,8 +48,8 @@ public class ConfigBasic
     [Required]
     public Texts Texts { get; init; } = null!;
 
-    public Dictionary<long, int>? Accesses { get; init; }
-    public string? AccessesJson { get; init; }
+    [Required]
+    public Dictionary<long, int> Accesses { get; init; } = null!;
 
     [Required]
     [MinLength(1)]

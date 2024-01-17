@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using AbstractBot.Bots;
-using AbstractBot.Configs;
 using AbstractBot.Extensions;
 using AbstractBot.Operations.Data;
 using JetBrains.Annotations;
@@ -19,14 +18,14 @@ public abstract class Command<T> : Operation<T>, ICommand
     [PublicAPI]
     public virtual bool ShowInMenu => true;
 
-    protected Command(BotBasic bot, string command, string description) : base(bot)
+    protected Command(BotBasic bot, string command, string description)
+        : base(bot, bot.Config.Texts.CommandDescriptionFormat.Format(command, description))
     {
         BotCommand = new BotCommand
         {
             Command = command,
             Description = description
         };
-        Description = new MessageTemplate($"/{command} – {description}");
     }
 
     protected override bool IsInvokingBy(Message message, User sender, out T? data)
@@ -54,7 +53,7 @@ public abstract class Command<T> : Operation<T>, ICommand
             return true;
         }
 
-        data = T.From(splitted.Skip(1).ToArray());
+        data = T.From(message, sender, splitted.Skip(1).ToArray());
         return data is not null;
     }
 
