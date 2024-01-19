@@ -48,11 +48,6 @@ public abstract class Command<T> : Operation<T>, ICommand
             return false;
         }
 
-        if (splitted.Length == 1)
-        {
-            return true;
-        }
-
         data = T.From(message, sender, splitted.Skip(1).ToArray());
         return data is not null;
     }
