@@ -49,7 +49,7 @@ public abstract class Command<T> : Operation<T>, ICommand
         }
 
         data = T.From(message, sender, splitted.Skip(1).ToArray());
-        return data is not null;
+        return true;
     }
 
     protected string GetTrigger(bool isGroup)
