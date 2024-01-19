@@ -48,8 +48,7 @@ public class ConfigBasic
     [Required]
     public Texts Texts { get; init; } = null!;
 
-    [Required]
-    public Dictionary<long, int> Accesses { get; init; } = null!;
+    public Dictionary<long, int> Accesses { get; init; } = new();
 
     [Required]
     [MinLength(1)]
