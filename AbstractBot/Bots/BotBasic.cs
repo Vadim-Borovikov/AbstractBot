@@ -51,9 +51,10 @@ public abstract class BotBasic
 
         Client = new TelegramBotClient(Config.Token);
 
+        Help = new Help(this);
         Operations = new List<OperationBasic>
         {
-            new Help(this)
+            Help
         };
 
         DontUnderstandSticker = new InputFileId(Config.DontUnderstandStickerFileId);
@@ -598,4 +599,6 @@ public abstract class BotBasic
     private readonly TimeSpan _sendMessagePeriodGroup;
 
     private DateTimeFull? _lastUpdateGlobal;
+
+    protected readonly Help Help;
 }

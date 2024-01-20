@@ -1,27 +1,38 @@
-﻿using AbstractBot.Bots;
+﻿using System;
+using AbstractBot.Bots;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GryphonUtilities.Extensions;
 using Telegram.Bot.Types;
 using AbstractBot.Configs.MessageTemplates;
+using JetBrains.Annotations;
 
 namespace AbstractBot.Operations.Commands;
 
-internal sealed class Help : CommandSimple
+[PublicAPI]
+public sealed class Help : CommandSimple
 {
     protected override byte Order => Bot.Config.HelpCommandMenuOrder;
 
-    public Help(BotBasic bot) : base(bot, "help", bot.Config.Texts.HelpCommandDescription) { }
+    internal Help(BotBasic bot) : base(bot, "help", bot.Config.Texts.HelpCommandDescription) { }
+
+    public void SetArgs(params object?[] args) => _messageArgs = args;
 
     protected override Task ExecuteAsync(Message message, User sender)
     {
         MessageTemplateText descriptions = GetOperationDescriptionsFor(sender.Id);
+        MessageTemplateText text = descriptions;
         if (Bot.Config.Texts.HelpFormat is not null)
         {
-            descriptions = Bot.Config.Texts.HelpFormat.Format(descriptions);
+            List<object?> args = new()
+            {
+                descriptions
+            };
+            args.AddRange(_messageArgs);
+            text = Bot.Config.Texts.HelpFormat.Format(args.ToArray());
         }
-        return descriptions.SendAsync(Bot, message.Chat);
+        return text.SendAsync(Bot, message.Chat);
     }
 
     private MessageTemplateText GetOperationDescriptionsFor(long userId)
@@ -37,4 +48,6 @@ internal sealed class Help : CommandSimple
 
         return MessageTemplateText.JoinTexts(descriptions.ToList());
     }
+
+    private object?[] _messageArgs = Array.Empty<object?>();
 }
