@@ -21,6 +21,11 @@ public class MessageTemplateFile : MessageTemplate
         FilePath = filePath;
     }
 
+    public MessageTemplateFile(MessageTemplate prototype, string filePath) : base(prototype)
+    {
+        FilePath = filePath;
+    }
+
     public MessageTemplateFile(MessageTemplateFile prototype) : base(prototype)
     {
         FilePath = prototype.FilePath;

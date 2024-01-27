@@ -20,6 +20,11 @@ public class MessageTemplateImage : MessageTemplate
         ImagePath = imagePath;
     }
 
+    public MessageTemplateImage(MessageTemplate prototype, string imagePath) : base(prototype)
+    {
+        ImagePath = imagePath;
+    }
+
     public MessageTemplateImage(MessageTemplateImage prototype) : base(prototype)
     {
         ImagePath = prototype.ImagePath;

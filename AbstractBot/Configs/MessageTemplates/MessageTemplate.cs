@@ -13,11 +13,13 @@ namespace AbstractBot.Configs.MessageTemplates;
 [PublicAPI]
 public abstract class MessageTemplate
 {
-    protected string TextJoined = "";
-
     public IEnumerable<string> Text
     {
-        init => TextJoined = GryphonUtilities.Helpers.Text.JoinLines(value);
+        get => Enumerable.Empty<string>();
+        init
+        {
+            TextJoined = GryphonUtilities.Helpers.Text.JoinLines(value);
+        }
     }
 
     public bool MarkdownV2 { get; init; }
@@ -86,4 +88,6 @@ public abstract class MessageTemplate
     }
 
     protected abstract Task<Message> SendAsync(BotBasic bot, Chat chat, string text);
+
+    protected string TextJoined { get; init; } = null!;
 }
