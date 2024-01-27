@@ -21,11 +21,21 @@ public class MessageTemplateFile : MessageTemplate
         FilePath = filePath;
     }
 
-    public MessageTemplateFile Format(params object?[] args)
+    public MessageTemplateFile(MessageTemplateFile prototype) : base(prototype)
     {
-        string text = FormatText(args);
-        return new MessageTemplateFile(text, FilePath, MarkdownV2);
+        FilePath = prototype.FilePath;
+        Thumbnail = prototype.Thumbnail;
+        DisableContentTypeDetection = prototype.DisableContentTypeDetection;
     }
+
+    public override MessageTemplateFile Format(params object?[] args)
+    {
+        return new MessageTemplateFile(this)
+        {
+            Text = FormatText(args)
+        };
+    }
+
 
     protected override Task<Message> SendAsync(BotBasic bot, Chat chat, string text)
     {

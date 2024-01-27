@@ -35,36 +35,53 @@ public abstract class MessageTemplate
         MarkdownV2 = markdownV2;
     }
 
-    private string Join() => GryphonUtilities.Helpers.Text.JoinLines(Text);
+    protected MessageTemplate(MessageTemplate prototype)
+    {
+        Text = prototype.Text;
+        MarkdownV2 = prototype.MarkdownV2;
+        KeyboardProvider = prototype.KeyboardProvider;
+        MessageThreadId = prototype.MessageThreadId;
+        Entities = prototype.Entities;
+        DisableNotification = prototype.DisableNotification;
+        ProtectContent = prototype.ProtectContent;
+        ReplyToMessageId = prototype.ReplyToMessageId;
+        AllowSendingWithoutReply = prototype.AllowSendingWithoutReply;
+        CancellationToken = prototype.CancellationToken;
+    }
 
     public string EscapeIfNeeded() => MarkdownV2 ? Join() : Join().Escape();
 
-    protected string FormatText(params object?[] args)
+    public Task<Message> SendAsync(BotBasic bot, Chat chat) => SendAsync(bot, chat, EscapeIfNeeded());
+
+    public abstract MessageTemplate Format(params object?[] args);
+
+    protected List<string> FormatText(params object?[] args)
     {
         if (MarkdownV2)
         {
             // Will not escape whole thing!
-            args = args.Select(a => a is MessageTemplateText mtt
-                ? mtt.EscapeIfNeeded()
+            args = args.Select(a => a is MessageTemplate mt
+                ? mt.EscapeIfNeeded()
                 : (object?)a?.ToString()?.Escape()).ToArray();
-            return GryphonUtilities.Helpers.Text.FormatLines(Text, args);
         }
-
-        // Will escape the whole thing!
-        foreach (object? a in args)
+        else
         {
-            // ReSharper disable once MergeIntoPattern
-            if (a is MessageTemplateText mtt && mtt.MarkdownV2)
+            // Will escape the whole thing!
+            foreach (object? a in args)
             {
-                throw new InvalidOperationException(
-                    $"Can't put MarkdownV2 parameter {mtt.Join()} into non-MarkdownV2 format {Join()}");
+                // ReSharper disable once MergeIntoPattern
+                if (a is MessageTemplate mtt && mtt.MarkdownV2)
+                {
+                    throw new InvalidOperationException(
+                        $"Can't put MarkdownV2 parameter {mtt.Join()} into non-MarkdownV2 format {Join()}");
+                }
             }
+            args = args.Select(a => a is MessageTemplate mt ? mt.Join() : a).ToArray();
         }
-        args = args.Select(a => a is MessageTemplateText mtt ? mtt.Join() : a).ToArray();
-        return GryphonUtilities.Helpers.Text.FormatLines(Text, args);
+        return GryphonUtilities.Helpers.Text.FormatLines(Text, args).WrapWithList();
     }
 
-    public Task<Message> SendAsync(BotBasic bot, Chat chat) => SendAsync(bot, chat, EscapeIfNeeded());
-
     protected abstract Task<Message> SendAsync(BotBasic bot, Chat chat, string text);
+
+    private string Join() => GryphonUtilities.Helpers.Text.JoinLines(Text);
 }

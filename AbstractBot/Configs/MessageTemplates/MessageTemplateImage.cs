@@ -20,10 +20,18 @@ public class MessageTemplateImage : MessageTemplate
         ImagePath = imagePath;
     }
 
-    public MessageTemplateImage Format(params object?[] args)
+    public MessageTemplateImage(MessageTemplateImage prototype) : base(prototype)
     {
-        string text = FormatText(args);
-        return new MessageTemplateImage(text, ImagePath, MarkdownV2);
+        ImagePath = prototype.ImagePath;
+        HasSpoiler = prototype.HasSpoiler;
+    }
+
+    public override MessageTemplateImage Format(params object?[] args)
+    {
+        return new MessageTemplateImage(this)
+        {
+            Text = FormatText(args)
+        };
     }
 
     protected override Task<Message> SendAsync(BotBasic bot, Chat chat, string text)

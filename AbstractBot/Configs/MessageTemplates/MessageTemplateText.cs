@@ -17,6 +17,11 @@ public class MessageTemplateText : MessageTemplate
 
     public MessageTemplateText(string text, bool markdownV2 = false) : base(text, markdownV2) { }
 
+    public MessageTemplateText(MessageTemplateText prototype) : base(prototype)
+    {
+        DisableWebPagePreview = prototype.DisableWebPagePreview;
+    }
+
     public static MessageTemplateText JoinTexts(IList<MessageTemplateText> elements)
     {
         bool shouldEscape = elements.Any(e => e.MarkdownV2);
@@ -29,10 +34,12 @@ public class MessageTemplateText : MessageTemplate
         };
     }
 
-    public MessageTemplateText Format(params object?[] args)
+    public override MessageTemplateText Format(params object?[] args)
     {
-        string text = FormatText(args);
-        return new MessageTemplateText(text, MarkdownV2);
+        return new MessageTemplateText(this)
+        {
+            Text = FormatText(args)
+        };
     }
 
     protected override Task<Message> SendAsync(BotBasic bot, Chat chat, string text)
