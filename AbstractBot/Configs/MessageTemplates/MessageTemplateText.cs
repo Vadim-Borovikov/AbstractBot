@@ -27,9 +27,7 @@ public class MessageTemplateText : MessageTemplate
         bool shouldEscape = elements.Any(e => e.MarkdownV2);
         return new MessageTemplateText
         {
-            Text = shouldEscape
-                ? elements.Select(e => e.EscapeIfNeeded()).ToList()
-                : elements.SelectMany(e => e.Text).ToList(),
+            Text = elements.Select(e => shouldEscape ? e.EscapeIfNeeded() : e.TextJoined),
             MarkdownV2 = shouldEscape
         };
     }
@@ -38,7 +36,7 @@ public class MessageTemplateText : MessageTemplate
     {
         return new MessageTemplateText(this)
         {
-            Text = FormatText(args)
+            TextJoined = FormatText(args)
         };
     }
 

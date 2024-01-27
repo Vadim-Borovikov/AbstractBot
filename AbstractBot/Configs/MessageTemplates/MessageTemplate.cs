@@ -5,7 +5,6 @@ using System.Threading;
 using AbstractBot.Bots;
 using System.Threading.Tasks;
 using AbstractBot.Extensions;
-using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -14,7 +13,12 @@ namespace AbstractBot.Configs.MessageTemplates;
 [PublicAPI]
 public abstract class MessageTemplate
 {
-    public List<string> Text { get; init; } = null!;
+    protected string TextJoined = "";
+
+    public IEnumerable<string> Text
+    {
+        init => TextJoined = GryphonUtilities.Helpers.Text.JoinLines(value);
+    }
 
     public bool MarkdownV2 { get; init; }
 
@@ -31,13 +35,13 @@ public abstract class MessageTemplate
 
     protected MessageTemplate(string text, bool markdownV2 = false)
     {
-        Text = text.WrapWithList();
+        TextJoined = text;
         MarkdownV2 = markdownV2;
     }
 
     protected MessageTemplate(MessageTemplate prototype)
     {
-        Text = prototype.Text;
+        TextJoined = prototype.TextJoined;
         MarkdownV2 = prototype.MarkdownV2;
         KeyboardProvider = prototype.KeyboardProvider;
         MessageThreadId = prototype.MessageThreadId;
@@ -49,13 +53,13 @@ public abstract class MessageTemplate
         CancellationToken = prototype.CancellationToken;
     }
 
-    public string EscapeIfNeeded() => MarkdownV2 ? Join() : Join().Escape();
+    public string EscapeIfNeeded() => MarkdownV2 ? TextJoined : TextJoined.Escape();
 
     public Task<Message> SendAsync(BotBasic bot, Chat chat) => SendAsync(bot, chat, EscapeIfNeeded());
 
     public abstract MessageTemplate Format(params object?[] args);
 
-    protected List<string> FormatText(params object?[] args)
+    protected string FormatText(params object?[] args)
     {
         if (MarkdownV2)
         {
@@ -73,15 +77,13 @@ public abstract class MessageTemplate
                 if (a is MessageTemplate mtt && mtt.MarkdownV2)
                 {
                     throw new InvalidOperationException(
-                        $"Can't put MarkdownV2 parameter {mtt.Join()} into non-MarkdownV2 format {Join()}");
+                        $"Can't put MarkdownV2 parameter {mtt.TextJoined} into non-MarkdownV2 format {TextJoined}");
                 }
             }
-            args = args.Select(a => a is MessageTemplate mt ? mt.Join() : a).ToArray();
+            args = args.Select(a => a is MessageTemplate mt ? mt.TextJoined : a).ToArray();
         }
-        return GryphonUtilities.Helpers.Text.FormatLines(Text, args).WrapWithList();
+        return string.Format(TextJoined, args);
     }
 
     protected abstract Task<Message> SendAsync(BotBasic bot, Chat chat, string text);
-
-    private string Join() => GryphonUtilities.Helpers.Text.JoinLines(Text);
 }

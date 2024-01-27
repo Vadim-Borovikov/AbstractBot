@@ -30,7 +30,7 @@ public class MessageTemplateImage : MessageTemplate
     {
         return new MessageTemplateImage(this)
         {
-            Text = FormatText(args)
+            TextJoined = FormatText(args)
         };
     }
 

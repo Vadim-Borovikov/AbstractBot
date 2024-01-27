@@ -32,7 +32,7 @@ public class MessageTemplateFile : MessageTemplate
     {
         return new MessageTemplateFile(this)
         {
-            Text = FormatText(args)
+            TextJoined = FormatText(args)
         };
     }
 
