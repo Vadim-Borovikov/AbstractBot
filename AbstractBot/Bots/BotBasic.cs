@@ -376,6 +376,13 @@ public abstract class BotBasic
         return Client.UnpinChatMessageAsync(chat.Id, messageId, cancellationToken);
     }
 
+    public Task UnpinAllChatMessagesAsync(Chat chat, CancellationToken cancellationToken = default)
+    {
+        DelayIfNeeded(chat, cancellationToken);
+        Logging.Update.Log(chat, Logging.Update.Type.UnpinAll, Logger);
+        return Client.UnpinAllChatMessages(chat.Id, cancellationToken);
+    }
+
     public Task SendInvoiceAsync(Chat chat, string title, string description, string payload, string providerToken,
         string currency, IEnumerable<LabeledPrice> prices, int? messageThreadId = null, int? maxTipAmount = null,
         IEnumerable<int>? suggestedTipAmounts = null, string? startParameter = null, string? providerData = null,

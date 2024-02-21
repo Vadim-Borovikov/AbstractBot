@@ -17,6 +17,7 @@ public static class Update
         SendSticker,
         Pin,
         Unpin,
+        UnpinAll,
         SendInvoice,
         SendFiles,
         ReceiveMessage,
