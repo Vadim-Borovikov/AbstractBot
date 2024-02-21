@@ -417,6 +417,11 @@ public abstract class BotBasic
             throw new Exception("Message update with null From");
         }
 
+        if (message.From.Id == User?.Id)
+        {
+            return Task.CompletedTask;
+        }
+
         return UpdateAsync(message, message.From);
     }
 
