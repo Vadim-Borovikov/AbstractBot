@@ -6,10 +6,11 @@ namespace AbstractBot.Extensions;
 [PublicAPI]
 public static class DictionaryExtensions
 {
-    public static void AddAll<TKey, TValue, TTargetValue>(this Dictionary<TKey, TTargetValue> tagret,
-        Dictionary<TKey, TValue> source)
+    public static void AddAll<TKey, TDerivedValue, TBaseValue>(this Dictionary<TKey, TBaseValue> tagret,
+        Dictionary<TKey, TDerivedValue> source)
         where TKey : notnull
-        where TValue : class, TTargetValue
+        where TBaseValue : class
+        where TDerivedValue : TBaseValue
     {
         foreach (TKey key in source.Keys)
         {
@@ -17,15 +18,16 @@ public static class DictionaryExtensions
         }
     }
 
-    public static Dictionary<TKey, TTargetValue> FilterByValueType<TKey, TValue, TTargetValue>(
-        this Dictionary<TKey, TValue> dict)
+    public static Dictionary<TKey, TDerivedValue> FilterByValueType<TKey, TBaseValue, TDerivedValue>(
+        this Dictionary<TKey, TBaseValue> dict)
         where TKey : notnull
-        where TTargetValue : class, TValue
+        where TBaseValue : class
+        where TDerivedValue : TBaseValue
     {
-        Dictionary<TKey, TTargetValue> result = new();
+        Dictionary<TKey, TDerivedValue> result = new();
         foreach (TKey key in dict.Keys)
         {
-            if (dict[key] is TTargetValue val)
+            if (dict[key] is TDerivedValue val)
             {
                 result.Add(key, val);
             }
