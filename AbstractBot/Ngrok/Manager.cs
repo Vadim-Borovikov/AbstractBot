@@ -13,7 +13,7 @@ internal static class Manager
         try
         {
             ListTunnelsResult listTunnels = await Provider.ListTunnels(options);
-            string? url = listTunnels.Tunnels?.Where(t => t?.Proto is DesiredNgrokProto).SingleOrDefault()?.PublicUrl;
+            string? url = listTunnels.Tunnels?.FirstOrDefault(t => t?.Proto is DesiredNgrokProto)?.PublicUrl;
             return url.Denull(ErrorMessage);
         }
         catch (Exception e)
