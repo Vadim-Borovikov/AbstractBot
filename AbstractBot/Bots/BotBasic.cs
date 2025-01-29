@@ -461,7 +461,8 @@ public abstract class BotBasic
         return UpdateAsync(callbackQuery.Message, callbackQuery.From, callbackQuery.Data);
     }
 
-    protected virtual async Task UpdateAsync(Message message, User sender, string? callbackQueryData = null)
+    protected virtual async Task<OperationBasic?> UpdateAsync(Message message, User sender,
+        string? callbackQueryData = null)
     {
         if (string.IsNullOrWhiteSpace(callbackQueryData))
         {
@@ -493,16 +494,17 @@ public abstract class BotBasic
                 case OperationBasic.ExecutionResult.UnsuitableOperation: continue;
                 case OperationBasic.ExecutionResult.AccessInsufficent:
                     await ProcessInsufficientAccess(message, sender, operation);
-                    return;
+                    return operation;
                 case OperationBasic.ExecutionResult.AccessExpired:
                     await ProcessExpiredAccess(message, sender, operation);
-                    return;
-                case OperationBasic.ExecutionResult.Success: return;
+                    return operation;
+                case OperationBasic.ExecutionResult.Success: return operation;
                 default: throw new ArgumentOutOfRangeException(nameof(result));
             }
         }
 
         await ProcessUnclearOperation(message, sender);
+        return null;
     }
 
     protected virtual Task UpdateAsync(PreCheckoutQuery _) => Task.CompletedTask;
