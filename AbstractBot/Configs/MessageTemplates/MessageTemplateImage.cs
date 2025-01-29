@@ -11,7 +11,8 @@ public class MessageTemplateImage : MessageTemplate
 {
     public string ImagePath { get; init; } = null!;
 
-    public bool? HasSpoiler;
+    public bool ShowCaptionAboveMedia;
+    public bool HasSpoiler;
 
     public MessageTemplateImage() { }
 
@@ -41,8 +42,8 @@ public class MessageTemplateImage : MessageTemplate
 
     protected override Task<Message> SendAsync(BotBasic bot, Chat chat, string text)
     {
-        return bot.SendPhotoAsync(chat, ImagePath, KeyboardProvider, MessageThreadId, text, ParseMode.MarkdownV2,
-            Entities, HasSpoiler, DisableNotification, ProtectContent, ReplyToMessageId, AllowSendingWithoutReply,
-            CancellationToken);
+        return bot.SendPhotoAsync(chat, ImagePath, KeyboardProvider, text, ParseMode.MarkdownV2, ReplyParameters,
+            MessageThreadId, Entities, ShowCaptionAboveMedia, HasSpoiler, DisableNotification, ProtectContent,
+            MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
     }
 }

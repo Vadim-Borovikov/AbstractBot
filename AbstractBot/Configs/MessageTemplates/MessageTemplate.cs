@@ -27,10 +27,12 @@ public abstract class MessageTemplate
     public KeyboardProvider? KeyboardProvider;
     public int? MessageThreadId;
     public IEnumerable<MessageEntity>? Entities;
-    public bool? DisableNotification;
-    public bool? ProtectContent;
-    public int? ReplyToMessageId;
-    public bool? AllowSendingWithoutReply;
+    public bool DisableNotification;
+    public bool ProtectContent;
+    public ReplyParameters? ReplyParameters;
+    public string? MessageEffectId;
+    public string? BusinessConnectionId;
+    public bool AllowPaidBroadcast;
     public CancellationToken CancellationToken;
 
     protected MessageTemplate() { }
@@ -50,8 +52,7 @@ public abstract class MessageTemplate
         Entities = prototype.Entities;
         DisableNotification = prototype.DisableNotification;
         ProtectContent = prototype.ProtectContent;
-        ReplyToMessageId = prototype.ReplyToMessageId;
-        AllowSendingWithoutReply = prototype.AllowSendingWithoutReply;
+        ReplyParameters = prototype.ReplyParameters;
         CancellationToken = prototype.CancellationToken;
     }
 

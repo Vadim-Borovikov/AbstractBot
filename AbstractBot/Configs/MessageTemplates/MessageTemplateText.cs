@@ -11,7 +11,7 @@ namespace AbstractBot.Configs.MessageTemplates;
 [PublicAPI]
 public class MessageTemplateText : MessageTemplate
 {
-    public bool? DisableWebPagePreview;
+    public LinkPreviewOptions? LinkPreviewOptions;
 
     public MessageTemplateText() { }
 
@@ -21,7 +21,7 @@ public class MessageTemplateText : MessageTemplate
 
     public MessageTemplateText(MessageTemplateText prototype) : base(prototype)
     {
-        DisableWebPagePreview = prototype.DisableWebPagePreview;
+        LinkPreviewOptions = prototype.LinkPreviewOptions;
     }
 
     public static MessageTemplateText JoinTexts(IList<MessageTemplateText> elements)
@@ -45,8 +45,8 @@ public class MessageTemplateText : MessageTemplate
 
     protected override Task<Message> SendAsync(BotBasic bot, Chat chat, string text)
     {
-        return bot.SendTextMessageAsync(chat, text, KeyboardProvider, ParseMode.MarkdownV2, MessageThreadId, Entities,
-            DisableWebPagePreview, DisableNotification, ProtectContent, ReplyToMessageId, AllowSendingWithoutReply,
-            CancellationToken);
+        return bot.SendTextMessageAsync(chat, text, KeyboardProvider, ParseMode.MarkdownV2, ReplyParameters,
+            LinkPreviewOptions, MessageThreadId, Entities, DisableNotification, ProtectContent, MessageEffectId,
+            BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
     }
 }

@@ -12,7 +12,7 @@ public class MessageTemplateFile : MessageTemplate
     public string FilePath { get; init; } = null!;
 
     public InputFile? Thumbnail;
-    public bool? DisableContentTypeDetection;
+    public bool DisableContentTypeDetection;
 
     public MessageTemplateFile() { }
 
@@ -41,11 +41,10 @@ public class MessageTemplateFile : MessageTemplate
         };
     }
 
-
     protected override Task<Message> SendAsync(BotBasic bot, Chat chat, string text)
     {
-        return bot.SendDocumentAsync(chat, FilePath, KeyboardProvider, MessageThreadId, Thumbnail, text,
-            ParseMode.MarkdownV2, Entities, DisableContentTypeDetection, DisableNotification, ProtectContent,
-            ReplyToMessageId, AllowSendingWithoutReply, CancellationToken);
+        return bot.SendDocumentAsync(chat, FilePath, KeyboardProvider, text, ParseMode.MarkdownV2,
+            ReplyParameters, Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification,
+            ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
     }
 }
