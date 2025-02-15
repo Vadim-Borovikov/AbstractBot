@@ -164,6 +164,47 @@ public abstract class BotBasic
             businessConnectionId, cancellationToken);
     }
 
+    public async Task<Message> EditMessageMediaAsync(Chat chat, int messageId, string path,
+        InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
+        CancellationToken cancellationToken = default)
+    {
+        InputFile? photo = TryGetFileId(path);
+        if (photo is not null)
+        {
+            return await EditMessageMediaAsync(chat, messageId, photo, replyMarkup, businessConnectionId,
+                cancellationToken);
+        }
+
+        await using (FileStream stream = File.OpenRead(path))
+        {
+            photo = stream.ToInputFileStream();
+            Message message = await EditMessageMediaAsync(chat, messageId, photo, replyMarkup, businessConnectionId,
+                cancellationToken);
+
+            AddFileIfNew(path, message.Photo.Largest());
+
+            return message;
+        }
+    }
+
+    public Task<Message> EditMessageMediaAsync(Chat chat, int messageId, InputFile file,
+        InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
+        CancellationToken cancellationToken = default)
+    {
+        InputMediaPhoto media = new(file);
+        return EditMessageMediaAsync(chat, messageId, media, replyMarkup, businessConnectionId, cancellationToken);
+    }
+
+    public Task<Message> EditMessageMediaAsync(Chat chat, int messageId, InputMedia media,
+        InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
+        CancellationToken cancellationToken = default)
+    {
+        DelayIfNeeded(chat, cancellationToken);
+        Logging.Update.Log(chat, Logging.Update.Type.EditMedia, Logger, messageId);
+        return Client.EditMessageMedia(chat.Id, messageId, media, replyMarkup, businessConnectionId,
+            cancellationToken);
+    }
+
     public Task<Message> EditMessageCaptionAsync(Chat chat, int messageId, string? caption,
         ParseMode parseMode = ParseMode.None, IEnumerable<MessageEntity>? captionEntities = null,
         bool showCaptionAboveMedia = false, InlineKeyboardMarkup? replyMarkup = null,

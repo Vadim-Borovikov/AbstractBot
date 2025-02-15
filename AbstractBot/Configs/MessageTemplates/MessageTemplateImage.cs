@@ -1,8 +1,8 @@
 using AbstractBot.Bots;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AbstractBot.Configs.MessageTemplates;
 
@@ -40,10 +40,31 @@ public class MessageTemplateImage : MessageTemplate
         };
     }
 
-    protected override Task<Message> SendAsync(BotBasic bot, Chat chat, string text)
+    public override Task<Message> SendAsync(BotBasic bot, Chat chat)
     {
-        return bot.SendPhotoAsync(chat, ImagePath, KeyboardProvider, text, ParseMode.MarkdownV2, ReplyParameters,
+        return bot.SendPhotoAsync(chat, ImagePath, KeyboardProvider, TextJoined, ParseMode, ReplyParameters,
             MessageThreadId, Entities, ShowCaptionAboveMedia, HasSpoiler, DisableNotification, ProtectContent,
             MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
+    }
+
+    public Task<Message> EditMessageTextWithSelfAsync(BotBasic bot, Chat chat, int messageId)
+    {
+        InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
+        return bot.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, Entities, null, keyboard,
+            BusinessConnectionId, CancellationToken);
+    }
+
+    public Task<Message> EditMessageMediaWithSelfAsync(BotBasic bot, Chat chat, int messageId)
+    {
+        InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
+        return bot.EditMessageMediaAsync(chat, messageId, ImagePath, keyboard, BusinessConnectionId,
+            CancellationToken);
+    }
+
+    public Task<Message> EditMessageCaptionWithSelfAsync(BotBasic bot, Chat chat, int messageId)
+    {
+        InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
+        return bot.EditMessageCaptionAsync(chat, messageId, TextJoined, ParseMode, Entities, ShowCaptionAboveMedia,
+            keyboard, BusinessConnectionId, CancellationToken);
     }
 }

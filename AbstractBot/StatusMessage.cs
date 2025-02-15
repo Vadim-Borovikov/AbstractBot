@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using AbstractBot.Bots;
 using AbstractBot.Configs.MessageTemplates;
 
@@ -31,9 +30,7 @@ public class StatusMessage : IAsyncDisposable
     {
         MessageTemplateText? postfix = _postfixProvider?.Invoke();
         MessageTemplateText formatted = _bot.Config.Texts.StatusMessageEndFormat.Format(_template, postfix);
-        string result = formatted.EscapeIfNeeded();
-        await _bot.EditMessageTextAsync(_message.Chat, _message.MessageId, result, ParseMode.MarkdownV2,
-            cancellationToken: _cancellationToken);
+        await formatted.EditMessageWithSelfAsync(_bot, _message.Chat, _message.MessageId);
     }
 
     private StatusMessage(BotBasic bot, Message message, MessageTemplateText template,

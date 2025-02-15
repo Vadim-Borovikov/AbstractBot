@@ -11,6 +11,7 @@ public static class Update
     {
         SendText,
         EditText,
+        EditMedia,
         Delete,
         Forward,
         SendPhoto,

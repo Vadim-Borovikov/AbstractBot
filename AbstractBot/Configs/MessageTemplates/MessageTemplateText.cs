@@ -3,8 +3,8 @@ using System.Linq;
 using AbstractBot.Bots;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AbstractBot.Configs.MessageTemplates;
 
@@ -43,9 +43,16 @@ public class MessageTemplateText : MessageTemplate
         };
     }
 
-    protected override Task<Message> SendAsync(BotBasic bot, Chat chat, string text)
+    public Task<Message> EditMessageWithSelfAsync(BotBasic bot, Chat chat, int messageId)
     {
-        return bot.SendTextMessageAsync(chat, text, KeyboardProvider, ParseMode.MarkdownV2, ReplyParameters,
+        InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
+        return bot.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, Entities, LinkPreviewOptions, keyboard,
+            BusinessConnectionId, CancellationToken);
+    }
+
+    public override Task<Message> SendAsync(BotBasic bot, Chat chat)
+    {
+        return bot.SendTextMessageAsync(chat, TextJoined, KeyboardProvider, ParseMode, ReplyParameters,
             LinkPreviewOptions, MessageThreadId, Entities, DisableNotification, ProtectContent, MessageEffectId,
             BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
     }

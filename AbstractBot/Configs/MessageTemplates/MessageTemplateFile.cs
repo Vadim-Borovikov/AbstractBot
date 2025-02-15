@@ -1,7 +1,6 @@
 using AbstractBot.Bots;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 
 namespace AbstractBot.Configs.MessageTemplates;
@@ -41,10 +40,10 @@ public class MessageTemplateFile : MessageTemplate
         };
     }
 
-    protected override Task<Message> SendAsync(BotBasic bot, Chat chat, string text)
+    public override Task<Message> SendAsync(BotBasic bot, Chat chat)
     {
-        return bot.SendDocumentAsync(chat, FilePath, KeyboardProvider, text, ParseMode.MarkdownV2,
-            ReplyParameters, Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification,
-            ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
+        return bot.SendDocumentAsync(chat, FilePath, KeyboardProvider, TextJoined, ParseMode, ReplyParameters,
+            Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification, ProtectContent,
+            MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
     }
 }
