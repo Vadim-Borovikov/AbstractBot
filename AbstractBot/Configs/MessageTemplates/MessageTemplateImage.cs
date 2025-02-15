@@ -34,9 +34,12 @@ public class MessageTemplateImage : MessageTemplate
 
     public override MessageTemplateImage Format(params object?[] args)
     {
+        MessageTemplateFormatInfo info = PrepareFormat(args);
+
         return new MessageTemplateImage(this)
         {
-            TextJoined = FormatText(args)
+            MarkdownV2 = info.MarkdownV2,
+            TextJoined = info.Text
         };
     }
 

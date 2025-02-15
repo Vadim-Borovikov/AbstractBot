@@ -56,6 +56,8 @@ public abstract class MessageTemplate
         CancellationToken = prototype.CancellationToken;
     }
 
+    protected string TextJoined { get; init; } = null!;
+
     protected string EscapeIfNeeded() => MarkdownV2 ? TextJoined : TextJoined.Escape();
 
     protected ParseMode ParseMode => MarkdownV2 ? ParseMode.MarkdownV2 : ParseMode.None;
@@ -64,26 +66,27 @@ public abstract class MessageTemplate
 
     public abstract MessageTemplate Format(params object?[] args);
 
-    private object? EscapeIfNeeded(object? o)
+    protected MessageTemplateFormatInfo PrepareFormat(params object?[] args)
     {
-        return o is MessageTemplate mt ? mt.EscapeIfNeeded() : o?.ToString()?.Escape();
-    }
-    private object? ExtractText(object? o) => o is MessageTemplate mt ? mt.TextJoined : o;
+        bool markdownV2 = MarkdownV2;
+        string text = TextJoined;
 
-    protected string FormatText(params object?[] args) => FormatText(MarkdownV2, TextJoined, args);
-
-    private string FormatText(bool markdownV2, string text, params object?[] args)
-    {
         // ReSharper disable once MergeIntoPattern
-        if (!markdownV2 && args.Any(a => a is MessageTemplate mtt && mtt.MarkdownV2))
+        if (!markdownV2 && args.Any(a => a is MessageTemplate mt && mt.MarkdownV2))
         {
             markdownV2 = true;
             text = text.Escape(false);
         }
 
         args = args.Select(a => markdownV2 ? EscapeIfNeeded(a) : ExtractText(a)).ToArray();
-        return string.Format(text, args);
+        text = string.Format(text, args);
+
+        return new MessageTemplateFormatInfo(markdownV2, text);
     }
 
-    protected string TextJoined { get; init; } = null!;
+    private static object? EscapeIfNeeded(object? o)
+    {
+        return o is MessageTemplate mt ? mt.EscapeIfNeeded() : o?.ToString()?.Escape();
+    }
+    private static object? ExtractText(object? o) => o is MessageTemplate mt ? mt.TextJoined : o;
 }
