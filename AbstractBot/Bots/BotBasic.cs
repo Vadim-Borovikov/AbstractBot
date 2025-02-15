@@ -224,12 +224,13 @@ public abstract class BotBasic
     }
 
     public Task<Message> ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId, int? messageThreadId = null,
-        bool disableNotification = false, bool protectContent = false, CancellationToken cancellationToken = default)
+        bool disableNotification = false, bool protectContent = false, int? videoStartTimestamp = null,
+        CancellationToken cancellationToken = default)
     {
         DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.Forward, Logger, data: $"message {messageId} from {fromChatId}");
         return Client.ForwardMessage(chat.Id, fromChatId, messageId, messageThreadId, disableNotification,
-            protectContent, cancellationToken);
+            protectContent, videoStartTimestamp, cancellationToken);
     }
 
     public async Task<Message[]> SendMediaGroupAsync(Chat chat, IList<string> paths, string? caption = null,
