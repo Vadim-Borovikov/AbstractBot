@@ -20,7 +20,7 @@ public class StatusMessage : IAsyncDisposable
     public static async Task<StatusMessage> CreateAsync(BotBasic bot, Chat chat, MessageTemplateText messageText,
         Func<MessageTemplateText>? postfixProvider = null)
     {
-        MessageTemplateText formatted = bot.Config.Texts.StatusMessageStartFormat.Format(messageText);
+        MessageTemplateText formatted = bot.ConfigBasic.TextsBasic.StatusMessageStartFormat.Format(messageText);
         formatted.KeyboardProvider = KeyboardProvider.Same;
         Message message = await formatted.SendAsync(bot, chat);
         return new StatusMessage(bot, message, formatted, postfixProvider, messageText.CancellationToken);
@@ -29,7 +29,7 @@ public class StatusMessage : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         MessageTemplateText? postfix = _postfixProvider?.Invoke();
-        MessageTemplateText formatted = _bot.Config.Texts.StatusMessageEndFormat.Format(_template, postfix);
+        MessageTemplateText formatted = _bot.ConfigBasic.TextsBasic.StatusMessageEndFormat.Format(_template, postfix);
         formatted.CancellationToken = _cancellationToken;
         await formatted.EditMessageWithSelfAsync(_bot, _message.Chat, _message.MessageId);
     }

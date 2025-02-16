@@ -46,7 +46,7 @@ public class ConfigBasic
     public string? Host { get; init; }
 
     [Required]
-    public Texts Texts { get; init; } = null!;
+    public virtual TextsBasic TextsBasic { get; init; } = null!;
 
     public Dictionary<long, int> Accesses { get; init; } = new();
 

@@ -11,11 +11,11 @@ namespace AbstractBot.Bots;
 [PublicAPI]
 public abstract class Bot<TConfig, TTexts, TSaveData, TStartData> : BotBasic
     where TConfig : Config<TTexts>
-    where TTexts : Texts
+    where TTexts : TextsBasic
     where TSaveData : new()
     where TStartData : class, ICommandData<TStartData>
 {
-    public new readonly TConfig Config;
+    public readonly TConfig Config;
 
     protected internal readonly SaveManager<TSaveData> SaveManager;
 

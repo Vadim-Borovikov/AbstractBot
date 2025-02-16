@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace AbstractBot.Configs;
 
 [PublicAPI]
-public class Texts
+public class TextsBasic
 {
     [Required]
     [MinLength(1)]

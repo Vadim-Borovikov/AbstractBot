@@ -19,7 +19,7 @@ public abstract class Command<T> : Operation<T>, ICommand
     public virtual bool ShowInMenu => true;
 
     protected Command(BotBasic bot, string command, string description)
-        : base(bot, bot.Config.Texts.CommandDescriptionFormat.Format(command, description))
+        : base(bot, bot.ConfigBasic.TextsBasic.CommandDescriptionFormat.Format(command, description))
     {
         BotCommand = new BotCommand
         {

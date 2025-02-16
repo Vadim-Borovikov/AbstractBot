@@ -28,7 +28,7 @@ public abstract class BotBasic
     public string Host { get; private set; } = "";
 
     public readonly TelegramBotClient Client;
-    public readonly ConfigBasic Config;
+    public readonly ConfigBasic ConfigBasic;
     public readonly Clock Clock;
     public readonly Logger Logger;
     public readonly SerializerOptionsProvider JsonSerializerOptionsProvider;
@@ -45,11 +45,11 @@ public abstract class BotBasic
 
     protected internal virtual KeyboardProvider? StartKeyboardProvider => null;
 
-    protected BotBasic(ConfigBasic config)
+    protected BotBasic(ConfigBasic configBasic)
     {
-        Config = config;
+        ConfigBasic = configBasic;
 
-        Client = new TelegramBotClient(Config.Token);
+        Client = new TelegramBotClient(ConfigBasic.Token);
 
         Help = new Help(this);
         Operations = new List<OperationBasic>
@@ -57,18 +57,18 @@ public abstract class BotBasic
             Help
         };
 
-        DontUnderstandSticker = new InputFileId(Config.DontUnderstandStickerFileId);
-        ForbiddenSticker = new InputFileId(Config.ForbiddenStickerFileId);
+        DontUnderstandSticker = new InputFileId(ConfigBasic.DontUnderstandStickerFileId);
+        ForbiddenSticker = new InputFileId(ConfigBasic.ForbiddenStickerFileId);
 
-        Clock = new Clock(Config.SystemTimeZoneId);
+        Clock = new Clock(ConfigBasic.SystemTimeZoneId);
         Logger = new Logger(Clock);
         _ticker = new Ticker(Logger);
 
         JsonSerializerOptionsProvider = new SerializerOptionsProvider(Clock);
 
-        _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitPrivate);
-        _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / config.UpdatesPerSecondLimitGlobal);
-        _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
+        _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / configBasic.UpdatesPerSecondLimitPrivate);
+        _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / configBasic.UpdatesPerSecondLimitGlobal);
+        _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / configBasic.UpdatesPerMinuteLimitGroup);
         Accesses = GetAccesses();
     }
 
@@ -85,7 +85,7 @@ public abstract class BotBasic
 
         User = await Client.GetMe(cancellationToken);
 
-        Invoker.DoPeriodically(ReconnectAsync, TimeSpan.FromHours(Config.RestartPeriodHours), false, Logger,
+        Invoker.DoPeriodically(ReconnectAsync, TimeSpan.FromHours(ConfigBasic.RestartPeriodHours), false, Logger,
             cancellationToken);
     }
 
@@ -630,15 +630,15 @@ public abstract class BotBasic
 
     private Task<string> GetHostAsync()
     {
-        return string.IsNullOrWhiteSpace(Config.Host)
+        return string.IsNullOrWhiteSpace(ConfigBasic.Host)
             ? Ngrok.Manager.GetHostAsync(JsonSerializerOptionsProvider.SnakeCaseOptions)
-            : Task.FromResult(Config.Host);
+            : Task.FromResult(ConfigBasic.Host);
     }
 
     private Dictionary<long, AccessData> GetAccesses()
     {
-        return Config.Accesses.Count > 0
-            ? Config.Accesses.ToDictionary(p => p.Key, p => new AccessData(p.Value))
+        return ConfigBasic.Accesses.Count > 0
+            ? ConfigBasic.Accesses.ToDictionary(p => p.Key, p => new AccessData(p.Value))
             : new Dictionary<long, AccessData>();
     }
 
@@ -657,7 +657,7 @@ public abstract class BotBasic
 
     private Task ConnectAsync(CancellationToken cancellationToken)
     {
-        string url = $"{Host}/{Config.Token}";
+        string url = $"{Host}/{ConfigBasic.Token}";
         return Client.SetWebhook(url, allowedUpdates: Array.Empty<UpdateType>(), cancellationToken: cancellationToken);
     }
 

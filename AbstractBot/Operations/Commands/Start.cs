@@ -13,13 +13,16 @@ public sealed class Start<T> : Command<T>
     where T : class, ICommandData<T>
 {
     internal Start(BotBasic bot, Func<T, Message, User, Task> onStart)
-        : base(bot, "start", bot.Config.Texts.StartCommandDescription)
+        : base(bot, "start", bot.ConfigBasic.TextsBasic.StartCommandDescription)
     {
         _onStart = onStart;
-        _messageTemplate = Bot.Config.Texts.StartFormat;
+        _messageTemplate = Bot.ConfigBasic.TextsBasic.StartFormat;
     }
 
-    public void Format(params object?[] args) => _messageTemplate = Bot.Config.Texts.StartFormat.Format(args);
+    public void Format(params object?[] args)
+    {
+        _messageTemplate = Bot.ConfigBasic.TextsBasic.StartFormat.Format(args);
+    }
 
     protected override Task ExecuteAsync(T data, Message message, User sender)
     {

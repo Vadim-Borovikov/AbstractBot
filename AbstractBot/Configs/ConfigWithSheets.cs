@@ -7,7 +7,7 @@ namespace AbstractBot.Configs;
 
 [PublicAPI]
 public class ConfigWithSheets<T> : Config<T>, IConfigGoogleSheets
-    where T : Texts
+    where T : TextsBasic
 {
     public Dictionary<string, string> Credential => GoogleCredential;
 

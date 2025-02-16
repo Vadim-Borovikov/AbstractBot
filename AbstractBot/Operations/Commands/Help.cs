@@ -13,9 +13,9 @@ namespace AbstractBot.Operations.Commands;
 [PublicAPI]
 public sealed class Help : CommandSimple
 {
-    protected override byte Order => Bot.Config.HelpCommandMenuOrder;
+    protected override byte Order => Bot.ConfigBasic.HelpCommandMenuOrder;
 
-    internal Help(BotBasic bot) : base(bot, "help", bot.Config.Texts.HelpCommandDescription) { }
+    internal Help(BotBasic bot) : base(bot, "help", bot.ConfigBasic.TextsBasic.HelpCommandDescription) { }
 
     public void SetArgs(params object?[] args) => _messageArgs = args;
 
@@ -23,14 +23,14 @@ public sealed class Help : CommandSimple
     {
         MessageTemplateText descriptions = GetOperationDescriptionsFor(sender.Id);
         MessageTemplateText text = descriptions;
-        if (Bot.Config.Texts.HelpFormat is not null)
+        if (Bot.ConfigBasic.TextsBasic.HelpFormat is not null)
         {
             List<object?> args = new()
             {
                 descriptions
             };
             args.AddRange(_messageArgs);
-            text = Bot.Config.Texts.HelpFormat.Format(args.ToArray());
+            text = Bot.ConfigBasic.TextsBasic.HelpFormat.Format(args.ToArray());
         }
         return text.SendAsync(Bot, message.Chat);
     }

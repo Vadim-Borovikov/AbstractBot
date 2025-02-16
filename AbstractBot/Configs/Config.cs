@@ -5,8 +5,10 @@ namespace AbstractBot.Configs;
 
 [PublicAPI]
 public class Config<T> : ConfigBasic
-    where T : Texts
+    where T : TextsBasic
 {
     [Required]
-    public new T Texts { get; init; } = null!;
+    public T Texts { get; init; } = null!;
+
+    public override TextsBasic TextsBasic => Texts;
 }

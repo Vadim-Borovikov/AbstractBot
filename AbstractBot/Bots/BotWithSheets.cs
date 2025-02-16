@@ -10,7 +10,7 @@ namespace AbstractBot.Bots;
 public abstract class BotWithSheets<TConfig, TTexts, TSaveData, TStartData>
     : Bot<TConfig, TTexts, TSaveData, TStartData>, IDisposable
     where TConfig : ConfigWithSheets<TTexts>
-    where TTexts : Texts
+    where TTexts : TextsBasic
     where TSaveData : new()
     where TStartData : class, ICommandData<TStartData>
 {
