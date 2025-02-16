@@ -30,6 +30,7 @@ public class StatusMessage : IAsyncDisposable
     {
         MessageTemplateText? postfix = _postfixProvider?.Invoke();
         MessageTemplateText formatted = _bot.Config.Texts.StatusMessageEndFormat.Format(_template, postfix);
+        formatted.CancellationToken = _cancellationToken;
         await formatted.EditMessageWithSelfAsync(_bot, _message.Chat, _message.MessageId);
     }
 
