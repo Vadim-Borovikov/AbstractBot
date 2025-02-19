@@ -25,8 +25,6 @@ namespace AbstractBot.Bots;
 [PublicAPI]
 public abstract class BotBasic
 {
-    public string Host { get; private set; } = "";
-
     public readonly TelegramBotClient Client;
     public readonly ConfigBasic ConfigBasic;
     public readonly Clock Clock;
@@ -34,8 +32,6 @@ public abstract class BotBasic
     public readonly SerializerOptionsProvider JsonSerializerOptionsProvider;
 
     public readonly Dictionary<long, object> Contexts = new();
-
-    public User? User;
 
     protected internal readonly List<OperationBasic> Operations;
 
@@ -51,10 +47,10 @@ public abstract class BotBasic
 
         Client = new TelegramBotClient(ConfigBasic.Token);
 
-        Help = new Help(this);
+        Help help = new(ConfigBasic);
         Operations = new List<OperationBasic>
         {
-            Help
+            help
         };
 
         DontUnderstandSticker = new InputFileId(ConfigBasic.DontUnderstandStickerFileId);
@@ -75,7 +71,6 @@ public abstract class BotBasic
     public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
         Operations.Sort();
-        Host = await GetHostAsync();
 
         await ConnectAsync(cancellationToken);
 
@@ -83,10 +78,14 @@ public abstract class BotBasic
 
         await UpdateCommands(null, cancellationToken);
 
-        User = await Client.GetMe(cancellationToken);
-
         Invoker.DoPeriodically(ReconnectAsync, TimeSpan.FromHours(ConfigBasic.RestartPeriodHours), false, Logger,
             cancellationToken);
+    }
+
+    public async Task<User> GetSelfAsync(CancellationToken cancellationToken = default)
+    {
+        _self ??= await Client.GetMe(cancellationToken);
+        return _self;
     }
 
     public void AddOrUpdateAccesses(Dictionary<long, AccessData> toAdd)
@@ -473,19 +472,21 @@ public abstract class BotBasic
             BotCommandScope.Chat(userId), languageCode, cancellationToken);
     }
 
-    protected virtual Task UpdateAsync(Message message)
+    protected virtual async Task UpdateAsync(Message message)
     {
         if (message.From is null)
         {
             throw new Exception("Message update with null From");
         }
 
-        if (message.From.Id == User?.Id)
+        User self = await GetSelfAsync();
+
+        if (message.From.Id == self.Id)
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        return UpdateAsync(message, message.From);
+        await UpdateAsync(message, message.From);
     }
 
     protected virtual Task UpdateAsync(CallbackQuery callbackQuery)
@@ -530,7 +531,7 @@ public abstract class BotBasic
             }
 
             OperationBasic.ExecutionResult result =
-                await operation.TryExecuteAsync(message, sender, callbackQueryData);
+                await operation.TryExecuteAsync(this, message, sender, callbackQueryData);
             switch (result)
             {
                 case OperationBasic.ExecutionResult.UnsuitableOperation: continue;
@@ -628,11 +629,16 @@ public abstract class BotBasic
         }
     }
 
-    private Task<string> GetHostAsync()
+    private async Task<string> GetHostAsync()
     {
-        return string.IsNullOrWhiteSpace(ConfigBasic.Host)
-            ? Ngrok.Manager.GetHostAsync(JsonSerializerOptionsProvider.SnakeCaseOptions)
-            : Task.FromResult(ConfigBasic.Host);
+        if (string.IsNullOrWhiteSpace(_host))
+        {
+            _host = string.IsNullOrWhiteSpace(ConfigBasic.Host)
+                ? await Ngrok.Manager.GetHostAsync(JsonSerializerOptionsProvider.SnakeCaseOptions)
+                : ConfigBasic.Host;
+        }
+        return _host;
+
     }
 
     private Dictionary<long, AccessData> GetAccesses()
@@ -655,10 +661,11 @@ public abstract class BotBasic
         Logger.LogTimedMessage("...connected.");
     }
 
-    private Task ConnectAsync(CancellationToken cancellationToken)
+    private async Task ConnectAsync(CancellationToken cancellationToken)
     {
-        string url = $"{Host}/{ConfigBasic.Token}";
-        return Client.SetWebhook(url, allowedUpdates: Array.Empty<UpdateType>(), cancellationToken: cancellationToken);
+        string host = await GetHostAsync();
+        string url = $"{host}/{ConfigBasic.Token}";
+        await Client.SetWebhook(url, allowedUpdates: Array.Empty<UpdateType>(), cancellationToken: cancellationToken);
     }
 
     private readonly Dictionary<string, string> _fileCache = new();
@@ -674,5 +681,7 @@ public abstract class BotBasic
 
     private DateTimeFull? _lastUpdateGlobal;
 
-    protected readonly Help Help;
+    private string? _host;
+
+    private User? _self;
 }

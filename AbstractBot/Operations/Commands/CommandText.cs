@@ -9,18 +9,17 @@ namespace AbstractBot.Operations.Commands;
 [PublicAPI]
 public abstract class CommandText : CommandSimple
 {
-    protected CommandText(BotBasic bot, string command, string description, MessageTemplate messageTemplate)
-        : base(bot, command, description)
+    protected CommandText(MessageTemplateText descriptionFormat, string command, string description,
+        MessageTemplate messageTemplate)
+        : base(descriptionFormat, command, description)
     {
-        _bot = bot;
         _messageTemplate = messageTemplate;
     }
 
-    protected override Task ExecuteAsync(Message message, User sender)
+    protected override Task ExecuteAsync(BotBasic bot, Message message, User sender)
     {
-        return _messageTemplate.SendAsync(_bot, message.Chat);
+        return _messageTemplate.SendAsync(bot, message.Chat);
     }
 
-    private readonly BotBasic _bot;
     private readonly MessageTemplate _messageTemplate;
 }

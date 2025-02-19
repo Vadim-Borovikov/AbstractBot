@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AbstractBot.Bots;
+using AbstractBot.Configs;
 using AbstractBot.Configs.MessageTemplates;
 using AbstractBot.Operations.Data;
 using JetBrains.Annotations;
@@ -12,33 +13,35 @@ namespace AbstractBot.Operations.Commands;
 public sealed class Start<T> : Command<T>
     where T : class, ICommandData<T>
 {
-    internal Start(BotBasic bot, Func<T, Message, User, Task> onStart)
-        : base(bot, "start", bot.ConfigBasic.TextsBasic.StartCommandDescription)
+    internal Start(TextsBasic texts, Func<T, Message, User, Task> onStart)
+        : base(texts.CommandDescriptionFormat, "start", texts.StartCommandDescription)
     {
         _onStart = onStart;
-        _messageTemplate = Bot.ConfigBasic.TextsBasic.StartFormat;
+        _messageTemplateFormat = texts.StartFormat;
+        _messageTemplate = new MessageTemplateText(_messageTemplateFormat);
     }
 
-    public void Format(params object?[] args)
-    {
-        _messageTemplate = Bot.ConfigBasic.TextsBasic.StartFormat.Format(args);
-    }
+    public void Format(params object?[] args) => _messageTemplate = _messageTemplateFormat.Format(args);
 
-    protected override Task ExecuteAsync(T data, Message message, User sender)
+    protected override Task ExecuteAsync(BotBasic bot, T data, Message message, User sender)
     {
         return _onStart(data, message, sender);
     }
 
-    protected override Task ExecuteAsync(Message message, User sender) => Greet(message.Chat, sender);
-
-    internal async Task Greet(Chat chat, User sender)
+    protected override Task ExecuteAsync(BotBasic bot, Message message, User sender)
     {
-        await Bot.UpdateCommandsFor(sender.Id);
+        return Greet(bot, message.Chat, sender);
+    }
 
-        _messageTemplate.KeyboardProvider = Bot.StartKeyboardProvider;
-        await _messageTemplate.SendAsync(Bot, chat);
+    internal async Task Greet(BotBasic bot, Chat chat, User sender)
+    {
+        await bot.UpdateCommandsFor(sender.Id);
+
+        _messageTemplate.KeyboardProvider = bot.StartKeyboardProvider;
+        await _messageTemplate.SendAsync(bot, chat);
     }
 
     private readonly Func<T, Message, User, Task> _onStart;
     private MessageTemplateText _messageTemplate;
+    private MessageTemplateText _messageTemplateFormat;
 }

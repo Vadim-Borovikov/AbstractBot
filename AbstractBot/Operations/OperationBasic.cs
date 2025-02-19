@@ -27,13 +27,7 @@ public abstract class OperationBasic : IComparable<OperationBasic>
 
     protected virtual byte Order => 0;
 
-    protected readonly BotBasic Bot;
-
-    protected OperationBasic(BotBasic bot, MessageTemplateText? description = null)
-    {
-        Bot = bot;
-        Description = description;
-    }
+    protected OperationBasic(MessageTemplateText? description = null) => Description = description;
 
     public int CompareTo(OperationBasic? other)
     {
@@ -50,5 +44,6 @@ public abstract class OperationBasic : IComparable<OperationBasic>
         return Order.CompareTo(other.Order);
     }
 
-    internal abstract Task<ExecutionResult> TryExecuteAsync(Message message, User sender, string? callbackQueryData);
+    internal abstract Task<ExecutionResult> TryExecuteAsync(BotBasic bot, Message message, User sender,
+        string? callbackQueryData);
 }

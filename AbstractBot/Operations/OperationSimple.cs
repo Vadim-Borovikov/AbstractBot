@@ -1,5 +1,4 @@
-﻿using AbstractBot.Bots;
-using AbstractBot.Configs.MessageTemplates;
+﻿using AbstractBot.Configs.MessageTemplates;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -8,21 +7,25 @@ namespace AbstractBot.Operations;
 [PublicAPI]
 public abstract class OperationSimple : Operation<object>
 {
-    protected OperationSimple(BotBasic bot, MessageTemplateText? description = null) : base(bot, description) { }
+    protected OperationSimple(MessageTemplateText? description = null) : base(description) { }
 
-    protected override bool IsInvokingBy(Message message, User sender, out object? data)
+    protected override bool IsInvokingBy(User self, Message message, User sender, out object? data)
     {
         data = null;
-        return IsInvokingBy(message, sender);
+        return IsInvokingBy(self, message, sender);
     }
 
-    protected override bool IsInvokingBy(Message message, User sender, string callbackQueryDataCore, out object? data)
+    protected override bool IsInvokingBy(User self, Message message, User sender, string callbackQueryDataCore,
+        out object? data)
     {
         data = null;
-        return IsInvokingBy(message, sender, callbackQueryDataCore);
+        return IsInvokingBy(self, message, sender, callbackQueryDataCore);
     }
 
-    protected virtual bool IsInvokingBy(Message message, User sender) => true;
+    protected virtual bool IsInvokingBy(User self, Message message, User sender) => true;
 
-    protected virtual bool IsInvokingBy(Message message, User sender, string callbackQueryDataCore) => false;
+    protected virtual bool IsInvokingBy(User self, Message message, User sender, string callbackQueryDataCore)
+    {
+        return false;
+    }
 }

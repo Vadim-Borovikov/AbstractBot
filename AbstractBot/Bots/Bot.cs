@@ -26,13 +26,13 @@ public abstract class Bot<TConfig, TTexts, TSaveData, TStartData> : BotBasic
         SaveManager = new SaveManager<TSaveData>(Config.SavePath, Clock, AfterLoad, BeforeSave);
         SaveManager.Load();
 
-        Start = new Start<TStartData>(this, OnStartCommand);
+        Start = new Start<TStartData>(Config.Texts, OnStartCommand);
         Operations.Add(Start);
     }
 
     protected internal virtual Task OnStartCommand(TStartData data, Message message, User sender)
     {
-        return Start.Greet(message.Chat, sender);
+        return Start.Greet(this, message.Chat, sender);
     }
 
     protected readonly Start<TStartData> Start;

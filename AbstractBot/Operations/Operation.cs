@@ -11,16 +11,17 @@ namespace AbstractBot.Operations;
 public abstract class Operation<T> : OperationBasic
     where T : class
 {
-    protected Operation(BotBasic bot, MessageTemplateText? description = null) : base(bot, description) { }
+    protected Operation(MessageTemplateText? description = null) : base(description) { }
 
-    internal override async Task<ExecutionResult> TryExecuteAsync(Message message, User sender,
+    internal override async Task<ExecutionResult> TryExecuteAsync(BotBasic bot, Message message, User sender,
         string? callbackQueryData)
     {
         T? data;
         string? callbackQueryDataCore = null;
+        User self = await bot.GetSelfAsync();
         if (callbackQueryData is null)
         {
-            if (!IsInvokingBy(message, sender, out data))
+            if (!IsInvokingBy(self, message, sender, out data))
             {
                 return ExecutionResult.UnsuitableOperation;
             }
@@ -33,13 +34,13 @@ public abstract class Operation<T> : OperationBasic
             }
 
             callbackQueryDataCore = callbackQueryData[GetType().Name.Length..];
-            if (!IsInvokingBy(message, sender, callbackQueryDataCore, out data))
+            if (!IsInvokingBy(self, message, sender, callbackQueryDataCore, out data))
             {
                 return ExecutionResult.UnsuitableOperation;
             }
         }
 
-        AccessData.Status status = Bot.GetAccess(sender.Id).CheckAgainst(AccessRequired);
+        AccessData.Status status = bot.GetAccess(sender.Id).CheckAgainst(AccessRequired);
         switch (status)
         {
             case AccessData.Status.Insufficient: return ExecutionResult.AccessInsufficent;
@@ -50,48 +51,54 @@ public abstract class Operation<T> : OperationBasic
         {
             if (data is null)
             {
-                await ExecuteAsync(message, sender);
+                await ExecuteAsync(bot, message, sender);
             }
             else
             {
-                await ExecuteAsync(data, message, sender);
+                await ExecuteAsync(bot, data, message, sender);
             }
         }
         else
         {
             if (data is null)
             {
-                await ExecuteAsync(message, sender, callbackQueryDataCore);
+                await ExecuteAsync(bot, message, sender, callbackQueryDataCore);
             }
             else
             {
-                await ExecuteAsync(data, message, sender, callbackQueryDataCore);
+                await ExecuteAsync(bot, data, message, sender, callbackQueryDataCore);
             }
         }
         return ExecutionResult.Success;
     }
 
-    protected virtual bool IsInvokingBy(Message message, User sender, out T? data)
+    protected virtual bool IsInvokingBy(User self, Message message, User sender, out T? data)
     {
         data = null;
         return true;
     }
 
-    protected virtual bool IsInvokingBy(Message message, User sender, string callbackQueryDataCore, out T? data)
+    protected virtual bool IsInvokingBy(User self, Message message, User sender, string callbackQueryDataCore,
+        out T? data)
     {
         data = null;
         return false;
     }
 
-    protected virtual Task ExecuteAsync(Message message, User sender) => Task.CompletedTask;
-    protected virtual Task ExecuteAsync(T data, Message message, User sender) => ExecuteAsync(message, sender);
-    protected virtual Task ExecuteAsync(Message message, User sender, string callbackQueryDataCore)
+    protected virtual Task ExecuteAsync(BotBasic bot, Message message, User sender) => Task.CompletedTask;
+    protected virtual Task ExecuteAsync(BotBasic bot, T data, Message message, User sender)
     {
-        return ExecuteAsync(message, sender);
+        return ExecuteAsync(bot, message, sender);
     }
 
-    protected virtual Task ExecuteAsync(T data, Message message, User sender, string callbackQueryDataCore)
+    protected virtual Task ExecuteAsync(BotBasic bot, Message message, User sender, string callbackQueryDataCore)
     {
-        return ExecuteAsync(data, message, sender);
+        return ExecuteAsync(bot, message, sender);
+    }
+
+    protected virtual Task ExecuteAsync(BotBasic bot, T data, Message message, User sender,
+        string callbackQueryDataCore)
+    {
+        return ExecuteAsync(bot, data, message, sender);
     }
 }

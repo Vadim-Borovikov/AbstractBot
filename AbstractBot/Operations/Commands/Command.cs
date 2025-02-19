@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using AbstractBot.Bots;
+using AbstractBot.Configs.MessageTemplates;
 using AbstractBot.Extensions;
 using AbstractBot.Operations.Data;
 using JetBrains.Annotations;
@@ -18,8 +18,8 @@ public abstract class Command<T> : Operation<T>, ICommand
     [PublicAPI]
     public virtual bool ShowInMenu => true;
 
-    protected Command(BotBasic bot, string command, string description)
-        : base(bot, bot.ConfigBasic.TextsBasic.CommandDescriptionFormat.Format(command, description))
+    protected Command(MessageTemplateText descriptionFormat, string command, string description)
+        : base(descriptionFormat.Format(command, description))
     {
         BotCommand = new BotCommand
         {
@@ -28,7 +28,7 @@ public abstract class Command<T> : Operation<T>, ICommand
         };
     }
 
-    protected override bool IsInvokingBy(Message message, User sender, out T? data)
+    protected override bool IsInvokingBy(User self, Message message, User sender, out T? data)
     {
         data = null;
         if ((message.Type != MessageType.Text) || string.IsNullOrWhiteSpace(message.Text))
@@ -42,7 +42,7 @@ public abstract class Command<T> : Operation<T>, ICommand
             return false;
         }
 
-        string trigger = GetTrigger(message.Chat.IsGroup());
+        string trigger = GetTrigger(self, message.Chat.IsGroup());
         if (!splitted.First().Equals(trigger, StringComparison.InvariantCultureIgnoreCase))
         {
             return false;
@@ -52,8 +52,8 @@ public abstract class Command<T> : Operation<T>, ICommand
         return true;
     }
 
-    protected string GetTrigger(bool isGroup)
+    protected string GetTrigger(User self, bool isGroup)
     {
-        return isGroup ? $"/{BotCommand.Command}@{Bot.User?.Username}" : $"/{BotCommand.Command}";
+        return isGroup ? $"/{BotCommand.Command}@{self.Username}" : $"/{BotCommand.Command}";
     }
 }
