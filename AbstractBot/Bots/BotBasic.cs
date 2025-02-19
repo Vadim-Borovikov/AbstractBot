@@ -31,8 +31,6 @@ public abstract class BotBasic
     public readonly Logger Logger;
     public readonly SerializerOptionsProvider JsonSerializerOptionsProvider;
 
-    public readonly Dictionary<long, object> Contexts = new();
-
     protected internal readonly List<OperationBasic> Operations;
 
     protected readonly Dictionary<long, AccessData> Accesses;
@@ -104,19 +102,6 @@ public abstract class BotBasic
     }
 
     public AccessData GetAccess(long userId) => Accesses.ContainsKey(userId) ? Accesses[userId] : AccessData.Default;
-
-    public T? TryGetContext<T>(long key) where T : class => Contexts.GetValueOrDefault(key) as T;
-
-    protected virtual void AfterLoad() { }
-
-    protected virtual void BeforeSave() { }
-
-    protected Dictionary<long, T> FilterContextsByValueType<T>() where T : class
-    {
-#pragma warning disable CS8631
-        return Contexts.FilterByValueType<long, object, T>();
-#pragma warning restore CS8631
-    }
 
     private InputFileId? TryGetFileId(string path)
     {
