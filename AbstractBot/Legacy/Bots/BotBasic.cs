@@ -11,7 +11,10 @@ using AbstractBot.Legacy.Extensions;
 using AbstractBot.Legacy.Logging;
 using AbstractBot.Legacy.Operations;
 using AbstractBot.Legacy.Operations.Commands;
+using AbstractBot.Models;
+using AbstractBot.Modules;
 using AbstractBot.Servicies;
+using AbstractBot.Utilities.Extensions;
 using AbstractBot.Utilities.Ngrok;
 using GryphonUtilities;
 using GryphonUtilities.Extensions;
@@ -37,7 +40,6 @@ public abstract class BotBasic
 
     protected internal readonly List<OperationBasic> Operations;
 
-    protected readonly Dictionary<long, AccessData> Accesses;
     protected readonly InputFileId DontUnderstandSticker;
     protected readonly InputFileId ForbiddenSticker;
 
@@ -83,7 +85,8 @@ public abstract class BotBasic
         _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / configBasic.UpdatesPerSecondLimitPrivate);
         _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / configBasic.UpdatesPerSecondLimitGlobal);
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / configBasic.UpdatesPerMinuteLimitGroup);
-        Accesses = GetAccesses();
+
+        _accesses = new Accesses(ConfigBasic.Accesses.ToAccessDatasDictionary());
 
         _connection = new ConnectionService(Client, host, configBasic.Token,
             TimeSpan.FromHours(configBasic.RestartPeriodHours), Logger);
@@ -100,19 +103,13 @@ public abstract class BotBasic
         await UpdateCommands(null, cancellationToken);
     }
 
-    public void AddOrUpdateAccesses(Dictionary<long, AccessData> toAdd)
-    {
-        foreach (long id in toAdd.Keys)
-        {
-            Accesses[id] = toAdd[id];
-        }
-    }
+    public void AddOrUpdateAccesses(Dictionary<long, AccessData> toAdd) => _accesses.AddOrUpdate(toAdd);
 
     public void Update(Telegram.Bot.Types.Update update) => Invoker.FireAndForget(_ => UpdateAsync(update), Logger);
 
     public virtual Task StopAsync(CancellationToken cancellationToken) => _connection.StopAsync(cancellationToken);
 
-    public AccessData GetAccess(long userId) => Accesses.ContainsKey(userId) ? Accesses[userId] : AccessData.Default;
+    public AccessData GetAccess(long userId) => _accesses.GetAccess(userId);
 
     private InputFileId? TryGetFileId(string path)
     {
@@ -590,10 +587,10 @@ public abstract class BotBasic
                     .Select(ca => ca.BotCommand),
             BotCommandScope.AllPrivateChats(), languageCode, cancellationToken);
 
-        foreach (long userId in Accesses.Keys)
+        foreach (long userId in _accesses.Ids)
         {
             await Client.SetMyCommands(
-                commands.Where(c => Accesses[userId].IsSufficientAgainst(c.AccessRequired))
+                commands.Where(c => _accesses.GetAccess(userId).IsSufficientAgainst(c.AccessRequired))
                         .Select(ca => ca.BotCommand),
                 BotCommandScope.Chat(userId), languageCode, cancellationToken);
         }
@@ -623,13 +620,6 @@ public abstract class BotBasic
         }
     }
 
-    private Dictionary<long, AccessData> GetAccesses()
-    {
-        return ConfigBasic.Accesses.Count > 0
-            ? ConfigBasic.Accesses.ToDictionary(p => p.Key, p => new AccessData(p.Value))
-            : new Dictionary<long, AccessData>();
-    }
-
     private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => c.ShowInMenu);
 
     private readonly Dictionary<string, string> _fileCache = new();
@@ -646,4 +636,5 @@ public abstract class BotBasic
     private DateTimeFull? _lastUpdateGlobal;
 
     private readonly IConnection _connection;
+    private readonly IAccesses _accesses;
 }

@@ -2,7 +2,7 @@
 using System;
 using JetBrains.Annotations;
 
-namespace AbstractBot.Legacy;
+namespace AbstractBot.Models;
 
 [PublicAPI]
 public sealed class AccessData

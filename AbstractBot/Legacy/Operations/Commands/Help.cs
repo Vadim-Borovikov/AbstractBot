@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using AbstractBot.Legacy.Bots;
 using AbstractBot.Legacy.Configs;
 using AbstractBot.Legacy.Configs.MessageTemplates;
+using AbstractBot.Models;
 
 namespace AbstractBot.Legacy.Operations.Commands;
 
