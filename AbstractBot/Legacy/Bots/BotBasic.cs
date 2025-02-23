@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using AbstractBot.Interfaces;
 using AbstractBot.Legacy.Configs;
 using AbstractBot.Legacy.Extensions;
-using AbstractBot.Legacy.Logging;
 using AbstractBot.Legacy.Operations;
 using AbstractBot.Legacy.Operations.Commands;
 using AbstractBot.Models;
@@ -30,12 +29,11 @@ using Telegram.Bot.Types.ReplyMarkups;
 namespace AbstractBot.Legacy.Bots;
 
 [PublicAPI]
-public abstract class BotBasic
+public abstract class BotBasic : IDisposable
 {
     public readonly TelegramBotClient Client;
     public readonly ConfigBasic ConfigBasic;
     public readonly Clock Clock;
-    public readonly Logger Logger;
     public readonly SerializerOptionsProvider JsonSerializerOptionsProvider;
 
     protected internal readonly List<OperationBasic> Operations;
@@ -46,6 +44,8 @@ public abstract class BotBasic
     protected internal virtual KeyboardProvider? StartKeyboardProvider => null;
 
     public readonly User Self;
+
+    public Logger Logger => _logging.Logger;
 
     // before BotBasic creation
     private static async Task<string> GetHostAsync(JsonSerializerOptions options, string? defaultHost = null)
@@ -77,15 +77,16 @@ public abstract class BotBasic
         ForbiddenSticker = new InputFileId(ConfigBasic.ForbiddenStickerFileId);
 
         Clock = new Clock(ConfigBasic.SystemTimeZoneId);
-        Logger = new Logger(Clock);
-        _ticker = new Ticker(Logger);
 
         JsonSerializerOptionsProvider = new SerializerOptionsProvider(Clock);
 
         _accesses = new Accesses(ConfigBasic.Accesses.ToAccessDatasDictionary());
 
+        TimeSpan tickInterval = TimeSpan.FromSeconds(configBasic.TickIntervalSeconds);
+        _logging = new Logging(Clock, tickInterval);
+
         _connection = new ConnectionService(Client, host, configBasic.Token,
-            TimeSpan.FromHours(configBasic.RestartPeriodHours), Logger);
+            TimeSpan.FromHours(configBasic.RestartPeriodHours), _logging.Logger);
 
         _fileStorage = new FileStorageService();
 
@@ -102,16 +103,29 @@ public abstract class BotBasic
 
         await _connection.StartAsync(cancellationToken);
 
-        _ticker.Start(cancellationToken);
+        await _logging.StartAsync(cancellationToken);
 
         await UpdateCommands(null, cancellationToken);
     }
 
+    public virtual Task StopAsync(CancellationToken cancellationToken) => _connection.StopAsync(cancellationToken);
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _logging.Dispose();
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
     public void AddOrUpdateAccesses(Dictionary<long, AccessData> toAdd) => _accesses.AddOrUpdate(toAdd);
 
-    public void Update(Telegram.Bot.Types.Update update) => Invoker.FireAndForget(_ => UpdateAsync(update), Logger);
-
-    public virtual Task StopAsync(CancellationToken cancellationToken) => _connection.StopAsync(cancellationToken);
+    public void Update(Update update) => Invoker.FireAndForget(_ => UpdateAsync(update), _logging.Logger);
 
     public AccessData GetAccess(long userId) => _accesses.GetAccess(userId);
 
@@ -124,7 +138,7 @@ public abstract class BotBasic
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.SendText, Logger, data: text);
+        _logging.LogUpdate(chat, Logging.UpdateType.SendText, data: text);
         return Client.SendMessage(chat.Id, text, parseMode, replyParameters, keyboardProvider.Keyboard,
             linkPreviewOptions, messageThreadId, entities, disableNotification, protectContent, messageEffectId,
             businessConnectionId, allowPaidBroadcast, cancellationToken);
@@ -136,7 +150,7 @@ public abstract class BotBasic
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.EditText, Logger, messageId, text);
+        _logging.LogUpdate(chat, Logging.UpdateType.EditText, messageId, text);
         return Client.EditMessageText(chat.Id, messageId, text, parseMode, entities, linkPreviewOptions, replyMarkup,
             businessConnectionId, cancellationToken);
     }
@@ -181,7 +195,7 @@ public abstract class BotBasic
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.EditMedia, Logger, messageId);
+        _logging.LogUpdate(chat, Logging.UpdateType.EditMedia, messageId);
         return Client.EditMessageMedia(chat.Id, messageId, media, replyMarkup, businessConnectionId,
             cancellationToken);
     }
@@ -192,7 +206,7 @@ public abstract class BotBasic
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.EditText, Logger, messageId);
+        _logging.LogUpdate(chat, Logging.UpdateType.EditText, messageId);
         return Client.EditMessageCaption(chat.Id, messageId, caption, parseMode, captionEntities,
             showCaptionAboveMedia, replyMarkup, businessConnectionId, cancellationToken);
     }
@@ -200,7 +214,7 @@ public abstract class BotBasic
     public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.Delete, Logger, messageId);
+        _logging.LogUpdate(chat, Logging.UpdateType.Delete, messageId);
         return Client.DeleteMessage(chat.Id, messageId, cancellationToken);
     }
 
@@ -209,7 +223,7 @@ public abstract class BotBasic
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.Forward, Logger, data: $"message {messageId} from {fromChatId}");
+        _logging.LogUpdate(chat, Logging.UpdateType.Forward, data: $"message {messageId} from {fromChatId}");
         return Client.ForwardMessage(chat.Id, fromChatId, messageId, messageThreadId, disableNotification,
             protectContent, videoStartTimestamp, cancellationToken);
     }
@@ -258,7 +272,7 @@ public abstract class BotBasic
         }
         else
         {
-            Logger.LogError("Wrong MediaGroup size", $"Recieved {messages.Length} after {paths.Count} paths");
+            _logging.Logger.LogError("Wrong MediaGroup size", $"Recieved {messages.Length} after {paths.Count} paths");
         }
 
         return messages;
@@ -294,7 +308,7 @@ public abstract class BotBasic
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         List<IAlbumInputMedia> all = new(media);
         string captions = string.Join(", ", all.OfType<InputMedia>().Select(m => m.Caption).SkipNulls());
-        Logging.Update.Log(chat, Logging.Update.Type.SendFiles, Logger, data: captions);
+        _logging.LogUpdate(chat, Logging.UpdateType.SendFiles, data: captions);
 
         return Client.SendMediaGroup(chat.Id, all, replyParameters, messageThreadId, disableNotification,
             protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
@@ -341,7 +355,7 @@ public abstract class BotBasic
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.SendPhoto, Logger, data: caption);
+        _logging.LogUpdate(chat, Logging.UpdateType.SendPhoto, data: caption);
 
         return Client.SendPhoto(chat.Id, photo, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
             messageThreadId, captionEntities, showCaptionAboveMedia, hasSpoiler, disableNotification, protectContent,
@@ -389,7 +403,7 @@ public abstract class BotBasic
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.SendPhoto, Logger, data: caption);
+        _logging.LogUpdate(chat, Logging.UpdateType.SendPhoto, data: caption);
 
         return Client.SendDocument(chat.Id, document, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
             thumbnail, messageThreadId, captionEntities, disableContentTypeDetection, disableNotification, protectContent,
@@ -404,7 +418,7 @@ public abstract class BotBasic
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.SendSticker, Logger);
+        _logging.LogUpdate(chat, Logging.UpdateType.SendSticker);
 
         return Client.SendSticker(chat.Id, sticker, replyParameters, keyboardProvider.Keyboard, emoji, messageThreadId,
             disableNotification, protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast,
@@ -415,7 +429,7 @@ public abstract class BotBasic
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.Pin, Logger, messageId);
+        _logging.LogUpdate(chat, Logging.UpdateType.Pin, messageId);
         return Client.PinChatMessage(chat.Id, messageId, disableNotification, businessConnectionId, cancellationToken);
     }
 
@@ -423,14 +437,14 @@ public abstract class BotBasic
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.Unpin, Logger, messageId);
+        _logging.LogUpdate(chat, Logging.UpdateType.Unpin, messageId);
         return Client.UnpinChatMessage(chat.Id, messageId, businessConnectionId, cancellationToken);
     }
 
     public Task UnpinAllChatMessagesAsync(Chat chat, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.UnpinAll, Logger);
+        _logging.LogUpdate(chat, Logging.UpdateType.UnpinAll);
         return Client.UnpinAllChatMessages(chat.Id, cancellationToken);
     }
 
@@ -447,7 +461,7 @@ public abstract class BotBasic
     )
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        Logging.Update.Log(chat, Logging.Update.Type.SendInvoice, Logger, null, title);
+        _logging.LogUpdate(chat, Logging.UpdateType.SendInvoice, data: title);
         return Client.SendInvoice(chat.Id, title, description, payload, currency, prices, providerToken, providerData,
             maxTipAmount, suggestedTipAmounts, photoUrl, photoSize, photoWidth, photoHeight, needName, needPhoneNumber,
             needEmail, needShippingAddress, sendPhoneNumberToProvider, sendEmailToProvider, isFlexible,
@@ -500,13 +514,12 @@ public abstract class BotBasic
     {
         if (string.IsNullOrWhiteSpace(callbackQueryData))
         {
-            Logging.Update.Log(message.Chat, Logging.Update.Type.ReceiveMessage, Logger, message.MessageId,
+            _logging.LogUpdate(message.Chat, Logging.UpdateType.ReceiveMessage, message.MessageId,
                 $"{message.Text}{message.Caption}");
         }
         else
         {
-            Logging.Update.Log(message.Chat, Logging.Update.Type.ReceiveCallback, Logger, message.MessageId,
-                callbackQueryData);
+            _logging.LogUpdate(message.Chat, Logging.UpdateType.ReceiveCallback, message.MessageId, callbackQueryData);
         }
 
         foreach (OperationBasic operation in Operations)
@@ -562,7 +575,7 @@ public abstract class BotBasic
 
     protected virtual KeyboardProvider GetDefaultKeyboardProvider(Chat _) => KeyboardProvider.Remove;
 
-    private Task UpdateAsync(Telegram.Bot.Types.Update update)
+    private Task UpdateAsync(Update update)
     {
         return update.Type switch
         {
@@ -598,10 +611,10 @@ public abstract class BotBasic
 
     private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => c.ShowInMenu);
 
-    private readonly Ticker _ticker;
-
     private readonly IConnection _connection;
     private readonly IAccesses _accesses;
     private readonly IFileStorage _fileStorage;
     private readonly ICooldown _cooldown;
+
+    private readonly Logging _logging;
 }

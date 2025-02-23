@@ -43,6 +43,10 @@ public class ConfigBasic
     [Range(double.Epsilon, double.MaxValue)]
     public double RestartPeriodHours { get; set; }
 
+    [Required]
+    [Range(double.Epsilon, double.MaxValue)]
+    public double TickIntervalSeconds { get; set; }
+
     public string? Host { get; init; }
 
     [Required]

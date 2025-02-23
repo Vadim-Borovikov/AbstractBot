@@ -1,4 +1,3 @@
-using System;
 using AbstractBot.Legacy.Configs;
 using AbstractBot.Legacy.Operations.Data;
 using GoogleSheetsManager.Documents;
@@ -10,7 +9,7 @@ namespace AbstractBot.Legacy.Bots;
 
 [PublicAPI]
 public abstract class BotWithSheets<TConfig, TTexts, TContext, TContextData, TMetaContext, TSaveData, TStartData>
-    : Bot<TConfig, TTexts, TContext, TContextData, TMetaContext, TSaveData, TStartData>, IDisposable
+    : Bot<TConfig, TTexts, TContext, TContextData, TMetaContext, TSaveData, TStartData>
     where TConfig : ConfigWithSheets<TTexts>
     where TTexts : TextsBasic
     where TContext : class, IContext<TContext, TContextData, TMetaContext>
@@ -27,26 +26,14 @@ public abstract class BotWithSheets<TConfig, TTexts, TContext, TContextData, TMe
         DocumentsManager = new Manager(Config);
     }
 
-    public void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
+        if (!disposing)
         {
             return;
         }
 
-        if (disposing)
-        {
-            DocumentsManager.Dispose();
-        }
-
-        _disposed = true;
+        DocumentsManager.Dispose();
+        base.Dispose(true);
     }
-
-    private bool _disposed;
 }
