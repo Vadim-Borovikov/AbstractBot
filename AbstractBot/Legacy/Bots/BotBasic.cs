@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces;
@@ -45,11 +46,13 @@ public abstract class BotBasic
     public readonly User Self;
 
     // before BotBasic creation
-    private Task<string> GetHostAsync(string defaultHost = "")
+    private static async Task<string> GetHostAsync(JsonSerializerOptions options, string? defaultHost = null)
     {
-        return string.IsNullOrWhiteSpace(defaultHost)
-            ? Manager.GetHostAsync(JsonSerializerOptionsProvider.SnakeCaseOptions)
-            : Task.FromResult(defaultHost);
+        if (string.IsNullOrWhiteSpace(defaultHost))
+        {
+            return await Manager.GetHostAsync(options);
+        }
+        return defaultHost;
     }
 
     // Also:
