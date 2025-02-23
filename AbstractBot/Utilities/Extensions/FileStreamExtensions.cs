@@ -2,7 +2,7 @@
 using System.IO;
 using Telegram.Bot.Types;
 
-namespace AbstractBot.Legacy.Extensions;
+namespace AbstractBot.Utilities.Extensions;
 
 [PublicAPI]
 public static class FileStreamExtensions

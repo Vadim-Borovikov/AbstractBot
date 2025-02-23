@@ -45,29 +45,29 @@ public class MessageTemplateImage : MessageTemplate
 
     public override Task<Message> SendAsync(BotBasic bot, Chat chat)
     {
-        return bot.SendPhotoAsync(chat, ImagePath, KeyboardProvider, TextJoined, ParseMode, ReplyParameters,
-            MessageThreadId, Entities, ShowCaptionAboveMedia, HasSpoiler, DisableNotification, ProtectContent,
-            MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
+        return bot.UpdatesSender.SendPhotoAsync(chat, ImagePath, KeyboardProvider, TextJoined, ParseMode,
+            ReplyParameters, MessageThreadId, Entities, ShowCaptionAboveMedia, HasSpoiler, DisableNotification,
+            ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
     }
 
     public Task<Message> EditMessageTextWithSelfAsync(BotBasic bot, Chat chat, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return bot.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, Entities, null, keyboard,
+        return bot.UpdatesSender.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, Entities, null, keyboard,
             BusinessConnectionId, CancellationToken);
     }
 
     public Task<Message> EditMessageMediaWithSelfAsync(BotBasic bot, Chat chat, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return bot.EditMessageMediaAsync(chat, messageId, ImagePath, keyboard, BusinessConnectionId,
+        return bot.UpdatesSender.EditMessageMediaAsync(chat, messageId, ImagePath, keyboard, BusinessConnectionId,
             CancellationToken);
     }
 
     public Task<Message> EditMessageCaptionWithSelfAsync(BotBasic bot, Chat chat, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return bot.EditMessageCaptionAsync(chat, messageId, TextJoined, ParseMode, Entities, ShowCaptionAboveMedia,
-            keyboard, BusinessConnectionId, CancellationToken);
+        return bot.UpdatesSender.EditMessageCaptionAsync(chat, messageId, TextJoined, ParseMode, Entities,
+            ShowCaptionAboveMedia, keyboard, BusinessConnectionId, CancellationToken);
     }
 }

@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using AbstractBot.Legacy.Bots;
 using AbstractBot.Legacy.Configs.MessageTemplates;
+using AbstractBot.Models;
 
 namespace AbstractBot.Legacy;
 

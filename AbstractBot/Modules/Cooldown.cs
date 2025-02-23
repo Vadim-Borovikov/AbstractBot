@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces;
-using AbstractBot.Legacy.Extensions;
+using AbstractBot.Utilities.Extensions;
 using GryphonUtilities.Time;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;

@@ -45,8 +45,8 @@ public class MessageTemplateFile : MessageTemplate
 
     public override Task<Message> SendAsync(BotBasic bot, Chat chat)
     {
-        return bot.SendDocumentAsync(chat, FilePath, KeyboardProvider, TextJoined, ParseMode, ReplyParameters,
-            Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification, ProtectContent,
-            MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
+        return bot.UpdatesSender.SendDocumentAsync(chat, FilePath, KeyboardProvider, TextJoined, ParseMode,
+            ReplyParameters, Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification,
+            ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
     }
 }

@@ -7,6 +7,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using AbstractBot.Legacy.Bots;
 using AbstractBot.Legacy.Extensions;
+using AbstractBot.Models;
 
 namespace AbstractBot.Legacy.Configs.MessageTemplates;
 

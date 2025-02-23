@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using System;
 
-namespace AbstractBot.Legacy.Extensions;
+namespace AbstractBot.Utilities.Extensions;
 
 [PublicAPI]
 public static class TimeSpanExtensions

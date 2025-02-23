@@ -3,7 +3,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
-namespace AbstractBot.Legacy.Extensions;
+namespace AbstractBot.Utilities.Extensions;
 
 [PublicAPI]
 public static class PhotoSizesExtensions

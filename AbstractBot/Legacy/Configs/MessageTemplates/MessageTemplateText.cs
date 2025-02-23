@@ -49,13 +49,13 @@ public class MessageTemplateText : MessageTemplate
     public Task<Message> EditMessageWithSelfAsync(BotBasic bot, Chat chat, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return bot.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, Entities, LinkPreviewOptions, keyboard,
-            BusinessConnectionId, CancellationToken);
+        return bot.UpdatesSender.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, Entities,
+            LinkPreviewOptions, keyboard, BusinessConnectionId, CancellationToken);
     }
 
     public override Task<Message> SendAsync(BotBasic bot, Chat chat)
     {
-        return bot.SendTextMessageAsync(chat, TextJoined, KeyboardProvider, ParseMode, ReplyParameters,
+        return bot.UpdatesSender.SendTextMessageAsync(chat, TextJoined, KeyboardProvider, ParseMode, ReplyParameters,
             LinkPreviewOptions, MessageThreadId, Entities, DisableNotification, ProtectContent, MessageEffectId,
             BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
     }

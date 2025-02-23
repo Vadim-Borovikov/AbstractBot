@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace AbstractBot.Legacy;
+namespace AbstractBot.Models;
 
 [PublicAPI]
 public class KeyboardProvider
