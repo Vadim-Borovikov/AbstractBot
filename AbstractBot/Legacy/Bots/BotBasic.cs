@@ -82,16 +82,18 @@ public abstract class BotBasic
 
         JsonSerializerOptionsProvider = new SerializerOptionsProvider(Clock);
 
-        _sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / configBasic.UpdatesPerSecondLimitPrivate);
-        _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / configBasic.UpdatesPerSecondLimitGlobal);
-        _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / configBasic.UpdatesPerMinuteLimitGroup);
-
         _accesses = new Accesses(ConfigBasic.Accesses.ToAccessDatasDictionary());
 
         _connection = new ConnectionService(Client, host, configBasic.Token,
             TimeSpan.FromHours(configBasic.RestartPeriodHours), Logger);
 
         _fileStorage = new FileStorageService();
+
+        TimeSpan sendMessagePeriodPrivate = TimeSpan.FromSeconds(1.0 / configBasic.UpdatesPerSecondLimitPrivate);
+        TimeSpan sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / configBasic.UpdatesPerSecondLimitGlobal);
+        TimeSpan sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / configBasic.UpdatesPerMinuteLimitGroup);
+
+        _cooldown = new Cooldown(sendMessagePeriodPrivate, sendMessagePeriodGlobal, sendMessagePeriodGroup);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
@@ -121,7 +123,7 @@ public abstract class BotBasic
         CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.SendText, Logger, data: text);
         return Client.SendMessage(chat.Id, text, parseMode, replyParameters, keyboardProvider.Keyboard,
             linkPreviewOptions, messageThreadId, entities, disableNotification, protectContent, messageEffectId,
@@ -133,7 +135,7 @@ public abstract class BotBasic
         LinkPreviewOptions? linkPreviewOptions = null, InlineKeyboardMarkup? replyMarkup = null,
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.EditText, Logger, messageId, text);
         return Client.EditMessageText(chat.Id, messageId, text, parseMode, entities, linkPreviewOptions, replyMarkup,
             businessConnectionId, cancellationToken);
@@ -178,7 +180,7 @@ public abstract class BotBasic
         InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
         CancellationToken cancellationToken = default)
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.EditMedia, Logger, messageId);
         return Client.EditMessageMedia(chat.Id, messageId, media, replyMarkup, businessConnectionId,
             cancellationToken);
@@ -189,7 +191,7 @@ public abstract class BotBasic
         bool showCaptionAboveMedia = false, InlineKeyboardMarkup? replyMarkup = null,
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.EditText, Logger, messageId);
         return Client.EditMessageCaption(chat.Id, messageId, caption, parseMode, captionEntities,
             showCaptionAboveMedia, replyMarkup, businessConnectionId, cancellationToken);
@@ -197,7 +199,7 @@ public abstract class BotBasic
 
     public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.Delete, Logger, messageId);
         return Client.DeleteMessage(chat.Id, messageId, cancellationToken);
     }
@@ -206,7 +208,7 @@ public abstract class BotBasic
         bool disableNotification = false, bool protectContent = false, int? videoStartTimestamp = null,
         CancellationToken cancellationToken = default)
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.Forward, Logger, data: $"message {messageId} from {fromChatId}");
         return Client.ForwardMessage(chat.Id, fromChatId, messageId, messageThreadId, disableNotification,
             protectContent, videoStartTimestamp, cancellationToken);
@@ -289,7 +291,7 @@ public abstract class BotBasic
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
         bool allowPaidBroadcast = false, CancellationToken cancellationToken = default)
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         List<IAlbumInputMedia> all = new(media);
         string captions = string.Join(", ", all.OfType<InputMedia>().Select(m => m.Caption).SkipNulls());
         Logging.Update.Log(chat, Logging.Update.Type.SendFiles, Logger, data: captions);
@@ -338,7 +340,7 @@ public abstract class BotBasic
         bool allowPaidBroadcast = false, CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.SendPhoto, Logger, data: caption);
 
         return Client.SendPhoto(chat.Id, photo, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
@@ -386,7 +388,7 @@ public abstract class BotBasic
         CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.SendPhoto, Logger, data: caption);
 
         return Client.SendDocument(chat.Id, document, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
@@ -401,7 +403,7 @@ public abstract class BotBasic
         CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.SendSticker, Logger);
 
         return Client.SendSticker(chat.Id, sticker, replyParameters, keyboardProvider.Keyboard, emoji, messageThreadId,
@@ -412,7 +414,7 @@ public abstract class BotBasic
     public Task PinChatMessageAsync(Chat chat, int messageId, bool disableNotification = false,
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.Pin, Logger, messageId);
         return Client.PinChatMessage(chat.Id, messageId, disableNotification, businessConnectionId, cancellationToken);
     }
@@ -420,14 +422,14 @@ public abstract class BotBasic
     public Task UnpinChatMessageAsync(Chat chat, int? messageId = null, string? businessConnectionId = null,
         CancellationToken cancellationToken = default)
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.Unpin, Logger, messageId);
         return Client.UnpinChatMessage(chat.Id, messageId, businessConnectionId, cancellationToken);
     }
 
     public Task UnpinAllChatMessagesAsync(Chat chat, CancellationToken cancellationToken = default)
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.UnpinAll, Logger);
         return Client.UnpinAllChatMessages(chat.Id, cancellationToken);
     }
@@ -444,7 +446,7 @@ public abstract class BotBasic
         CancellationToken cancellationToken = default
     )
     {
-        DelayIfNeeded(chat, cancellationToken);
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
         Logging.Update.Log(chat, Logging.Update.Type.SendInvoice, Logger, null, title);
         return Client.SendInvoice(chat.Id, title, description, payload, currency, prices, providerToken, providerData,
             maxTipAmount, suggestedTipAmounts, photoUrl, photoSize, photoWidth, photoHeight, needName, needPhoneNumber,
@@ -594,44 +596,12 @@ public abstract class BotBasic
         }
     }
 
-    private void DelayIfNeeded(Chat chat, CancellationToken cancellationToken)
-    {
-        lock (_delayLocker)
-        {
-            DateTimeFull now = DateTimeFull.CreateUtcNow();
-
-            TimeSpan? beforeGlobalUpdate = Clock.GetDelayUntil(_lastUpdateGlobal, _sendMessagePeriodGlobal, now);
-
-            DateTimeFull? lastUpdateLocal = _lastUpdates.ContainsKey(chat.Id) ? _lastUpdates[chat.Id] : null;
-            TimeSpan period = chat.Type == ChatType.Private ? _sendMessagePeriodPrivate : _sendMessagePeriodGroup;
-            TimeSpan? beforeLocalUpdate = Clock.GetDelayUntil(lastUpdateLocal, period, now);
-
-            TimeSpan? maxDelay = TimeSpanExtensions.Max(beforeGlobalUpdate, beforeLocalUpdate);
-            if (maxDelay.HasValue)
-            {
-                Task.Delay(maxDelay.Value, cancellationToken).Wait(cancellationToken);
-                now += maxDelay.Value;
-            }
-
-            _lastUpdateGlobal = now;
-            _lastUpdates[chat.Id] = now;
-        }
-    }
-
     private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => c.ShowInMenu);
 
-    private readonly Dictionary<long, DateTimeFull> _lastUpdates = new();
-    private readonly object _delayLocker = new();
-
     private readonly Ticker _ticker;
-
-    private readonly TimeSpan _sendMessagePeriodPrivate;
-    private readonly TimeSpan _sendMessagePeriodGlobal;
-    private readonly TimeSpan _sendMessagePeriodGroup;
-
-    private DateTimeFull? _lastUpdateGlobal;
 
     private readonly IConnection _connection;
     private readonly IAccesses _accesses;
     private readonly IFileStorage _fileStorage;
+    private readonly ICooldown _cooldown;
 }
