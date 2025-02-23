@@ -4,11 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AbstractBot.Interfaces;
 using AbstractBot.Legacy.Configs;
 using AbstractBot.Legacy.Extensions;
 using AbstractBot.Legacy.Logging;
 using AbstractBot.Legacy.Operations;
 using AbstractBot.Legacy.Operations.Commands;
+using AbstractBot.Servicies;
+using AbstractBot.Utilities.Ngrok;
 using GryphonUtilities;
 using GryphonUtilities.Extensions;
 using GryphonUtilities.Time;
@@ -39,11 +42,25 @@ public abstract class BotBasic
 
     protected internal virtual KeyboardProvider? StartKeyboardProvider => null;
 
-    protected BotBasic(ConfigBasic configBasic)
+    public readonly User Self;
+
+    // before BotBasic creation
+    private Task<string> GetHostAsync(string defaultHost = "")
+    {
+        return string.IsNullOrWhiteSpace(defaultHost)
+            ? Manager.GetHostAsync(JsonSerializerOptionsProvider.SnakeCaseOptions)
+            : Task.FromResult(defaultHost);
+    }
+
+    // Also:
+    //  TelegramBotClient client = new(configBasic.Token);
+    //  User self = await client.GetMe(cancellationToken);
+
+    protected BotBasic(ConfigBasic configBasic, TelegramBotClient client, User self, string host)
     {
         ConfigBasic = configBasic;
-
-        Client = new TelegramBotClient(ConfigBasic.Token);
+        Client = client;
+        Self = self;
 
         Help help = new(ConfigBasic);
         Operations = new List<OperationBasic>
@@ -64,26 +81,20 @@ public abstract class BotBasic
         _sendMessagePeriodGlobal = TimeSpan.FromSeconds(1.0 / configBasic.UpdatesPerSecondLimitGlobal);
         _sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / configBasic.UpdatesPerMinuteLimitGroup);
         Accesses = GetAccesses();
+
+        _connection = new ConnectionService(Client, host, configBasic.Token,
+            TimeSpan.FromHours(configBasic.RestartPeriodHours), Logger);
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
         Operations.Sort();
 
-        await ConnectAsync(cancellationToken);
+        await _connection.StartAsync(cancellationToken);
 
         _ticker.Start(cancellationToken);
 
         await UpdateCommands(null, cancellationToken);
-
-        Invoker.DoPeriodically(ReconnectAsync, TimeSpan.FromHours(ConfigBasic.RestartPeriodHours), false, Logger,
-            cancellationToken);
-    }
-
-    public async Task<User> GetSelfAsync(CancellationToken cancellationToken = default)
-    {
-        _self ??= await Client.GetMe(cancellationToken);
-        return _self;
     }
 
     public void AddOrUpdateAccesses(Dictionary<long, AccessData> toAdd)
@@ -96,10 +107,7 @@ public abstract class BotBasic
 
     public void Update(Telegram.Bot.Types.Update update) => Invoker.FireAndForget(_ => UpdateAsync(update), Logger);
 
-    public virtual Task StopAsync(CancellationToken cancellationToken)
-    {
-        return Client.DeleteWebhook(false, cancellationToken);
-    }
+    public virtual Task StopAsync(CancellationToken cancellationToken) => _connection.StopAsync(cancellationToken);
 
     public AccessData GetAccess(long userId) => Accesses.ContainsKey(userId) ? Accesses[userId] : AccessData.Default;
 
@@ -464,9 +472,7 @@ public abstract class BotBasic
             throw new Exception("Message update with null From");
         }
 
-        User self = await GetSelfAsync();
-
-        if (message.From.Id == self.Id)
+        if (message.From.Id == Self.Id)
         {
             return;
         }
@@ -614,18 +620,6 @@ public abstract class BotBasic
         }
     }
 
-    private async Task<string> GetHostAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_host))
-        {
-            _host = string.IsNullOrWhiteSpace(ConfigBasic.Host)
-                ? await Ngrok.Manager.GetHostAsync(JsonSerializerOptionsProvider.SnakeCaseOptions)
-                : ConfigBasic.Host;
-        }
-        return _host;
-
-    }
-
     private Dictionary<long, AccessData> GetAccesses()
     {
         return ConfigBasic.Accesses.Count > 0
@@ -634,24 +628,6 @@ public abstract class BotBasic
     }
 
     private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => c.ShowInMenu);
-
-    private async Task ReconnectAsync(CancellationToken cancellationToken = default)
-    {
-        Logger.LogTimedMessage("Reconnecting to Telegram...");
-
-        await Client.DeleteWebhook(false, cancellationToken);
-
-        await ConnectAsync(cancellationToken);
-
-        Logger.LogTimedMessage("...connected.");
-    }
-
-    private async Task ConnectAsync(CancellationToken cancellationToken)
-    {
-        string host = await GetHostAsync();
-        string url = $"{host}/{ConfigBasic.Token}";
-        await Client.SetWebhook(url, allowedUpdates: Array.Empty<UpdateType>(), cancellationToken: cancellationToken);
-    }
 
     private readonly Dictionary<string, string> _fileCache = new();
 
@@ -666,7 +642,5 @@ public abstract class BotBasic
 
     private DateTimeFull? _lastUpdateGlobal;
 
-    private string? _host;
-
-    private User? _self;
+    private readonly IConnection _connection;
 }

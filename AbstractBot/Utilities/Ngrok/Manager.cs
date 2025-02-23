@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using GryphonUtilities.Extensions;
 
-namespace AbstractBot.Legacy.Ngrok;
+namespace AbstractBot.Utilities.Ngrok;
 
 internal static class Manager
 {

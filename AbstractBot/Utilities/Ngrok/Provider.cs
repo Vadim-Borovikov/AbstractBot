@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using GryphonUtilities;
 
-namespace AbstractBot.Legacy.Ngrok;
+namespace AbstractBot.Utilities.Ngrok;
 
 internal static class Provider
 {

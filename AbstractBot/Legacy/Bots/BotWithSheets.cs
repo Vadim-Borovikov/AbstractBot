@@ -3,6 +3,8 @@ using AbstractBot.Legacy.Configs;
 using AbstractBot.Legacy.Operations.Data;
 using GoogleSheetsManager.Documents;
 using JetBrains.Annotations;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 
 namespace AbstractBot.Legacy.Bots;
 
@@ -19,7 +21,11 @@ public abstract class BotWithSheets<TConfig, TTexts, TContext, TContextData, TMe
 {
     protected readonly Manager DocumentsManager;
 
-    protected BotWithSheets(TConfig config) : base(config) => DocumentsManager = new Manager(Config);
+    protected BotWithSheets(TConfig config, TelegramBotClient client, User self, string host)
+        : base(config, client, self, host)
+    {
+        DocumentsManager = new Manager(Config);
+    }
 
     public void Dispose()
     {

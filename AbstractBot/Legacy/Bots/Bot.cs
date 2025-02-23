@@ -8,6 +8,7 @@ using System.Threading;
 using AbstractBot.Legacy.Configs;
 using AbstractBot.Legacy.Operations.Commands;
 using AbstractBot.Legacy.Operations.Data;
+using Telegram.Bot;
 
 namespace AbstractBot.Legacy.Bots;
 
@@ -26,7 +27,7 @@ public abstract class Bot<TConfig, TTexts, TContext, TContextData, TMetaContext,
     public Dictionary<long, TContext> Contexts { get; init; } = new();
     public SaveManager<TSaveData> SaveManager { get; init; }
 
-    protected Bot(TConfig config) : base(config)
+    protected Bot(TConfig config, TelegramBotClient client, User self, string host) : base(config, client, self, host)
     {
         Config = config;
 

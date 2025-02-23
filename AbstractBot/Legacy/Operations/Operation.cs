@@ -18,10 +18,9 @@ public abstract class Operation<T> : OperationBasic
     {
         T? data;
         string? callbackQueryDataCore = null;
-        User self = await bot.GetSelfAsync();
         if (callbackQueryData is null)
         {
-            if (!IsInvokingBy(self, message, sender, out data))
+            if (!IsInvokingBy(bot.Self, message, sender, out data))
             {
                 return ExecutionResult.UnsuitableOperation;
             }
@@ -34,7 +33,7 @@ public abstract class Operation<T> : OperationBasic
             }
 
             callbackQueryDataCore = callbackQueryData[GetType().Name.Length..];
-            if (!IsInvokingBy(self, message, sender, callbackQueryDataCore, out data))
+            if (!IsInvokingBy(bot.Self, message, sender, callbackQueryDataCore, out data))
             {
                 return ExecutionResult.UnsuitableOperation;
             }
