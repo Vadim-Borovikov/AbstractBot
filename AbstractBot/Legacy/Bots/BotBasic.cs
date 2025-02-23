@@ -90,6 +90,8 @@ public abstract class BotBasic
 
         _connection = new ConnectionService(Client, host, configBasic.Token,
             TimeSpan.FromHours(configBasic.RestartPeriodHours), Logger);
+
+        _fileStorage = new FileStorageService();
     }
 
     public virtual async Task StartAsync(CancellationToken cancellationToken)
@@ -110,25 +112,6 @@ public abstract class BotBasic
     public virtual Task StopAsync(CancellationToken cancellationToken) => _connection.StopAsync(cancellationToken);
 
     public AccessData GetAccess(long userId) => _accesses.GetAccess(userId);
-
-    private InputFileId? TryGetFileId(string path)
-    {
-        return _fileCache.TryGetValue(path, out string? fileId) ? InputFile.FromFileId(fileId) : null;
-    }
-
-    private void AddFileIfNew(string path, FileBase? file)
-    {
-        if (_fileCache.ContainsKey(path))
-        {
-            return;
-        }
-
-        if (file is null)
-        {
-            return;
-        }
-        _fileCache[path] = file.FileId;
-    }
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, KeyboardProvider? keyboardProvider = null,
         ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null,
@@ -160,7 +143,7 @@ public abstract class BotBasic
         InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
         CancellationToken cancellationToken = default)
     {
-        InputFile? photo = TryGetFileId(path);
+        InputFile? photo = _fileStorage.TryGetInputFileId(path);
         if (photo is not null)
         {
             return await EditMessageMediaAsync(chat, messageId, photo, replyMarkup, businessConnectionId,
@@ -173,7 +156,11 @@ public abstract class BotBasic
             Message message = await EditMessageMediaAsync(chat, messageId, photo, replyMarkup, businessConnectionId,
                 cancellationToken);
 
-            AddFileIfNew(path, message.Photo.Largest());
+            PhotoSize? file = message.Photo.Largest();
+            if (file is not null)
+            {
+                _fileStorage.TryAdd(path, file);
+            }
 
             return message;
         }
@@ -236,7 +223,7 @@ public abstract class BotBasic
 
         foreach (string path in paths)
         {
-            InputFile? photo = TryGetFileId(path);
+            InputFile? photo = _fileStorage.TryGetInputFileId(path);
             if (photo is null)
             {
                 FileStream stream = File.OpenRead(path);
@@ -260,7 +247,11 @@ public abstract class BotBasic
             for (int i = 0; i < paths.Count; i++)
             {
                 string path = paths[i];
-                AddFileIfNew(path, messages[i].Photo.Largest());
+                PhotoSize? file = messages[i].Photo.Largest();
+                if (file is not null)
+                {
+                    _fileStorage.TryAdd(path, file);
+                }
             }
         }
         else
@@ -314,7 +305,7 @@ public abstract class BotBasic
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
         bool allowPaidBroadcast = false, CancellationToken cancellationToken = default)
     {
-        InputFile? photo = TryGetFileId(path);
+        InputFile? photo = _fileStorage.TryGetInputFileId(path);
         if (photo is not null)
         {
             return await SendPhotoAsync(chat, photo, keyboardProvider, caption, parseMode, replyParameters,
@@ -329,7 +320,11 @@ public abstract class BotBasic
                 messageThreadId, captionEntities, showCaptionAboveMedia, hasSpoiler, disableNotification,
                 protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
 
-            AddFileIfNew(path, message.Photo.Largest());
+            PhotoSize? file = message.Photo.Largest();
+            if (file is not null)
+            {
+                _fileStorage.TryAdd(path, file);
+            }
 
             return message;
         }
@@ -358,7 +353,7 @@ public abstract class BotBasic
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
         CancellationToken cancellationToken = default)
     {
-        InputFile? file = TryGetFileId(path);
+        InputFile? file = _fileStorage.TryGetInputFileId(path);
         if (file is not null)
         {
             return await SendDocumentAsync(chat, file, keyboardProvider, caption, parseMode, replyParameters,
@@ -374,7 +369,10 @@ public abstract class BotBasic
                 disableNotification, protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast,
                 cancellationToken);
 
-            AddFileIfNew(path, message.Document);
+            if (message.Document is not null)
+            {
+                _fileStorage.TryAdd(path, message.Document);
+            }
 
             return message;
         }
@@ -622,8 +620,6 @@ public abstract class BotBasic
 
     private IEnumerable<ICommand> GetMenuCommands() => Operations.OfType<ICommand>().Where(c => c.ShowInMenu);
 
-    private readonly Dictionary<string, string> _fileCache = new();
-
     private readonly Dictionary<long, DateTimeFull> _lastUpdates = new();
     private readonly object _delayLocker = new();
 
@@ -637,4 +633,5 @@ public abstract class BotBasic
 
     private readonly IConnection _connection;
     private readonly IAccesses _accesses;
+    private readonly IFileStorage _fileStorage;
 }
