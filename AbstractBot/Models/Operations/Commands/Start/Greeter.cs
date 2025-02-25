@@ -5,7 +5,7 @@ using AbstractBot.Models.MessageTemplates;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
-namespace AbstractBot.Legacy.Bots;
+namespace AbstractBot.Models.Operations.Commands.Start;
 
 [PublicAPI]
 public sealed class Greeter: IGreeter
