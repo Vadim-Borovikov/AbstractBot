@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AbstractBot.Interfaces;
+using AbstractBot.Interfaces.Modules;
 using GryphonUtilities;
 using GryphonUtilities.Time;
 using JetBrains.Annotations;

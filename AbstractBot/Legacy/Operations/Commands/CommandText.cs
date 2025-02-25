@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AbstractBot.Legacy.Bots;
-using AbstractBot.Legacy.Configs.MessageTemplates;
+using AbstractBot.Models.MessageTemplates;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 

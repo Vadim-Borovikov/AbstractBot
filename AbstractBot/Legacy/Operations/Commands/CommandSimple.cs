@@ -1,5 +1,5 @@
-﻿using AbstractBot.Legacy.Configs.MessageTemplates;
-using AbstractBot.Legacy.Operations.Data;
+﻿using AbstractBot.Legacy.Operations.Data;
+using AbstractBot.Models.MessageTemplates;
 using JetBrains.Annotations;
 
 namespace AbstractBot.Legacy.Operations.Commands;

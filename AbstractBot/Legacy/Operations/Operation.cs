@@ -1,104 +1,111 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AbstractBot.Legacy.Bots;
-using AbstractBot.Legacy.Configs.MessageTemplates;
+using AbstractBot.Interfaces.Modules;
+using AbstractBot.Interfaces.Operations;
 using AbstractBot.Models;
+using AbstractBot.Models.MessageTemplates;
+using AbstractBot.Models.Operations;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
 namespace AbstractBot.Legacy.Operations;
 
 [PublicAPI]
-public abstract class Operation<T> : OperationBasic
+public abstract class Operation<T> : Operation
     where T : class
 {
-    protected Operation(MessageTemplateText? description = null) : base(description) { }
+    protected Operation(IAccesses accesses, IUpdateSender updateSender, MessageTemplateText? description = null)
+        : base(updateSender, description)
+    {
+        _accesses = accesses;
+    }
 
-    internal override async Task<ExecutionResult> TryExecuteAsync(BotBasic bot, Message message, User sender,
+    internal override async Task<IOperation.ExecutionResult> TryExecuteAsync(Message message, User sender,
         string? callbackQueryData)
     {
         T? data;
         string? callbackQueryDataCore = null;
         if (callbackQueryData is null)
         {
-            if (!IsInvokingBy(bot.Self, message, sender, out data))
+            if (!IsInvokingBy(message, sender, out data))
             {
-                return ExecutionResult.UnsuitableOperation;
+                return IOperation.ExecutionResult.UnsuitableOperation;
             }
         }
         else
         {
             if (!callbackQueryData.StartsWith(GetType().Name, StringComparison.InvariantCulture))
             {
-                return ExecutionResult.UnsuitableOperation;
+                return IOperation.ExecutionResult.UnsuitableOperation;
             }
 
             callbackQueryDataCore = callbackQueryData[GetType().Name.Length..];
-            if (!IsInvokingBy(bot.Self, message, sender, callbackQueryDataCore, out data))
+            if (!IsInvokingBy(message, sender, callbackQueryDataCore, out data))
             {
-                return ExecutionResult.UnsuitableOperation;
+                return IOperation.ExecutionResult.UnsuitableOperation;
             }
         }
 
-        AccessData.Status status = bot.GetAccess(sender.Id).CheckAgainst(AccessRequired);
+        AccessData.Status status = _accesses.GetAccess(sender.Id).CheckAgainst(AccessRequired);
         switch (status)
         {
-            case AccessData.Status.Insufficient: return ExecutionResult.AccessInsufficent;
-            case AccessData.Status.Expired: return ExecutionResult.AccessExpired;
+            case AccessData.Status.Insufficient: return IOperation.ExecutionResult.AccessInsufficent;
+            case AccessData.Status.Expired: return IOperation.ExecutionResult.AccessExpired;
         }
 
         if (callbackQueryDataCore is null)
         {
             if (data is null)
             {
-                await ExecuteAsync(bot, message, sender);
+                await ExecuteAsync(message, sender);
             }
             else
             {
-                await ExecuteAsync(bot, data, message, sender);
+                await ExecuteAsync(data, message, sender);
             }
         }
         else
         {
             if (data is null)
             {
-                await ExecuteAsync(bot, message, sender, callbackQueryDataCore);
+                await ExecuteAsync(message, sender, callbackQueryDataCore);
             }
             else
             {
-                await ExecuteAsync(bot, data, message, sender, callbackQueryDataCore);
+                await ExecuteAsync(data, message, sender, callbackQueryDataCore);
             }
         }
-        return ExecutionResult.Success;
+        return IOperation.ExecutionResult.Success;
     }
 
-    protected virtual bool IsInvokingBy(User self, Message message, User sender, out T? data)
+    protected virtual bool IsInvokingBy(Message message, User sender, out T? data)
     {
         data = null;
         return true;
     }
 
-    protected virtual bool IsInvokingBy(User self, Message message, User sender, string callbackQueryDataCore,
-        out T? data)
+    protected virtual bool IsInvokingBy(Message message, User sender, string callbackQueryDataCore, out T? data)
     {
         data = null;
         return false;
     }
 
-    protected virtual Task ExecuteAsync(BotBasic bot, Message message, User sender) => Task.CompletedTask;
-    protected virtual Task ExecuteAsync(BotBasic bot, T data, Message message, User sender)
+    protected virtual Task ExecuteAsync(Message message, User sender)
     {
-        return ExecuteAsync(bot, message, sender);
+        return Task.CompletedTask;
     }
 
-    protected virtual Task ExecuteAsync(BotBasic bot, Message message, User sender, string callbackQueryDataCore)
+    protected virtual Task ExecuteAsync(T data, Message message, User sender) => ExecuteAsync(message, sender);
+
+    protected virtual Task ExecuteAsync(Message message, User sender, string callbackQueryDataCore)
     {
-        return ExecuteAsync(bot, message, sender);
+        return ExecuteAsync(message, sender);
     }
 
-    protected virtual Task ExecuteAsync(BotBasic bot, T data, Message message, User sender,
-        string callbackQueryDataCore)
+    protected virtual Task ExecuteAsync(T data, Message message, User sender, string callbackQueryDataCore)
     {
-        return ExecuteAsync(bot, data, message, sender);
+        return ExecuteAsync(data, message, sender);
     }
+
+    private readonly IAccesses _accesses;
 }

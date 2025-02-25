@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AbstractBot.Interfaces;
+using AbstractBot.Interfaces.Modules;
 using AbstractBot.Models;
 using JetBrains.Annotations;
 

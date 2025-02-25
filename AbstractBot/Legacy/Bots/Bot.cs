@@ -7,8 +7,9 @@ using System.Linq;
 using System.Threading;
 using AbstractBot.Legacy.Configs;
 using AbstractBot.Legacy.Operations.Commands;
-using AbstractBot.Legacy.Operations.Data;
 using Telegram.Bot;
+using AbstractBot.Interfaces.Operations.Commands;
+using AbstractBot.Models.Operations.Commands.Start;
 
 namespace AbstractBot.Legacy.Bots;
 
@@ -34,6 +35,7 @@ public abstract class Bot<TConfig, TTexts, TContext, TContextData, TMetaContext,
         SaveManager = new SaveManager<TSaveData>(Config.SavePath, Clock, AfterLoad, BeforeSave);
 
         Start = new Start<TStartData>(Config.Texts, OnStartCommand);
+
         Operations.Add(Start);
     }
 

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using AbstractBot.Legacy.Configs.MessageTemplates;
-using AbstractBot.Legacy.Extensions;
-using AbstractBot.Legacy.Operations.Data;
+using AbstractBot.Interfaces.Operations.Commands;
+using AbstractBot.Models.MessageTemplates;
+using AbstractBot.Utilities.Extensions;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;

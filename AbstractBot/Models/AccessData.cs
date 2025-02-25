@@ -7,7 +7,7 @@ namespace AbstractBot.Models;
 [PublicAPI]
 public sealed class AccessData
 {
-    internal enum Status
+    public enum Status
     {
         Sufficient,
         Insufficient,

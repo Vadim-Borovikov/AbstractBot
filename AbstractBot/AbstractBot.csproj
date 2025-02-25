@@ -29,10 +29,6 @@
     <PackageReference Include="Telegram.Bot" Version="22.4.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Legacy\Logging\" />
-  </ItemGroup>
-
   <Target Name="PostBuild" AfterTargets="GenerateNuspec">
     <Exec Command="if exist postBuild.bat if $(ConfigurationName) == Release call postBuild.bat $(OutDir)..\$(AssemblyName).$(PackageVersion).nupkg" />
   </Target>

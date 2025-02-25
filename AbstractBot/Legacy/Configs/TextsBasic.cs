@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using AbstractBot.Legacy.Configs.MessageTemplates;
+using AbstractBot.Models.MessageTemplates;
 using JetBrains.Annotations;
 
 namespace AbstractBot.Legacy.Configs;

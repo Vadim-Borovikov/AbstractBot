@@ -4,8 +4,8 @@ using System.Threading;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using AbstractBot.Legacy.Bots;
-using AbstractBot.Legacy.Configs.MessageTemplates;
 using AbstractBot.Models;
+using AbstractBot.Models.MessageTemplates;
 
 namespace AbstractBot.Legacy;
 

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AbstractBot.Interfaces.Operations;
 using AbstractBot.Legacy.Bots;
-using AbstractBot.Legacy.Configs.MessageTemplates;
+using AbstractBot.Models.MessageTemplates;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -10,14 +11,6 @@ namespace AbstractBot.Legacy.Operations;
 [PublicAPI]
 public abstract class OperationBasic : IComparable<OperationBasic>
 {
-    internal enum ExecutionResult
-    {
-        UnsuitableOperation,
-        AccessInsufficent,
-        AccessExpired,
-        Success
-    }
-
     public virtual Enum? AccessRequired => null;
 
     protected internal virtual bool EnabledInGroups => false;
@@ -44,6 +37,6 @@ public abstract class OperationBasic : IComparable<OperationBasic>
         return Order.CompareTo(other.Order);
     }
 
-    internal abstract Task<ExecutionResult> TryExecuteAsync(BotBasic bot, Message message, User sender,
+    internal abstract Task<IOperation.ExecutionResult> TryExecuteAsync(BotBasic bot, Message message, User sender,
         string? callbackQueryData);
 }

@@ -1,5 +1,5 @@
+using AbstractBot.Interfaces.Operations.Commands;
 using AbstractBot.Legacy.Configs;
-using AbstractBot.Legacy.Operations.Data;
 using GoogleSheetsManager.Documents;
 using JetBrains.Annotations;
 using Telegram.Bot;
