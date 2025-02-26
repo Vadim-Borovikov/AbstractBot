@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AbstractBot.Models;
+using JetBrains.Annotations;
 
 namespace AbstractBot.Utilities.Extensions;
 
+[PublicAPI]
 public static class DictionaryExtensions
 {
     public static Dictionary<long, AccessData> ToAccessDatasDictionary(this Dictionary<long, int> accesses)
@@ -13,7 +16,23 @@ public static class DictionaryExtensions
             : new Dictionary<long, AccessData>();
     }
 
-    public static void AddAll<TKey, TDerivedValue, TBaseValue>(this Dictionary<TKey, TBaseValue> tagret,
+    public static void ReplaceWith<TSource, TTarget>(this Dictionary<long, TTarget> target,
+        Dictionary<long, TSource> source, Func<TSource, TTarget?> convert)
+        where TTarget : class
+    {
+        target.Clear();
+
+        foreach (long id in source.Keys)
+        {
+            TTarget? t = convert(source[id]);
+            if (t is not null)
+            {
+                target[id] = t;
+            }
+        }
+    }
+
+    /*public static void AddAll<TKey, TDerivedValue, TBaseValue>(this Dictionary<TKey, TBaseValue> tagret,
         Dictionary<TKey, TDerivedValue> source)
         where TKey : notnull
         where TBaseValue : class
@@ -41,5 +60,5 @@ public static class DictionaryExtensions
         }
 
         return result;
-    }
+    }*/
 }
