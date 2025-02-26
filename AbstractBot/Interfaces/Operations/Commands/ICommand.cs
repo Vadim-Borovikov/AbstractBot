@@ -1,5 +1,4 @@
-﻿using AbstractBot.Interfaces.Operations;
-using AbstractBot.Models.Operations.Commands;
+﻿using AbstractBot.Models.Operations.Commands;
 using JetBrains.Annotations;
 
 namespace AbstractBot.Interfaces.Operations.Commands;
