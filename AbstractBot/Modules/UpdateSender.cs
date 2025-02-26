@@ -19,7 +19,7 @@ namespace AbstractBot.Modules;
 [PublicAPI]
 public class UpdateSender : IUpdateSender
 {
-    public UpdateSender(TelegramBotClient client, IFileStorage fileStorage, ICooldown cooldown, Logging logging)
+    public UpdateSender(TelegramBotClient client, IFileStorage fileStorage, ICooldown cooldown, ILogging logging)
     {
         _client = client;
         _fileStorage = fileStorage;
@@ -370,5 +370,5 @@ public class UpdateSender : IUpdateSender
     private readonly TelegramBotClient _client;
     private readonly IFileStorage _fileStorage;
     private readonly ICooldown _cooldown;
-    private readonly Logging _logging;
+    private readonly ILogging _logging;
 }

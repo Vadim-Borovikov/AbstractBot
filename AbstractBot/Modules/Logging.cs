@@ -10,7 +10,7 @@ using Telegram.Bot.Types;
 namespace AbstractBot.Modules;
 
 [PublicAPI]
-public class Logging : ILogging, IDisposable
+public class Logging : ILogging
 {
     public enum UpdateType
     {
@@ -32,20 +32,11 @@ public class Logging : ILogging, IDisposable
 
     public Logger Logger { get; }
 
-    public Logging(Clock clock, TimeSpan tickInterval)
+    public Logging(Clock clock, TimeSpan tickInterval, CancellationTokenSource tickCancellationSource)
     {
         Logger = new Logger(clock);
         _tickInterval = tickInterval;
-        _tickCancellationSource = new CancellationTokenSource();
-    }
-
-    public void Dispose()
-    {
-        if (!_tickCancellationSource.IsCancellationRequested)
-        {
-            _tickCancellationSource.Cancel();
-        }
-        _tickCancellationSource.Dispose();
+        _tickCancellationSource = tickCancellationSource;
     }
 
     public Task StartAsync(CancellationToken _)

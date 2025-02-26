@@ -22,7 +22,7 @@ using Telegram.Bot.Types;
 namespace AbstractBot;
 
 [PublicAPI]
-public class BotCore : IDisposable
+public class BotCore
 {
     public readonly TelegramBotClient Client;
     public readonly IConfig Config;
@@ -35,10 +35,10 @@ public class BotCore : IDisposable
 
     public Logger Logger => _logging.Logger;
 
-    public static async Task<BotCore?> TryCreateBotCore(Config config, CancellationToken cancellationToken = default)
+    public static async Task<BotCore?> TryCreateBotCore(Config config, CancellationTokenSource cancellationSource)
     {
         TelegramBotClient client = new(config.Token);
-        User self = await client.GetMe(cancellationToken);
+        User self = await client.GetMe(cancellationSource.Token);
         if (string.IsNullOrWhiteSpace(self.Username))
         {
             return null;
@@ -53,10 +53,11 @@ public class BotCore : IDisposable
         string host =
             string.IsNullOrWhiteSpace(config.Host) ? await Manager.GetHostAsync(options) : config.Host;
 
-        return new BotCore(config, client, self, host, clock);
+        return new BotCore(config, client, self, host, clock, cancellationSource);
     }
 
-    protected BotCore(IConfig config, TelegramBotClient client, User self, string host, Clock clock)
+    protected BotCore(IConfig config, TelegramBotClient client, User self, string host, Clock clock,
+        CancellationTokenSource cancellationSource)
     {
         Config = config;
         Client = client;
@@ -69,7 +70,7 @@ public class BotCore : IDisposable
         _accesses = new Accesses(Config.Accesses.ToAccessDatasDictionary());
 
         TimeSpan tickInterval = TimeSpan.FromSeconds(Config.TickIntervalSeconds);
-        _logging = new Logging(Clock, tickInterval);
+        _logging = new Logging(Clock, tickInterval, cancellationSource);
 
         _connection =
             new Connection(Client, host, Config.Token, TimeSpan.FromHours(Config.RestartPeriodHours), _logging.Logger);
@@ -121,20 +122,6 @@ public class BotCore : IDisposable
     }
 
     public virtual Task StopAsync(CancellationToken cancellationToken) => _connection.StopAsync(cancellationToken);
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _logging.Dispose();
-        }
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
 
     public void Update(Update update) => _updateReceiver.Update(update);
 
