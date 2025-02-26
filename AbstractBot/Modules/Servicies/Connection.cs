@@ -10,12 +10,11 @@ using Telegram.Bot.Types.Enums;
 namespace AbstractBot.Modules.Servicies;
 
 [PublicAPI]
-public sealed class ConnectionService : IConnection
+public sealed class Connection : IConnection
 {
     public string Host { get; }
 
-    public ConnectionService(TelegramBotClient client, string host, string token, TimeSpan restartPeriod,
-        Logger logger)
+    public Connection(TelegramBotClient client, string host, string token, TimeSpan restartPeriod, Logger logger)
     {
         Host = host;
 
@@ -32,7 +31,7 @@ public sealed class ConnectionService : IConnection
         Invoker.DoPeriodically(ReconnectAsync, _restartPeriod, false, _logger, cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => _client.DeleteWebhook(false, cancellationToken);
+    public Task StopAsync(CancellationToken cancellationToken) => DisconnectAsync(cancellationToken);
 
     public Task ConnectAsync(CancellationToken cancellationToken) =>
         _client.SetWebhook(_url, allowedUpdates: Array.Empty<UpdateType>(), cancellationToken: cancellationToken);
@@ -46,6 +45,11 @@ public sealed class ConnectionService : IConnection
         await ConnectAsync(cancellationToken);
 
         _logger.LogTimedMessage("...connected.");
+    }
+
+    public Task DisconnectAsync(CancellationToken cancellationToken)
+    {
+        return _client.DeleteWebhook(false, cancellationToken);
     }
 
     private readonly string _url;

@@ -71,8 +71,8 @@ public class BotCore : IDisposable
         TimeSpan tickInterval = TimeSpan.FromSeconds(Config.TickIntervalSeconds);
         _logging = new Logging(Clock, tickInterval);
 
-        _connection = new ConnectionService(Client, host, Config.Token,
-            TimeSpan.FromHours(Config.RestartPeriodHours), _logging.Logger);
+        _connection =
+            new Connection(Client, host, Config.Token, TimeSpan.FromHours(Config.RestartPeriodHours), _logging.Logger);
 
         FileStorageService fileStorage = new();
 

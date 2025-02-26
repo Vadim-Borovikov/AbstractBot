@@ -11,5 +11,7 @@ public interface IConnection : IService
 
     Task ConnectAsync(CancellationToken cancellationToken);
 
+    Task DisconnectAsync(CancellationToken cancellationToken);
+
     Task ReconnectAsync(CancellationToken cancellationToken);
 }
