@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 namespace AbstractBot.Models.Operations.Commands.Start;
 
 [PublicAPI]
-public sealed class Start : Command
+public sealed class Start : Command, IStartCommand
 {
     internal Start(IAccesses accesses, IUpdateSender updateSender, ICommands commands, string description,
         string selfUsername, IGreeter greeter)
