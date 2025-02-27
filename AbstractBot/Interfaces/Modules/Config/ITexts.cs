@@ -1,4 +1,5 @@
 using AbstractBot.Models.MessageTemplates;
+using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
 
 namespace AbstractBot.Interfaces.Modules.Config;
@@ -6,10 +7,6 @@ namespace AbstractBot.Interfaces.Modules.Config;
 [PublicAPI]
 public interface ITexts
 {
-    string StartCommandDescription { get; }
-
-    string HelpCommandDescription { get; }
-
     MessageTemplateText StartFormat { get; }
 
     MessageTemplateText? HelpFormat { get; }
@@ -19,4 +16,11 @@ public interface ITexts
     MessageTemplateText StatusMessageEndFormat { get; }
 
     MessageTemplateText CommandDescriptionFormat { get; }
+
+    string? TryGetCommandDescription(string command);
+
+    string GetCommandDescription(string command)
+    {
+        return TryGetCommandDescription(command).Denull($"No description for /{command}!");
+    }
 }

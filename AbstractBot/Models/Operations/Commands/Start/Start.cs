@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules;
+using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands.Start;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
@@ -9,9 +10,9 @@ namespace AbstractBot.Models.Operations.Commands.Start;
 [PublicAPI]
 public sealed class Start : Command, IStartCommand
 {
-    internal Start(IAccesses accesses, IUpdateSender updateSender, ICommands commands, string description,
+    internal Start(IAccesses accesses, IUpdateSender updateSender, ICommands commands, ITexts texts,
         string selfUsername, IGreeter greeter)
-        : base(accesses, updateSender, "start", description, selfUsername)
+        : base(accesses, updateSender, "start", texts, selfUsername)
     {
         _commands = commands;
         _greeter = greeter;
@@ -19,7 +20,7 @@ public sealed class Start : Command, IStartCommand
 
     protected override async Task ExecuteAsync(Message message, User from)
     {
-        await _commands.UpdateCommandsFor(from.Id);
+        await _commands.UpdateFor(from);
         await _greeter.Greet(message, from);
     }
 

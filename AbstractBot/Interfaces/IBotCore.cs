@@ -26,7 +26,6 @@ public interface IBotCore
 
     public IUpdateSender UpdateSender { get; }
     public IUpdateReceiver UpdateReceiver { get; }
-    public ICommands Commands { get; }
 
     public IAccesses Accesses { get; }
 

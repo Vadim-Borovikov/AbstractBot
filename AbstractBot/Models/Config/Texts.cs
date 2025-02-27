@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Models.MessageTemplates;
@@ -10,11 +11,7 @@ public class Texts : ITexts
 {
     [Required]
     [MinLength(1)]
-    public string StartCommandDescription { get; init; } = null!;
-
-    [Required]
-    [MinLength(1)]
-    public string HelpCommandDescription { get; init; } = null!;
+    public Dictionary<string, string> CommandMenuDescriptions { get; init; } = null!;
 
     [Required]
     public MessageTemplateText StartFormat { get; init; } = null!;
@@ -29,4 +26,6 @@ public class Texts : ITexts
 
     [Required]
     public MessageTemplateText CommandDescriptionFormat { get; init; } = null!;
+
+    public string? TryGetCommandDescription(string command) => CommandMenuDescriptions.GetValueOrDefault(command);
 }

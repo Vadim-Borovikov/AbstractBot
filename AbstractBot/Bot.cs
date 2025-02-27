@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces;
+using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Operations.Commands.Start;
 using AbstractBot.Models.Operations.Commands;
 using JetBrains.Annotations;
@@ -12,16 +13,15 @@ namespace AbstractBot;
 public abstract class Bot
 {
     public readonly IBotCore Core;
+    public readonly ICommands Commands;
 
-    protected Bot(IBotCore core, IStartCommand start)
+    protected Bot(IBotCore core, ICommands commands, IStartCommand start, Help help)
     {
         Core = core;
 
+        Commands = commands;
+
         Core.UpdateReceiver.Operations.Add(start);
-
-        Help help = new(Core.Accesses, Core.UpdateSender, Core.UpdateReceiver,
-            Core.Config.Texts.HelpCommandDescription, Core.SelfUsername, Core.Config.Texts.HelpFormat);
-
         Core.UpdateReceiver.Operations.Add(help);
     }
 
@@ -31,7 +31,7 @@ public abstract class Bot
 
         await Core.Logging.StartAsync(cancellationToken);
 
-        await Core.Commands.UpdateCommands(cancellationToken);
+        await Commands.UpdateForAll(cancellationToken);
     }
 
     public virtual Task StopAsync(CancellationToken cancellationToken) => Core.Connection.StopAsync(cancellationToken);

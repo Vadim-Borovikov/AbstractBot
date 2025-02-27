@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules;
+using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands;
 using AbstractBot.Models;
 using AbstractBot.Models.Operations.Commands;
@@ -15,46 +16,62 @@ namespace AbstractBot.Modules;
 [PublicAPI]
 public class Commands : ICommands
 {
-    public Commands(TelegramBotClient client, IAccesses accesses, IUpdateReceiver updateReceiver)
+    public Commands(TelegramBotClient client, IAccesses accesses, IUpdateReceiver updateReceiver,
+        ITextsProvider<ITexts> textsProvider, IUserProvider users)
     {
         _client = client;
         _accesses = accesses;
         _updateReceiver = updateReceiver;
+        _textsProvider = textsProvider;
+        _users = users;
     }
 
-    public Task UpdateCommandsFor(long userId, CancellationToken cancellationToken = default)
+    public Task UpdateFor(User user, CancellationToken cancellationToken = default)
     {
-        IEnumerable<BotCommandExtended> commands = GetMenuCommands(_accesses.GetAccess(userId));
-        return _client.SetMyCommands(commands, BotCommandScope.Chat(userId), cancellationToken: cancellationToken);
+        ITexts texts = _textsProvider.GetTextsFor(user);
+        IEnumerable<BotCommand> commands = GetMenuCommands(_accesses.GetAccess(user.Id), texts);
+        return _client.SetMyCommands(commands, BotCommandScope.Chat(user.Id), cancellationToken: cancellationToken);
     }
 
-    public async Task UpdateCommands(CancellationToken cancellationToken = default)
+    public async Task UpdateForAll(CancellationToken cancellationToken = default)
     {
         await _client.DeleteMyCommands(cancellationToken: cancellationToken);
         await _client.DeleteMyCommands(BotCommandScope.AllGroupChats(), cancellationToken: cancellationToken);
         await _client.DeleteMyCommands(BotCommandScope.AllChatAdministrators(),
             cancellationToken: cancellationToken);
 
-        await _client.SetMyCommands(GetMenuCommands(AccessData.Default), BotCommandScope.AllPrivateChats(),
-            cancellationToken: cancellationToken);
+        ITexts defaultTexts = _textsProvider.GetDefaultTexts();
+        await _client.SetMyCommands(GetMenuCommands(AccessData.Default, defaultTexts),
+            BotCommandScope.AllPrivateChats(), cancellationToken: cancellationToken);
 
-        foreach (long userId in _accesses.Ids)
+        foreach (User user in _users.GetUsers())
         {
-            await _client.SetMyCommands(GetMenuCommands(_accesses.GetAccess(userId)), BotCommandScope.Chat(userId),
-                cancellationToken: cancellationToken);
+            await UpdateFor(user, cancellationToken);
         }
     }
 
-    private IEnumerable<BotCommandExtended> GetMenuCommands(AccessData accessLevel)
+    private IEnumerable<BotCommand> GetMenuCommands(AccessData accessLevel, ITexts texts)
     {
-        return _updateReceiver.Operations
-                              .OfType<ICommand>()
-                              .Where(c => c.BotCommandExtended.ShowInMenu
-                                          && accessLevel.IsSufficientAgainst(c.AccessRequired))
-                              .Select(ca => ca.BotCommandExtended);
+        IEnumerable<BotCommandExtended> commands =
+            _updateReceiver.Operations
+                           .OfType<ICommand>()
+                           .Where(c => c.BotCommandExtended.ShowInMenu
+                                       && accessLevel.IsSufficientAgainst(c.AccessRequired))
+                           .Select(ca => ca.BotCommandExtended);
+
+        foreach (BotCommandExtended c in commands)
+        {
+            string? description = texts.TryGetCommandDescription(c.Command);
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                yield return new BotCommand(c.Command, description);
+            }
+        }
     }
 
     private readonly TelegramBotClient _client;
     private readonly IAccesses _accesses;
     private readonly IUpdateReceiver _updateReceiver;
+    private readonly ITextsProvider<ITexts> _textsProvider;
+    private readonly IUserProvider _users;
 }

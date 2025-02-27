@@ -34,7 +34,6 @@ public class BotCore : IBotCore
 
     public IUpdateSender UpdateSender { get; }
     public IUpdateReceiver UpdateReceiver { get; }
-    public ICommands Commands { get; }
 
     public IAccesses Accesses { get; }
 
@@ -43,8 +42,7 @@ public class BotCore : IBotCore
 
     public BotCore(TelegramBotClient client, Clock clock, SerializerOptionsProvider jsonSerializerOptionsProvider,
         User self, string selfUsername, IConnection connection, ILogging logging, IUpdateSender updateSender,
-        IUpdateReceiver updateReceiver, ICommands commands, IAccesses accesses, Config config,
-        CancellationTokenSource cancellationSource)
+        IUpdateReceiver updateReceiver, IAccesses accesses, Config config, CancellationTokenSource cancellationSource)
     {
         Client = client;
         Clock = clock;
@@ -55,7 +53,6 @@ public class BotCore : IBotCore
         Logging = logging;
         UpdateSender = updateSender;
         UpdateReceiver = updateReceiver;
-        Commands = commands;
         Accesses = accesses;
         Config = config;
         CancellationSource = cancellationSource;
@@ -101,9 +98,7 @@ public class BotCore : IBotCore
 
         UpdateReceiver updateReceiver = new(dontUnderstandSticker, forbiddenSticker, self.Id, updateSender, logging);
 
-        Commands commands = new(client, accesses, updateReceiver);
-
         return new BotCore(client, clock, jsonSerializerOptionsProvider, self, self.Username, connection,
-            logging, updateSender, updateReceiver, commands, accesses, config, cancellationSource);
+            logging, updateSender, updateReceiver, accesses, config, cancellationSource);
     }
 }

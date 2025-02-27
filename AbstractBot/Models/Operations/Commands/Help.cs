@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules;
+using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Models.MessageTemplates;
 using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
@@ -12,13 +13,13 @@ namespace AbstractBot.Models.Operations.Commands;
 [PublicAPI]
 public sealed class Help : Command
 {
-    internal Help(IAccesses accesses, IUpdateSender updateSender, IUpdateReceiver updateReceiver, string description,
-        string selfUsername, MessageTemplateText? format)
-        : base(accesses, updateSender, "help", description, selfUsername)
+    internal Help(IAccesses accesses, IUpdateSender updateSender, IUpdateReceiver updateReceiver, ITexts texts,
+        string selfUsername)
+        : base(accesses, updateSender, "help", texts, selfUsername)
     {
         _accesses = accesses;
         _updateReceiver = updateReceiver;
-        _format = format;
+        _format = texts.HelpFormat;
     }
 
     protected override Task ExecuteAsync(Message message, User sender)

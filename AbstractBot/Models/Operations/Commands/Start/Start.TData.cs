@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules;
+using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands;
 using AbstractBot.Interfaces.Operations.Commands.Start;
 using JetBrains.Annotations;
@@ -11,9 +12,9 @@ namespace AbstractBot.Models.Operations.Commands.Start;
 public sealed class Start<TData> : Command<TData>, IStartCommand
     where TData : class, ICommandData<TData>
 {
-    internal Start(IAccesses accesses, IUpdateSender updateSender, ICommands commands, string description,
+    internal Start(IAccesses accesses, IUpdateSender updateSender, ICommands commands, ITexts texts,
         string selfUsername, IGreeter<TData> greeter)
-        : base(accesses, updateSender, "start", description, selfUsername)
+        : base(accesses, updateSender, "start", texts, selfUsername)
     {
         _commands = commands;
         _greeter = greeter;
@@ -21,13 +22,13 @@ public sealed class Start<TData> : Command<TData>, IStartCommand
 
     protected override async Task ExecuteAsync(TData data, Message message, User from)
     {
-        await _commands.UpdateCommandsFor(from.Id);
+        await _commands.UpdateFor(from);
         await _greeter.Greet(message, from, data);
     }
 
     protected override async Task ExecuteAsync(Message message, User from)
     {
-        await _commands.UpdateCommandsFor(from.Id);
+        await _commands.UpdateFor(from);
 
         // ReSharper disable once SuspiciousTypeConversion.Global
         if (_greeter is IGreeter s)
