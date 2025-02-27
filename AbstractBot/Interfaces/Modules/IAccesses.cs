@@ -7,8 +7,8 @@ namespace AbstractBot.Interfaces.Modules;
 [PublicAPI]
 public interface IAccesses
 {
-    public IEnumerable<long> Ids { get; }
-    public AccessData GetAccess(long id);
+    IEnumerable<long> Ids { get; }
+    AccessData GetAccess(long id);
     void AddOrUpdate(long id, AccessData data);
     void AddOrUpdate(Dictionary<long, AccessData> accesses)
     {
