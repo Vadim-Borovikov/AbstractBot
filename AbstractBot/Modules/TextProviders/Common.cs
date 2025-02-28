@@ -9,10 +9,10 @@ namespace AbstractBot.Modules.TextProviders;
 public class Common<TTexts> : ITextsProvider<TTexts>
     where TTexts : ITexts
 {
-    public readonly TTexts Texts;
+    public Common(TTexts texts) => _texts = texts;
 
-    public Common(TTexts texts) => Texts = texts;
+    public TTexts GetTextsFor(User user) => _texts;
+    public TTexts GetDefaultTexts() => _texts;
 
-    public TTexts GetTextsFor(User user) => Texts;
-    public TTexts GetDefaultTexts() => Texts;
+    private readonly TTexts _texts;
 }

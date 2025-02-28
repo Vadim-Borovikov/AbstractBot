@@ -31,6 +31,4 @@ public interface IConfig
     Dictionary<long, int> Accesses { get; }
 
     string SavePath { get; }
-
-    ITexts Texts { get; }
 }

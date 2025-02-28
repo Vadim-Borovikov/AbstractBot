@@ -55,9 +55,4 @@ public class Config : IConfig
     [Required]
     [MinLength(1)]
     public string SavePath { get; init; } = null!;
-
-    [Required]
-    public Texts MyTextsTemp { get; init; } = null!;
-
-    public ITexts Texts => MyTextsTemp;
 }

@@ -55,18 +55,17 @@ internal class ExampleBot : Bot
             return null;
         }
 
-        Common<Texts> common = new(config.MyTextsTemp);
+        Common<Texts> common = new(config.Texts);
 
         AccessBasedUserProvider userProvider = new(core.Accesses);
 
         ICommands commands = new Commands(core.Client, core.Accesses, core.UpdateReceiver, common, userProvider);
 
-        Greeter greeter = new(core.UpdateSender, common.Texts.StartFormat);
-        Start start = new(core.Accesses, core.UpdateSender, commands, common.GetDefaultTexts(), core.SelfUsername,
-            greeter);
+        Texts defaultTexts = common.GetDefaultTexts();
+        Greeter greeter = new(core.UpdateSender, defaultTexts.StartFormat);
+        Start start = new(core.Accesses, core.UpdateSender, commands, defaultTexts, core.SelfUsername, greeter);
 
-        Help help =
-            new(core.Accesses, core.UpdateSender, core.UpdateReceiver, common.GetDefaultTexts(), core.SelfUsername);
+        Help help = new(core.Accesses, core.UpdateSender, core.UpdateReceiver, defaultTexts, core.SelfUsername);
 
         return new ExampleBot(core, config, commands, start, help);
     }
