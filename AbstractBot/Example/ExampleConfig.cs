@@ -4,14 +4,18 @@ using JetBrains.Annotations;
 
 namespace AbstractBot.Example;
 
-
+[PublicAPI]
 internal sealed class ExampleConfig : Config
 {
     [Required]
-    [UsedImplicitly]
-    public int SomeNumber { get; set; }
+    [MinLength(1)]
+    public string SavePath { get; set; } = null!;
 
     [Required]
     [UsedImplicitly]
     public Texts Texts { get; set; } = null!;
+
+    [Required]
+    [UsedImplicitly]
+    public int SomeNumber { get; set; }
 }

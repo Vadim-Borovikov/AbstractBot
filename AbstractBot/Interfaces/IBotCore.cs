@@ -1,7 +1,7 @@
 using System.Threading;
 using AbstractBot.Interfaces.Modules.Servicies;
 using AbstractBot.Interfaces.Modules;
-using AbstractBot.Models.Config;
+using AbstractBot.Interfaces.Modules.Config;
 using GryphonUtilities.Time;
 using GryphonUtilities.Time.Json;
 using JetBrains.Annotations;
@@ -29,6 +29,6 @@ public interface IBotCore
 
     public IAccesses Accesses { get; }
 
-    public Config Config { get; }
+    public IConfig Config { get; }
     public CancellationTokenSource CancellationSource { get; }
 }

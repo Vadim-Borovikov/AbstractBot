@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules.Servicies;
 using AbstractBot.Interfaces.Modules;
-using AbstractBot.Models.Config;
 using AbstractBot.Modules;
 using AbstractBot.Modules.Servicies;
 using AbstractBot.Utilities.Extensions;
@@ -15,6 +14,7 @@ using JetBrains.Annotations;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using AbstractBot.Interfaces;
+using AbstractBot.Interfaces.Modules.Config;
 
 namespace AbstractBot;
 
@@ -37,12 +37,12 @@ public class BotCore : IBotCore
 
     public IAccesses Accesses { get; }
 
-    public Config Config { get; }
+    public IConfig Config { get; }
     public CancellationTokenSource CancellationSource { get; }
 
     public BotCore(TelegramBotClient client, Clock clock, SerializerOptionsProvider jsonSerializerOptionsProvider,
         User self, string selfUsername, IConnection connection, ILogging logging, IUpdateSender updateSender,
-        IUpdateReceiver updateReceiver, IAccesses accesses, Config config, CancellationTokenSource cancellationSource)
+        IUpdateReceiver updateReceiver, IAccesses accesses, IConfig config, CancellationTokenSource cancellationSource)
     {
         Client = client;
         Clock = clock;
@@ -58,7 +58,7 @@ public class BotCore : IBotCore
         CancellationSource = cancellationSource;
     }
 
-    public static async Task<BotCore?> TryCreateAsync(Config config, CancellationTokenSource cancellationSource)
+    public static async Task<BotCore?> TryCreateAsync(IConfig config, CancellationTokenSource cancellationSource)
     {
         TelegramBotClient client = new(config.Token);
         User self = await client.GetMe(cancellationSource.Token);
@@ -76,8 +76,9 @@ public class BotCore : IBotCore
 
         Accesses accesses = new(config.Accesses.ToAccessDatasDictionary());
 
+        Clock loggingClock = new(config.SystemTimeZoneIdLogs);
         TimeSpan tickInterval = TimeSpan.FromSeconds(config.TickIntervalSeconds);
-        Logging logging = new(clock, tickInterval, cancellationSource);
+        Logging logging = new(loggingClock, tickInterval, cancellationSource);
 
         Connection connection =
             new(client, host, config.Token, TimeSpan.FromHours(config.RestartPeriodHours),

@@ -10,27 +10,27 @@ public class Config : IConfig
 {
     [Required]
     [MinLength(1)]
-    public string Token { get; init; } = null!;
+    public string Token { get; set; } = null!;
 
     [Required]
     [MinLength(1)]
-    public string SystemTimeZoneId { get; init; } = null!;
+    public string SystemTimeZoneId { get; set; } = null!;
 
     [Required]
     [MinLength(1)]
-    public string SystemTimeZoneIdLogs { get; init; } = null!;
+    public string SystemTimeZoneIdLogs { get; set; } = null!;
 
     [Required]
     [MinLength(1)]
-    public string DontUnderstandStickerFileId { get; init; } = null!;
+    public string DontUnderstandStickerFileId { get; set; } = null!;
 
     [Required]
     [MinLength(1)]
-    public string ForbiddenStickerFileId { get; init; } = null!;
+    public string ForbiddenStickerFileId { get; set; } = null!;
 
     [Required]
     [Range(double.Epsilon, double.MaxValue)]
-    public double UpdatesPerSecondLimitPrivate { get; init; }
+    public double UpdatesPerSecondLimitPrivate { get; set; }
 
     [Required]
     [Range(double.Epsilon, double.MaxValue)]
@@ -48,11 +48,7 @@ public class Config : IConfig
     [Range(double.Epsilon, double.MaxValue)]
     public double TickIntervalSeconds { get; set; }
 
-    public string? Host { get; init; }
+    public string? Host { get; set; }
 
-    public Dictionary<long, int> Accesses { get; init; } = new();
-
-    [Required]
-    [MinLength(1)]
-    public string SavePath { get; init; } = null!;
+    public Dictionary<long, int> Accesses { get; set; } = new();
 }

@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using JetBrains.Annotations;
 
 namespace AbstractBot.Interfaces.Modules.Config;
 
-[PublicAPI]
 public interface IConfig
 {
     string Token { get; }
@@ -29,6 +27,4 @@ public interface IConfig
     string? Host { get; }
 
     Dictionary<long, int> Accesses { get; }
-
-    string SavePath { get; }
 }
