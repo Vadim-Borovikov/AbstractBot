@@ -1,11 +1,13 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Models.Config;
 using JetBrains.Annotations;
 
 namespace AbstractBot.Example;
 
 [PublicAPI]
-internal sealed class ExampleConfig : Config
+internal sealed class ExampleConfig : Config, ILocalizationConfig<Texts>
 {
     [Required]
     [MinLength(1)]
@@ -13,9 +15,11 @@ internal sealed class ExampleConfig : Config
 
     [Required]
     [UsedImplicitly]
-    public Texts Texts { get; set; } = null!;
+    public int SomeNumber { get; set; }
 
     [Required]
-    [UsedImplicitly]
-    public int SomeNumber { get; set; }
+    public Dictionary<string, Texts> AllTexts { get; set; } = null!;
+
+    [Required]
+    public string DefaultLanguageCode { get; set; } = null!;
 }

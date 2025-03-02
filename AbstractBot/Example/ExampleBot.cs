@@ -15,11 +15,12 @@ namespace AbstractBot.Example;
 // ReSharper disable once UnusedType.Global
 internal class ExampleBot : Bot
 {
-    public ExampleBot(IBotCore core, ExampleConfig config, ICommands commands, IStartCommand start, Help help)
+    public ExampleBot(IBotCore core, ExampleConfig config, SaveManager<ExampleFinalData, ExampleSaveData> saveManager,
+        ICommands commands, IStartCommand start, Help help)
         : base(core, commands, start, help)
     {
         _config = config;
-        _saveManager = new SaveManager<ExampleFinalData, ExampleSaveData>(config.SavePath, core.Clock);
+        _saveManager = saveManager;
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)
@@ -44,19 +45,23 @@ internal class ExampleBot : Bot
             return null;
         }
 
-        Common<Texts> common = new(config.Texts);
+        SaveManager<ExampleFinalData, ExampleSaveData> saveManager = new(config.SavePath, core.Clock);
+
+
+        Localization<Texts, ExampleFinalData, ExampleSaveData, ExampleUserFinalData, ExampleUserSaveData> localization =
+            new(config.AllTexts, config.DefaultLanguageCode, saveManager.FinalData);
 
         AccessBasedUserProvider userProvider = new(core.Accesses);
 
-        ICommands commands = new Commands(core.Client, core.Accesses, core.UpdateReceiver, common, userProvider);
+        ICommands commands = new Commands(core.Client, core.Accesses, core.UpdateReceiver, localization, userProvider);
 
-        Texts defaultTexts = common.GetDefaultTexts();
+        Texts defaultTexts = localization.GetDefaultTexts();
         Greeter greeter = new(core.UpdateSender, defaultTexts.StartFormat);
         Start start = new(core.Accesses, core.UpdateSender, commands, defaultTexts, core.SelfUsername, greeter);
 
         Help help = new(core.Accesses, core.UpdateSender, core.UpdateReceiver, defaultTexts, core.SelfUsername);
 
-        return new ExampleBot(core, config, commands, start, help);
+        return new ExampleBot(core, config, saveManager, commands, start, help);
     }
 
     private readonly ExampleConfig _config;

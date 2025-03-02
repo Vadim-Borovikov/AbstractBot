@@ -1,7 +1,12 @@
-using AbstractBot.Models.Context;
+using System.Collections.Generic;
+using AbstractBot.Interfaces.Modules.Context;
+using JetBrains.Annotations;
 
 namespace AbstractBot.Example;
 
-internal sealed class ExampleSaveData : ContextSaveData<ExampleUserSaveData>
+[PublicAPI]
+public class ExampleSaveData : IBotSaveData<ExampleUserSaveData>
 {
+    [UsedImplicitly]
+    public Dictionary<long, ExampleUserSaveData> UsersData { get; set; } = new();
 }
