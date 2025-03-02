@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces;
@@ -10,7 +8,7 @@ using AbstractBot.Models.Operations.Commands;
 using AbstractBot.Models.Operations.Commands.Start;
 using AbstractBot.Modules;
 using AbstractBot.Modules.TextProviders;
-using GryphonUtilities;
+using GryphonUtilities.Save;
 
 namespace AbstractBot.Example;
 
@@ -21,17 +19,8 @@ internal class ExampleBot : Bot
         : base(core, commands, start, help)
     {
         _config = config;
-        _saveManager = new SaveManager<ExampleSaveData>(config.SavePath, core.Clock, AfterLoad, BeforeSave);
+        _saveManager = new SaveManager<ExampleFinalData, ExampleSaveData>(config.SavePath, core.Clock);
     }
-
-    private void AfterLoad()
-    {
-        List<int>? list = _saveManager.SaveData.List;
-        _hashSet = list is null ? new HashSet<int>() : new HashSet<int>(list);
-        _hashSet.Add(_config.SomeNumber);
-    }
-
-    private void BeforeSave() => _saveManager.SaveData.List = _hashSet.ToList();
 
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -71,7 +60,5 @@ internal class ExampleBot : Bot
     }
 
     private readonly ExampleConfig _config;
-    private readonly SaveManager<ExampleSaveData> _saveManager;
-
-    private HashSet<int> _hashSet = new();
+    private readonly SaveManager<ExampleFinalData, ExampleSaveData> _saveManager;
 }

@@ -16,20 +16,18 @@ public static class DictionaryExtensions
             : new Dictionary<long, AccessData>();
     }
 
-    public static void ReplaceWith<TSource, TTarget>(this Dictionary<long, TTarget> target,
-        Dictionary<long, TSource> source, Func<TSource, TTarget?> convert)
-        where TTarget : class
+    public static Dictionary<long, T2> Convert<T1, T2>(this Dictionary<long, T1> data, Func<T1, T2?> convert)
     {
-        target.Clear();
-
-        foreach (long id in source.Keys)
+        Dictionary<long, T2> result = new();
+        foreach (long key in data.Keys)
         {
-            TTarget? t = convert(source[id]);
-            if (t is not null)
+            T2? finalData = convert(data[key]);
+            if (finalData is not null)
             {
-                target[id] = t;
+                result[key] = finalData;
             }
         }
+        return result;
     }
 
     /*public static void AddAll<TKey, TDerivedValue, TBaseValue>(this Dictionary<TKey, TBaseValue> tagret,
@@ -42,23 +40,5 @@ public static class DictionaryExtensions
         {
             tagret[key] = source[key];
         }
-    }
-
-    public static Dictionary<TKey, TDerivedValue> FilterByValueType<TKey, TBaseValue, TDerivedValue>(
-        this Dictionary<TKey, TBaseValue> dict)
-        where TKey : notnull
-        where TBaseValue : class
-        where TDerivedValue : TBaseValue
-    {
-        Dictionary<TKey, TDerivedValue> result = new();
-        foreach (TKey key in dict.Keys)
-        {
-            if (dict[key] is TDerivedValue val)
-            {
-                result.Add(key, val);
-            }
-        }
-
-        return result;
     }*/
 }

@@ -1,10 +1,7 @@
-using System.Collections.Generic;
-using JetBrains.Annotations;
+using AbstractBot.Models.Context;
 
 namespace AbstractBot.Example;
 
-public sealed class ExampleSaveData
+internal sealed class ExampleSaveData : ContextSaveData<ExampleUserSaveData>
 {
-    [UsedImplicitly]
-    public List<int>? List { get; set; }
 }
