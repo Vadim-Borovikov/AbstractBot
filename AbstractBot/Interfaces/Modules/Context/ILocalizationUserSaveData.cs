@@ -1,6 +1,6 @@
 ﻿namespace AbstractBot.Interfaces.Modules.Context;
 
-public interface ILocalizationUserSaveData : IUserSaveData
+public interface ILocalizationUserSaveData
 {
     public string? LanguageCode { get; }
 }

@@ -5,17 +5,23 @@ using AbstractBot.Utilities.Extensions;
 namespace AbstractBot.Example;
 
 internal sealed class ExampleFinalData
-    : IBotFinalData<ExampleFinalData, ExampleSaveData, ExampleUserFinalData, ExampleUserSaveData>
+    : ILocalizationBotFinalData<ExampleSaveData, ExampleUserFinalData, ExampleUserSaveData>
 {
     public Dictionary<long, ExampleUserFinalData> UsersData { get; set; } = new();
 
     public ExampleSaveData Save() => new() { UsersData = UsersData.Convert(d => d.Save()) };
 
-    public static ExampleFinalData Load(ExampleSaveData data)
+    public void LoadFrom(ExampleSaveData? data)
     {
-        return new ExampleFinalData
+        UsersData.Clear();
+        if (data is null)
         {
-            UsersData = data.UsersData.Convert(ExampleUserFinalData.Load)
-        };
+            return;
+        }
+        foreach (long id in data.UsersData.Keys)
+        {
+            UsersData[id] = new ExampleUserFinalData();
+            UsersData[id].LoadFrom(data.UsersData[id]);
+        }
     }
 }

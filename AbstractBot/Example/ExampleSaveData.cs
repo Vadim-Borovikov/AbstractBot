@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace AbstractBot.Example;
 
 [PublicAPI]
-public class ExampleSaveData : IBotSaveData<ExampleUserSaveData>
+public class ExampleSaveData : ILocalizationBotSaveData<ExampleUserSaveData>
 {
     [UsedImplicitly]
     public Dictionary<long, ExampleUserSaveData> UsersData { get; set; } = new();

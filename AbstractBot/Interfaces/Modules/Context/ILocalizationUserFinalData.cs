@@ -1,8 +1,9 @@
-﻿namespace AbstractBot.Interfaces.Modules.Context;
+﻿using GryphonUtilities.Save;
 
-public interface ILocalizationUserFinalData<out TUserFinalData, TUserSaveData> : IUserFinalData<TUserFinalData, TUserSaveData>
-    where TUserFinalData : class, ILocalizationUserFinalData<TUserFinalData, TUserSaveData>, new()
-    where TUserSaveData : class, ILocalizationUserSaveData, new()
+namespace AbstractBot.Interfaces.Modules.Context;
+
+public interface ILocalizationUserFinalData<TUserSaveData> : IFinalData<TUserSaveData>
+    where TUserSaveData : class, ILocalizationUserSaveData
 {
     public string? LanguageCode { get; }
-} 
+}

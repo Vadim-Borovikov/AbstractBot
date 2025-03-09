@@ -8,20 +8,18 @@ using Telegram.Bot.Types;
 namespace AbstractBot.Modules.TextProviders;
 
 [PublicAPI]
-public class Localization<TTexts, TBotFinalData, TBotSaveData, TUserFinalData, TUserSaveData> : ITextsProvider<TTexts>
+public class Localization<TTexts, TBotSaveData, TUserFinalData, TUserSaveData> : ITextsProvider<TTexts>
     where TTexts : ITexts
-    where TBotFinalData : class, IBotFinalData<TBotFinalData, TBotSaveData, TUserFinalData, TUserSaveData>, new()
-    where TBotSaveData : class, IBotSaveData<TUserSaveData>, new()
-    where TUserFinalData : class, ILocalizationUserFinalData<TUserFinalData, TUserSaveData>, new()
-    where TUserSaveData : class, ILocalizationUserSaveData, new()
-
+    where TUserSaveData : class, ILocalizationUserSaveData
+    where TUserFinalData : ILocalizationUserFinalData<TUserSaveData>
+    where TBotSaveData : class
 {
     public readonly Dictionary<string, TTexts> AllTexts;
 
     public readonly string DefaultLanguageCode;
 
     public Localization(Dictionary<string, TTexts> allTexts, string defaultLanguageCode,
-        IBotFinalData<TBotFinalData, TBotSaveData, TUserFinalData, TUserSaveData> finalData)
+        ILocalizationBotFinalData<TBotSaveData, TUserFinalData, TUserSaveData> finalData)
     {
         AllTexts = allTexts;
         DefaultLanguageCode = defaultLanguageCode;
@@ -48,5 +46,5 @@ public class Localization<TTexts, TBotFinalData, TBotSaveData, TUserFinalData, T
         return AllTexts[languageCode];
     }
 
-    private readonly IBotFinalData<TBotFinalData, TBotSaveData, TUserFinalData, TUserSaveData> _finalData;
+    private readonly ILocalizationBotFinalData<TBotSaveData, TUserFinalData, TUserSaveData> _finalData;
 }
