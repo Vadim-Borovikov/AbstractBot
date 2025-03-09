@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Modules.Context;
+using AbstractBot.Interfaces.Modules.Context.Localization;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -19,7 +20,7 @@ public class Localization<TTexts, TBotSaveData, TUserFinalData, TUserSaveData> :
     public readonly string DefaultLanguageCode;
 
     public Localization(Dictionary<string, TTexts> allTexts, string defaultLanguageCode,
-        ILocalizationBotFinalData<TBotSaveData, TUserFinalData, TUserSaveData> finalData)
+        IBotFinalData<TBotSaveData, TUserFinalData, TUserSaveData> finalData)
     {
         AllTexts = allTexts;
         DefaultLanguageCode = defaultLanguageCode;
@@ -46,5 +47,5 @@ public class Localization<TTexts, TBotSaveData, TUserFinalData, TUserSaveData> :
         return AllTexts[languageCode];
     }
 
-    private readonly ILocalizationBotFinalData<TBotSaveData, TUserFinalData, TUserSaveData> _finalData;
+    private readonly IBotFinalData<TBotSaveData, TUserFinalData, TUserSaveData> _finalData;
 }

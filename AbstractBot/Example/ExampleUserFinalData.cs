@@ -1,10 +1,6 @@
-using AbstractBot.Interfaces.Modules.Context;
-
+using AbstractBot.Modules.Context.Localization;
 namespace AbstractBot.Example;
 
-public sealed class ExampleUserFinalData : ILocalizationUserFinalData<ExampleUserSaveData>
+public sealed class ExampleUserFinalData : LocalizationUserFinalData<LocalizationUserSaveData>
 {
-    public string? LanguageCode { get; set; }
-    public ExampleUserSaveData Save() => new() { LanguageCode = LanguageCode };
-    public void LoadFrom(ExampleUserSaveData? data) => LanguageCode = data?.LanguageCode;
 }

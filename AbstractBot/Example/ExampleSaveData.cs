@@ -1,12 +1,10 @@
-using System.Collections.Generic;
-using AbstractBot.Interfaces.Modules.Context;
+using AbstractBot.Modules.Context;
+using AbstractBot.Modules.Context.Localization;
 using JetBrains.Annotations;
 
 namespace AbstractBot.Example;
 
 [PublicAPI]
-public class ExampleSaveData : ILocalizationBotSaveData<ExampleUserSaveData>
+public class ExampleSaveData : BotSaveData<LocalizationUserSaveData>
 {
-    [UsedImplicitly]
-    public Dictionary<long, ExampleUserSaveData> UsersData { get; set; } = new();
 }

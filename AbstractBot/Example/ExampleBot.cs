@@ -7,6 +7,7 @@ using AbstractBot.Models.Config;
 using AbstractBot.Models.Operations.Commands;
 using AbstractBot.Models.Operations.Commands.Start;
 using AbstractBot.Modules;
+using AbstractBot.Modules.Context.Localization;
 using AbstractBot.Modules.TextProviders;
 using GryphonUtilities.Save;
 
@@ -47,7 +48,7 @@ internal class ExampleBot : Bot
 
         SaveManager<ExampleFinalData, ExampleSaveData> saveManager = new(config.SavePath, core.Clock);
 
-        Localization<Texts, ExampleSaveData, ExampleUserFinalData, ExampleUserSaveData> localization =
+        Localization<Texts, ExampleSaveData, ExampleUserFinalData, LocalizationUserSaveData> localization =
             new(config.AllTexts, config.DefaultLanguageCode, saveManager.FinalData);
 
         AccessBasedUserProvider userProvider = new(core.Accesses);
