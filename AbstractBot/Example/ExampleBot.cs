@@ -9,19 +9,22 @@ using AbstractBot.Models.Operations.Commands.Start;
 using AbstractBot.Modules;
 using AbstractBot.Modules.Context.Localization;
 using AbstractBot.Modules.TextProviders;
+using GoogleSheetsManager.Documents;
 using GryphonUtilities.Save;
+// ReSharper disable NotAccessedField.Local
+// ReSharper disable UnusedType.Global
 
 namespace AbstractBot.Example;
 
-// ReSharper disable once UnusedType.Global
-internal class ExampleBot : Bot
+internal sealed class ExampleBot : Bot
 {
     public ExampleBot(IBotCore core, ExampleConfig config, SaveManager<ExampleFinalData, ExampleSaveData> saveManager,
-        ICommands commands, IStartCommand start, Help help)
+        ICommands commands, IStartCommand start, Help help, Manager sheetsManager)
         : base(core, commands, start, help)
     {
         _config = config;
         _saveManager = saveManager;
+        _sheetsManager = sheetsManager;
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)
@@ -38,7 +41,7 @@ internal class ExampleBot : Bot
 
     // ReSharper disable once UnusedMember.Global
     public static async Task<ExampleBot?> TryCreateAsync(ExampleConfig config,
-        CancellationTokenSource cancellationSource)
+        CancellationTokenSource cancellationSource, Manager sheetsManager)
     {
         BotCore? core = await BotCore.TryCreateAsync(config, cancellationSource);
         if (core is null)
@@ -61,9 +64,10 @@ internal class ExampleBot : Bot
 
         Help help = new(core.Accesses, core.UpdateSender, core.UpdateReceiver, defaultTexts, core.SelfUsername);
 
-        return new ExampleBot(core, config, saveManager, commands, start, help);
+        return new ExampleBot(core, config, saveManager, commands, start, help, sheetsManager);
     }
 
     private readonly ExampleConfig _config;
     private readonly SaveManager<ExampleFinalData, ExampleSaveData> _saveManager;
+    private readonly Manager _sheetsManager;
 }

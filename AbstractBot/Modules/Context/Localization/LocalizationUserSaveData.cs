@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 
 namespace AbstractBot.Modules.Context.Localization;
 
+[PublicAPI]
 public class LocalizationUserSaveData : ILocalizationUserSaveData
 {
     [UsedImplicitly]

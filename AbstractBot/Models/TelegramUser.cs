@@ -3,7 +3,7 @@ using GryphonUtilities.Helpers;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
-namespace AbstractBot.Legacy;
+namespace AbstractBot.Models;
 
 [PublicAPI]
 public class TelegramUser

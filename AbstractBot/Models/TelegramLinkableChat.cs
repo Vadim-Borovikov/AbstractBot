@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace AbstractBot.Legacy;
+namespace AbstractBot.Models;
 
 [PublicAPI]
 public class TelegramLinkableChat
