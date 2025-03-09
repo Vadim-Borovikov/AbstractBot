@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace AbstractBot.Example;
 
 [PublicAPI]
-internal sealed class ExampleConfig : Config, ILocalizationConfig<Texts>
+internal sealed class ExampleConfig : ConfigWithSheets, ILocalizationConfig<Texts>
 {
     [Required]
     [MinLength(1)]

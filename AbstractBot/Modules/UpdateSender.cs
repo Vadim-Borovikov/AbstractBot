@@ -19,12 +19,12 @@ namespace AbstractBot.Modules;
 [PublicAPI]
 public class UpdateSender : IUpdateSender
 {
-    public UpdateSender(TelegramBotClient client, IFileStorage fileStorage, ICooldown cooldown, ILogging logging)
+    public UpdateSender(TelegramBotClient client, IFileStorage fileStorage, ICooldown cooldown, LoggerExtended logger)
     {
         _client = client;
         _fileStorage = fileStorage;
         _cooldown = cooldown;
-        _logging = logging;
+        _logger = logger;
     }
 
     public Task<Message> SendTextMessageAsync(Chat chat, string text, KeyboardProvider? keyboardProvider = null,
@@ -36,7 +36,7 @@ public class UpdateSender : IUpdateSender
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.SendText, data: text);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendText, data: text);
         return _client.SendMessage(chat.Id, text, parseMode, replyParameters, keyboardProvider.Keyboard,
             linkPreviewOptions, messageThreadId, entities, disableNotification, protectContent, messageEffectId,
             businessConnectionId, allowPaidBroadcast, cancellationToken);
@@ -48,7 +48,7 @@ public class UpdateSender : IUpdateSender
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.EditText, messageId, text);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId, text);
         return _client.EditMessageText(chat.Id, messageId, text, parseMode, entities, linkPreviewOptions, replyMarkup,
             businessConnectionId, cancellationToken);
     }
@@ -93,7 +93,7 @@ public class UpdateSender : IUpdateSender
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.EditMedia, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditMedia, messageId);
         return _client.EditMessageMedia(chat.Id, messageId, media, replyMarkup, businessConnectionId,
             cancellationToken);
     }
@@ -104,7 +104,7 @@ public class UpdateSender : IUpdateSender
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.EditText, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId);
         return _client.EditMessageCaption(chat.Id, messageId, caption, parseMode, captionEntities,
             showCaptionAboveMedia, replyMarkup, businessConnectionId, cancellationToken);
     }
@@ -112,7 +112,7 @@ public class UpdateSender : IUpdateSender
     public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.Delete, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Delete, messageId);
         return _client.DeleteMessage(chat.Id, messageId, cancellationToken);
     }
 
@@ -121,7 +121,7 @@ public class UpdateSender : IUpdateSender
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.Forward, data: $"message {messageId} from {fromChatId}");
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Forward, data: $"message {messageId} from {fromChatId}");
         return _client.ForwardMessage(chat.Id, fromChatId, messageId, messageThreadId, disableNotification,
             protectContent, videoStartTimestamp, cancellationToken);
     }
@@ -170,7 +170,7 @@ public class UpdateSender : IUpdateSender
         }
         else
         {
-            _logging.Logger.LogError("Wrong MediaGroup size", $"Recieved {messages.Length} after {paths.Count} paths");
+            _logger.LogError("Wrong MediaGroup size", $"Recieved {messages.Length} after {paths.Count} paths");
         }
 
         return messages;
@@ -206,7 +206,7 @@ public class UpdateSender : IUpdateSender
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         List<IAlbumInputMedia> all = new(media);
         string captions = string.Join(", ", all.OfType<InputMedia>().Select(m => m.Caption).SkipNulls());
-        _logging.LogUpdate(chat, Logging.UpdateType.SendFiles, data: captions);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendFiles, data: captions);
 
         return _client.SendMediaGroup(chat.Id, all, replyParameters, messageThreadId, disableNotification,
             protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
@@ -253,7 +253,7 @@ public class UpdateSender : IUpdateSender
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.SendPhoto, data: caption);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendPhoto, data: caption);
 
         return _client.SendPhoto(chat.Id, photo, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
             messageThreadId, captionEntities, showCaptionAboveMedia, hasSpoiler, disableNotification, protectContent,
@@ -301,7 +301,7 @@ public class UpdateSender : IUpdateSender
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.SendPhoto, data: caption);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendPhoto, data: caption);
 
         return _client.SendDocument(chat.Id, document, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
             thumbnail, messageThreadId, captionEntities, disableContentTypeDetection, disableNotification, protectContent,
@@ -316,7 +316,7 @@ public class UpdateSender : IUpdateSender
     {
         keyboardProvider ??= GetDefaultKeyboardProvider(chat);
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.SendSticker);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendSticker);
 
         return _client.SendSticker(chat.Id, sticker, replyParameters, keyboardProvider.Keyboard, emoji, messageThreadId,
             disableNotification, protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast,
@@ -327,7 +327,7 @@ public class UpdateSender : IUpdateSender
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.Pin, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Pin, messageId);
         return _client.PinChatMessage(chat.Id, messageId, disableNotification, businessConnectionId, cancellationToken);
     }
 
@@ -335,14 +335,14 @@ public class UpdateSender : IUpdateSender
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.Unpin, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Unpin, messageId);
         return _client.UnpinChatMessage(chat.Id, messageId, businessConnectionId, cancellationToken);
     }
 
     public Task UnpinAllChatMessagesAsync(Chat chat, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.UnpinAll);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.UnpinAll);
         return _client.UnpinAllChatMessages(chat.Id, cancellationToken);
     }
 
@@ -358,7 +358,7 @@ public class UpdateSender : IUpdateSender
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logging.LogUpdate(chat, Logging.UpdateType.SendInvoice, data: title);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendInvoice, data: title);
         return _client.SendInvoice(chat.Id, title, description, payload, currency, prices, providerToken, providerData,
             maxTipAmount, suggestedTipAmounts, photoUrl, photoSize, photoWidth, photoHeight, needName, needPhoneNumber,
             needEmail, needShippingAddress, sendPhoneNumberToProvider, sendEmailToProvider, isFlexible,
@@ -370,5 +370,5 @@ public class UpdateSender : IUpdateSender
     private readonly TelegramBotClient _client;
     private readonly IFileStorage _fileStorage;
     private readonly ICooldown _cooldown;
-    private readonly ILogging _logging;
+    private readonly LoggerExtended _logger;
 }

@@ -1,6 +1,6 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AbstractBot.Interfaces;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Operations.Commands.Start;
 using AbstractBot.Models.Config;
@@ -16,15 +16,21 @@ using GryphonUtilities.Save;
 
 namespace AbstractBot.Example;
 
-internal sealed class ExampleBot : Bot
+internal sealed class ExampleBot : Bot, IDisposable
 {
-    public ExampleBot(IBotCore core, ExampleConfig config, SaveManager<ExampleFinalData, ExampleSaveData> saveManager,
-        ICommands commands, IStartCommand start, Help help, Manager sheetsManager)
+    public ExampleBot(BotCore core, ICommands commands, IStartCommand start, Help help, ExampleConfig config,
+        SaveManager<ExampleFinalData, ExampleSaveData> saveManager)
         : base(core, commands, start, help)
     {
-        _config = config;
+        _core = core;
+        _sheetsManager = new Manager(config);
         _saveManager = saveManager;
-        _sheetsManager = sheetsManager;
+    }
+
+    public void Dispose()
+    {
+        _sheetsManager.Dispose();
+        _core.Dispose();
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)
@@ -40,10 +46,9 @@ internal sealed class ExampleBot : Bot
     }
 
     // ReSharper disable once UnusedMember.Global
-    public static async Task<ExampleBot?> TryCreateAsync(ExampleConfig config,
-        CancellationTokenSource cancellationSource, Manager sheetsManager)
+    public static async Task<ExampleBot?> TryCreateAsync(ExampleConfig config, CancellationToken cancellationToken)
     {
-        BotCore? core = await BotCore.TryCreateAsync(config, cancellationSource);
+        BotCore? core = await BotCore.TryCreateAsync(config, cancellationToken);
         if (core is null)
         {
             return null;
@@ -64,10 +69,10 @@ internal sealed class ExampleBot : Bot
 
         Help help = new(core.Accesses, core.UpdateSender, core.UpdateReceiver, defaultTexts, core.SelfUsername);
 
-        return new ExampleBot(core, config, saveManager, commands, start, help, sheetsManager);
+        return new ExampleBot(core, commands, start, help, config, saveManager);
     }
 
-    private readonly ExampleConfig _config;
+    private readonly BotCore _core;
     private readonly SaveManager<ExampleFinalData, ExampleSaveData> _saveManager;
     private readonly Manager _sheetsManager;
 }

@@ -15,11 +15,12 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using AbstractBot.Interfaces;
 using AbstractBot.Interfaces.Modules.Config;
+using AbstractBot.Modules.Servicies.Logging;
 
 namespace AbstractBot;
 
 [PublicAPI]
-public class BotCore : IBotCore
+public class BotCore : IBotCore, IDisposable
 {
     public TelegramBotClient Client { get; }
     public Clock Clock { get; }
@@ -30,7 +31,8 @@ public class BotCore : IBotCore
 
     public IConnection Connection { get; }
 
-    public ILogging Logging { get; }
+    public Logging Logging { get; }
+    ILogging IBotCore.Logging => Logging;
 
     public IUpdateSender UpdateSender { get; }
     public IUpdateReceiver UpdateReceiver { get; }
@@ -38,11 +40,10 @@ public class BotCore : IBotCore
     public IAccesses Accesses { get; }
 
     public IConfig Config { get; }
-    public CancellationTokenSource CancellationSource { get; }
 
     public BotCore(TelegramBotClient client, Clock clock, SerializerOptionsProvider jsonSerializerOptionsProvider,
-        User self, string selfUsername, IConnection connection, ILogging logging, IUpdateSender updateSender,
-        IUpdateReceiver updateReceiver, IAccesses accesses, IConfig config, CancellationTokenSource cancellationSource)
+        User self, string selfUsername, IConnection connection, IUpdateSender updateSender,
+        IUpdateReceiver updateReceiver, IAccesses accesses, IConfig config, LoggerExtended logger)
     {
         Client = client;
         Clock = clock;
@@ -50,18 +51,21 @@ public class BotCore : IBotCore
         Self = self;
         SelfUsername = selfUsername;
         Connection = connection;
-        Logging = logging;
         UpdateSender = updateSender;
         UpdateReceiver = updateReceiver;
         Accesses = accesses;
         Config = config;
-        CancellationSource = cancellationSource;
+
+        TimeSpan tickInterval = TimeSpan.FromSeconds(config.TickIntervalSeconds);
+        Logging = new Logging(logger, tickInterval);
     }
 
-    public static async Task<BotCore?> TryCreateAsync(IConfig config, CancellationTokenSource cancellationSource)
+    public void Dispose() => Logging.Dispose();
+
+    public static async Task<BotCore?> TryCreateAsync(IConfig config, CancellationToken cancellationToken)
     {
         TelegramBotClient client = new(config.Token);
-        User self = await client.GetMe(cancellationSource.Token);
+        User self = await client.GetMe(cancellationToken);
         if (string.IsNullOrWhiteSpace(self.Username))
         {
             return null;
@@ -76,13 +80,9 @@ public class BotCore : IBotCore
 
         Accesses accesses = new(config.Accesses.ToAccessDatasDictionary());
 
-        Clock loggingClock = new(config.SystemTimeZoneIdLogs);
-        TimeSpan tickInterval = TimeSpan.FromSeconds(config.TickIntervalSeconds);
-        Logging logging = new(loggingClock, tickInterval, cancellationSource);
-
-        Connection connection =
-            new(client, host, config.Token, TimeSpan.FromHours(config.RestartPeriodHours),
-                logging.Logger);
+        Clock loggerClock = new(config.SystemTimeZoneIdLogs);
+        LoggerExtended logger = new(loggerClock);
+        Connection connection = new(client, host, config.Token, TimeSpan.FromHours(config.RestartPeriodHours), logger);
 
         FileStorageService fileStorage = new();
 
@@ -92,14 +92,14 @@ public class BotCore : IBotCore
 
         Cooldown cooldown = new(sendMessagePeriodPrivate, sendMessagePeriodGlobal, sendMessagePeriodGroup);
 
-        UpdateSender updateSender = new(client, fileStorage, cooldown, logging);
+        UpdateSender updateSender = new(client, fileStorage, cooldown, logger);
 
         InputFileId dontUnderstandSticker = new(config.DontUnderstandStickerFileId);
         InputFileId forbiddenSticker = new(config.ForbiddenStickerFileId);
 
-        UpdateReceiver updateReceiver = new(dontUnderstandSticker, forbiddenSticker, self.Id, updateSender, logging);
+        UpdateReceiver updateReceiver = new(dontUnderstandSticker, forbiddenSticker, self.Id, updateSender, logger);
 
-        return new BotCore(client, clock, jsonSerializerOptionsProvider, self, self.Username, connection,
-            logging, updateSender, updateReceiver, accesses, config, cancellationSource);
+        return new BotCore(client, clock, jsonSerializerOptionsProvider, self, self.Username, connection, updateSender,
+            updateReceiver, accesses, config, logger);
     }
 }

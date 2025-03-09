@@ -1,4 +1,3 @@
-using System.Threading;
 using AbstractBot.Interfaces.Modules.Servicies;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
@@ -30,5 +29,4 @@ public interface IBotCore
     public IAccesses Accesses { get; }
 
     public IConfig Config { get; }
-    public CancellationTokenSource CancellationSource { get; }
 }

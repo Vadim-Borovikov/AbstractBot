@@ -16,16 +16,16 @@ namespace AbstractBot.Modules;
 [PublicAPI]
 public class UpdateReceiver : IUpdateReceiver
 {
-    public Logger Logger => _logging.Logger;
+    public Logger Logger => _logger;
     public List<IOperation> Operations { get; }
 
     public UpdateReceiver(InputFileId dontUnderstandSticker, InputFileId forbiddenSticker, long selfId,
-        IUpdateSender sender, ILogging logging)
+        IUpdateSender sender, LoggerExtended logger)
     {
         _dontUnderstandSticker = dontUnderstandSticker;
         _forbiddenSticker = forbiddenSticker;
         _selfId = selfId;
-        _logging = logging;
+        _logger = logger;
         _updatesSender = sender;
         Operations = new List<IOperation>();
     }
@@ -81,12 +81,13 @@ public class UpdateReceiver : IUpdateReceiver
 
         if (string.IsNullOrWhiteSpace(callbackQueryData))
         {
-            _logging.LogUpdate(message.Chat, Logging.UpdateType.ReceiveMessage, message.MessageId,
+            _logger.LogUpdate(message.Chat, LoggerExtended.UpdateType.ReceiveMessage, message.MessageId,
                 $"{message.Text}{message.Caption}");
         }
         else
         {
-            _logging.LogUpdate(message.Chat, Logging.UpdateType.ReceiveCallback, message.MessageId, callbackQueryData);
+            _logger.LogUpdate(message.Chat, LoggerExtended.UpdateType.ReceiveCallback, message.MessageId,
+                callbackQueryData);
         }
 
         // ReSharper disable once LoopCanBePartlyConvertedToQuery
@@ -142,7 +143,7 @@ public class UpdateReceiver : IUpdateReceiver
         return ProcessInsufficientAccess(message, _, __);
     }
 
-    private readonly ILogging _logging;
+    private readonly LoggerExtended _logger;
     private readonly IUpdateSender _updatesSender;
     private readonly InputFileId _dontUnderstandSticker;
     private readonly InputFileId _forbiddenSticker;
