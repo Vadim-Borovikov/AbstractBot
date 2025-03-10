@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
-using AbstractBot.Interfaces.Modules.Context;
 using AbstractBot.Interfaces.Modules.Context.Localization;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
@@ -9,29 +8,28 @@ using Telegram.Bot.Types;
 namespace AbstractBot.Modules.TextProviders;
 
 [PublicAPI]
-public class Localization<TTexts, TBotSaveData, TUserFinalData, TUserSaveData> : ITextsProvider<TTexts>
+public class Localization<TTexts, TUserState, TUserStateData> : ITextsProvider<TTexts>
     where TTexts : ITexts
-    where TUserSaveData : class, ILocalizationUserSaveData
-    where TUserFinalData : ILocalizationUserFinalData<TUserSaveData>
-    where TBotSaveData : class
+    where TUserState : ILocalizationUserState<TUserStateData>
+    where TUserStateData : ILocalizationUserStateData
 {
     public readonly Dictionary<string, TTexts> AllTexts;
 
     public readonly string DefaultLanguageCode;
 
     public Localization(Dictionary<string, TTexts> allTexts, string defaultLanguageCode,
-        IBotFinalData<TBotSaveData, TUserFinalData, TUserSaveData> finalData)
+        Dictionary<long, TUserState> userStates)
     {
         AllTexts = allTexts;
         DefaultLanguageCode = defaultLanguageCode;
-        _finalData = finalData;
+        _userStates = userStates;
     }
 
     public TTexts GetTextsFor(User user)
     {
-        string languageCode = _finalData.UsersData.GetValueOrDefault(user.Id)?.LanguageCode
-            ?? user.LanguageCode
-            ?? DefaultLanguageCode;
+        string languageCode = _userStates.GetValueOrDefault(user.Id)?.LanguageCode
+                              ?? user.LanguageCode
+                              ?? DefaultLanguageCode;
 
         return GetTexts(languageCode);
     }
@@ -47,5 +45,5 @@ public class Localization<TTexts, TBotSaveData, TUserFinalData, TUserSaveData> :
         return AllTexts[languageCode];
     }
 
-    private readonly IBotFinalData<TBotSaveData, TUserFinalData, TUserSaveData> _finalData;
+    private readonly Dictionary<long, TUserState> _userStates;
 }

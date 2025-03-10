@@ -1,8 +1,10 @@
 using AbstractBot.Modules.Context;
 using AbstractBot.Modules.Context.Localization;
+using JetBrains.Annotations;
 
 namespace AbstractBot.Example;
 
-internal sealed class ExampleFinalData : BotFinalData<ExampleSaveData, ExampleUserFinalData, LocalizationUserSaveData>
+[PublicAPI]
+public class ExampleStateData : BotStateData<LocalizationUserStateData>
 {
 }

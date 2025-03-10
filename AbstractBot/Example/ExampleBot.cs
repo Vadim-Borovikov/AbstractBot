@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules;
@@ -19,12 +20,14 @@ namespace AbstractBot.Example;
 internal sealed class ExampleBot : Bot, IDisposable
 {
     public ExampleBot(BotCore core, ICommands commands, IStartCommand start, Help help, ExampleConfig config,
-        SaveManager<ExampleFinalData, ExampleSaveData> saveManager)
+        Dictionary<long, ExampleUserState> userStates)
         : base(core, commands, start, help)
     {
         _core = core;
         _sheetsManager = new Manager(config);
-        _saveManager = saveManager;
+
+        _state = new ExampleBotState(userStates);
+        _saveManager = new SaveManager<ExampleBotState, ExampleStateData>(config.SavePath, core.Clock);
     }
 
     public void Dispose()
@@ -36,12 +39,12 @@ internal sealed class ExampleBot : Bot, IDisposable
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         await base.StartAsync(cancellationToken);
-        _saveManager.Load();
+        _saveManager.LoadTo(_state);
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        _saveManager.Save();
+        _saveManager.Save(_state);
         await base.StopAsync(cancellationToken);
     }
 
@@ -54,10 +57,10 @@ internal sealed class ExampleBot : Bot, IDisposable
             return null;
         }
 
-        SaveManager<ExampleFinalData, ExampleSaveData> saveManager = new(config.SavePath, core.Clock);
+        Dictionary<long, ExampleUserState> userStates = new();
 
-        Localization<Texts, ExampleSaveData, ExampleUserFinalData, LocalizationUserSaveData> localization =
-            new(config.AllTexts, config.DefaultLanguageCode, saveManager.FinalData);
+        Localization<Texts, ExampleUserState, LocalizationUserStateData> localization =
+            new(config.AllTexts, config.DefaultLanguageCode, userStates);
 
         AccessBasedUserProvider userProvider = new(core.Accesses);
 
@@ -69,10 +72,11 @@ internal sealed class ExampleBot : Bot, IDisposable
 
         Help help = new(core.Accesses, core.UpdateSender, core.UpdateReceiver, defaultTexts, core.SelfUsername);
 
-        return new ExampleBot(core, commands, start, help, config, saveManager);
+        return new ExampleBot(core, commands, start, help, config, userStates);
     }
 
     private readonly BotCore _core;
-    private readonly SaveManager<ExampleFinalData, ExampleSaveData> _saveManager;
+    private readonly SaveManager<ExampleBotState, ExampleStateData> _saveManager;
     private readonly Manager _sheetsManager;
+    private readonly ExampleBotState _state;
 }

@@ -29,16 +29,4 @@ public static class DictionaryExtensions
         }
         return result;
     }
-
-    /*public static void AddAll<TKey, TDerivedValue, TBaseValue>(this Dictionary<TKey, TBaseValue> tagret,
-        Dictionary<TKey, TDerivedValue> source)
-        where TKey : notnull
-        where TBaseValue : class
-        where TDerivedValue : TBaseValue
-    {
-        foreach (TKey key in source.Keys)
-        {
-            tagret[key] = source[key];
-        }
-    }*/
 }

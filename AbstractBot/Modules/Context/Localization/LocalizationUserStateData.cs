@@ -4,8 +4,8 @@ using JetBrains.Annotations;
 namespace AbstractBot.Modules.Context.Localization;
 
 [PublicAPI]
-public class LocalizationUserSaveData : ILocalizationUserSaveData
+public class LocalizationUserStateData : ILocalizationUserStateData
 {
     [UsedImplicitly]
-    public string? LanguageCode { get; set; }
+    public string? LanguageCode { get; init; }
 }

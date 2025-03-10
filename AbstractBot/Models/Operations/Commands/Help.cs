@@ -13,7 +13,7 @@ namespace AbstractBot.Models.Operations.Commands;
 [PublicAPI]
 public sealed class Help : Command
 {
-    internal Help(IAccesses accesses, IUpdateSender updateSender, IUpdateReceiver updateReceiver, ITexts texts,
+    public Help(IAccesses accesses, IUpdateSender updateSender, IUpdateReceiver updateReceiver, ITexts texts,
         string selfUsername)
         : base(accesses, updateSender, "help", texts, selfUsername)
     {

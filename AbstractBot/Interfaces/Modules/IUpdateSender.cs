@@ -13,6 +13,8 @@ namespace AbstractBot.Interfaces.Modules;
 [PublicAPI]
 public interface IUpdateSender
 {
+    KeyboardProvider DefaultKeyboardProvider { get; set; }
+
     Task<Message> SendTextMessageAsync(Chat chat, string text, KeyboardProvider? keyboardProvider = null,
         ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null,
         LinkPreviewOptions? linkPreviewOptions = null, int? messageThreadId = null,
@@ -117,6 +119,4 @@ public interface IUpdateSender
         string? startParameter = default, int? messageThreadId = default, bool disableNotification = default,
         bool protectContent = default, string? messageEffectId = default, bool allowPaidBroadcast = default,
         CancellationToken cancellationToken = default);
-
-    KeyboardProvider GetDefaultKeyboardProvider(Chat chat);
 }

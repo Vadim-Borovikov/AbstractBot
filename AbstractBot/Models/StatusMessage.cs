@@ -11,20 +11,22 @@ namespace AbstractBot.Models;
 [PublicAPI]
 public class StatusMessage : IAsyncDisposable
 {
-    public static Task<StatusMessage> CreateAsync(IUpdateSender bot, Chat chat, MessageTemplateText messageText,
-        MessageTemplateText startFormat, MessageTemplateText endFormat, MessageTemplateText postfix)
+    public static Task<StatusMessage> CreateAsync(IUpdateSender updateSender, Chat chat,
+        MessageTemplateText messageText, MessageTemplateText startFormat, MessageTemplateText endFormat,
+        MessageTemplateText postfix)
     {
-        return CreateAsync(bot, chat, messageText, startFormat, endFormat, () => postfix);
+        return CreateAsync(updateSender, chat, messageText, startFormat, endFormat, () => postfix);
     }
 
-    public static async Task<StatusMessage> CreateAsync(IUpdateSender bot, Chat chat, MessageTemplateText messageText,
-        MessageTemplateText startFormat, MessageTemplateText endFormat,
+    public static async Task<StatusMessage> CreateAsync(IUpdateSender updateSender, Chat chat,
+        MessageTemplateText messageText, MessageTemplateText startFormat, MessageTemplateText endFormat,
         Func<MessageTemplateText>? postfixProvider = null)
     {
         MessageTemplateText formatted = startFormat.Format(messageText);
         formatted.KeyboardProvider = KeyboardProvider.Same;
-        Message message = await formatted.SendAsync(bot, chat);
-        return new StatusMessage(bot, message, formatted, endFormat, postfixProvider, messageText.CancellationToken);
+        Message message = await formatted.SendAsync(updateSender, chat);
+        return new StatusMessage(updateSender, message, formatted, endFormat, postfixProvider,
+            messageText.CancellationToken);
     }
 
     public async ValueTask DisposeAsync()

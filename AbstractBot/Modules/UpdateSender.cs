@@ -19,6 +19,8 @@ namespace AbstractBot.Modules;
 [PublicAPI]
 public class UpdateSender : IUpdateSender
 {
+    public KeyboardProvider DefaultKeyboardProvider { get; set; } = KeyboardProvider.Remove;
+
     public UpdateSender(TelegramBotClient client, IFileStorage fileStorage, ICooldown cooldown, LoggerExtended logger)
     {
         _client = client;
@@ -34,7 +36,7 @@ public class UpdateSender : IUpdateSender
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
         CancellationToken cancellationToken = default)
     {
-        keyboardProvider ??= GetDefaultKeyboardProvider(chat);
+        keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendText, data: text);
         return _client.SendMessage(chat.Id, text, parseMode, replyParameters, keyboardProvider.Keyboard,
@@ -251,7 +253,7 @@ public class UpdateSender : IUpdateSender
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
         bool allowPaidBroadcast = false, CancellationToken cancellationToken = default)
     {
-        keyboardProvider ??= GetDefaultKeyboardProvider(chat);
+        keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendPhoto, data: caption);
 
@@ -299,7 +301,7 @@ public class UpdateSender : IUpdateSender
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
         CancellationToken cancellationToken = default)
     {
-        keyboardProvider ??= GetDefaultKeyboardProvider(chat);
+        keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendPhoto, data: caption);
 
@@ -314,7 +316,7 @@ public class UpdateSender : IUpdateSender
         string? businessConnectionId = null, bool allowPaidBroadcast = false,
         CancellationToken cancellationToken = default)
     {
-        keyboardProvider ??= GetDefaultKeyboardProvider(chat);
+        keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendSticker);
 
@@ -365,7 +367,6 @@ public class UpdateSender : IUpdateSender
             replyParameters, replyMarkup, startParameter, messageThreadId, disableNotification, protectContent,
             messageEffectId, allowPaidBroadcast, cancellationToken);
     }
-    public KeyboardProvider GetDefaultKeyboardProvider(Chat chat) => KeyboardProvider.Remove;
 
     private readonly TelegramBotClient _client;
     private readonly IFileStorage _fileStorage;

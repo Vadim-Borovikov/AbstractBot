@@ -5,8 +5,8 @@ using JetBrains.Annotations;
 namespace AbstractBot.Modules.Context;
 
 [PublicAPI]
-public class BotSaveData<TUserSaveData> : IBotSaveData<TUserSaveData>
+public class BotStateData<TUserStateData> : IBotStateData<TUserStateData>
 {
     [UsedImplicitly]
-    public Dictionary<long, TUserSaveData> UsersData { get; set; } = new();
+    public Dictionary<long, TUserStateData> UsersData { get; set; } = new();
 }

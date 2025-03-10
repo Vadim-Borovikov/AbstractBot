@@ -2,8 +2,8 @@
 
 namespace AbstractBot.Interfaces.Modules.Context.Localization;
 
-public interface ILocalizationUserFinalData<TUserSaveData> : IFinalData<TUserSaveData>
-    where TUserSaveData : class, ILocalizationUserSaveData
+public interface ILocalizationUserState<TLocalizationUserStateData> : IStateful<TLocalizationUserStateData>
+    where TLocalizationUserStateData : ILocalizationUserStateData
 {
     public string? LanguageCode { get; }
 }
