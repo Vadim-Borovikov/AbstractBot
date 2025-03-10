@@ -88,6 +88,6 @@ public abstract class Operation<TData> : OperationBase
 
     protected virtual Task ExecuteAsync(TData data, Message message, User from, string callbackQueryDataCore)
     {
-        return Task.CompletedTask;
+        return ExecuteAsync(data, message, from);
     }
 }
