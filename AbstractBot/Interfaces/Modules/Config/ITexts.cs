@@ -17,10 +17,10 @@ public interface ITexts
 
     MessageTemplateText CommandDescriptionFormat { get; }
 
-    string? TryGetCommandDescription(string command);
+    string? TryGetMenuDescription(string command);
 
-    string GetCommandDescription(string command)
+    string GetMenuDescription(string command)
     {
-        return TryGetCommandDescription(command).Denull($"No description for /{command}!");
+        return TryGetMenuDescription(command).Denull($"No description for /{command}!");
     }
 }

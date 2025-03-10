@@ -5,7 +5,7 @@ using Telegram.Bot.Types;
 namespace AbstractBot.Interfaces.Modules;
 
 [PublicAPI]
-public interface ITextsProvider<out TTexts>
+public interface ITextsProvider<out TTexts> : IUserProvider
     where TTexts : ITexts
 {
     public TTexts GetTextsFor(User user);

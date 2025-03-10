@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AbstractBot.Interfaces.Modules.Config;
+using AbstractBot.Interfaces.Modules;
+using AbstractBot.Models.MessageTemplates;
 using AbstractBot.Utilities.Extensions;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
@@ -13,10 +16,12 @@ public sealed class BotCommandExtended : BotCommand
 {
     public bool ShowInMenu { get; }
 
-    internal BotCommandExtended(string start, string description, string selfUsername, bool showInMenu = true)
+    internal BotCommandExtended(string start, string description, string selfUsername,
+        ITextsProvider<ITexts> textsProvider, bool showInMenu = true)
         : base(start, description)
     {
         _selfUsername = selfUsername;
+        _textsProvider = textsProvider;
         ShowInMenu = showInMenu;
     }
 
@@ -37,5 +42,13 @@ public sealed class BotCommandExtended : BotCommand
         return splitted.First().Equals(trigger, StringComparison.InvariantCultureIgnoreCase) ? splitted.Skip(1) : null;
     }
 
+    public MessageTemplateText? GetHelpDescriptionFor(User user)
+    {
+        ITexts texts = _textsProvider.GetTextsFor(user);
+        string? description = texts.TryGetMenuDescription(Command);
+        return description is null ? null : texts.CommandDescriptionFormat.Format(Command, description);
+    }
+
     private readonly string _selfUsername;
+    private readonly ITextsProvider<ITexts> _textsProvider;
 }

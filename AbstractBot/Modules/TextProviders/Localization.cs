@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Modules.Context.Localization;
@@ -44,6 +45,8 @@ public class Localization<TTexts, TUserState, TUserStateData> : ITextsProvider<T
 
         return AllTexts[languageCode];
     }
+
+    public IEnumerable<User> GetUsers() => _userStates.Keys.Select(id => new User { Id = id } );
 
     private readonly Dictionary<long, TUserState> _userStates;
 }

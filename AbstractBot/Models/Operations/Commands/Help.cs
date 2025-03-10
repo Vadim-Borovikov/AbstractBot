@@ -13,30 +13,33 @@ namespace AbstractBot.Models.Operations.Commands;
 [PublicAPI]
 public sealed class Help : Command
 {
-    public Help(IAccesses accesses, IUpdateSender updateSender, IUpdateReceiver updateReceiver, ITexts texts,
-        string selfUsername)
-        : base(accesses, updateSender, "help", texts, selfUsername)
+    public Help(IAccesses accesses, IUpdateSender updateSender, IUpdateReceiver updateReceiver,
+        ITextsProvider<ITexts> textsProvider, string selfUsername)
+        : base(accesses, updateSender, "help", textsProvider, selfUsername)
     {
         _accesses = accesses;
         _updateReceiver = updateReceiver;
-        _format = texts.HelpFormat;
+        _textsProvider = textsProvider;
     }
 
     protected override Task ExecuteAsync(Message message, User sender)
     {
+        ITexts texts = _textsProvider.GetTextsFor(sender);
+
         AccessData access = _accesses.GetAccess(sender.Id);
 
         List<MessageTemplateText> descriptions =
             _updateReceiver.Operations
                            .Where(o => access.IsSufficientAgainst(o.AccessRequired))
-                           .Select(o => o.HelpDescription)
+                           .Select(o => o.GetHelpDescriptionFor(sender))
                            .SkipNulls()
                            .ToList();
 
         MessageTemplateText template = MessageTemplateText.JoinTexts(descriptions);
-        if (_format is not null)
+        MessageTemplateText? format = texts.HelpFormat;
+        if (format is not null)
         {
-            template = _format.Format(template);
+            template = format.Format(template);
         }
 
         return template.SendAsync(UpdateSender, message.Chat);
@@ -44,5 +47,5 @@ public sealed class Help : Command
 
     private readonly IAccesses _accesses;
     private readonly IUpdateReceiver _updateReceiver;
-    private readonly MessageTemplateText? _format;
+    private readonly ITextsProvider<ITexts> _textsProvider;
 }

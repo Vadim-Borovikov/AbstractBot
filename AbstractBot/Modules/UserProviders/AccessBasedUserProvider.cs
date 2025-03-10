@@ -4,7 +4,7 @@ using AbstractBot.Interfaces.Modules;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
-namespace AbstractBot.Modules;
+namespace AbstractBot.Modules.UserProviders;
 
 [PublicAPI]
 public class AccessBasedUserProvider : IUserProvider

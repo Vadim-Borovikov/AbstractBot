@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using JetBrains.Annotations;
@@ -15,4 +17,5 @@ public class Common<TTexts> : ITextsProvider<TTexts>
     public TTexts GetDefaultTexts() => _texts;
 
     private readonly TTexts _texts;
+    public IEnumerable<User> GetUsers() => Enumerable.Empty<User>();
 }

@@ -16,8 +16,6 @@ public abstract class OperationBase : IOperation
     public virtual bool EnabledInGroups => false;
     public virtual bool EnabledInChannels => false;
 
-    public MessageTemplateText? HelpDescription { get; set; }
-
     protected OperationBase(IAccesses accesses, IUpdateSender updateSender)
     {
         _accesses = accesses;
@@ -32,6 +30,8 @@ public abstract class OperationBase : IOperation
         string typeName = GetType().Name;
         return query.StartsWith(typeName, StringComparison.InvariantCulture) ? query.Substring(typeName.Length) : null;
     }
+
+    public virtual MessageTemplateText? GetHelpDescriptionFor(User user) => null;
 
     protected AccessData.Status CheckAccess(long userId) => _accesses.GetAccess(userId).CheckAgainst(AccessRequired);
 

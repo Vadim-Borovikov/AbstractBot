@@ -61,7 +61,7 @@ public class Commands : ICommands
 
         foreach (BotCommandExtended c in commands)
         {
-            string? description = texts.TryGetCommandDescription(c.Command);
+            string? description = texts.TryGetMenuDescription(c.Command);
             if (!string.IsNullOrWhiteSpace(description))
             {
                 yield return new BotCommand(c.Command, description);

@@ -11,7 +11,7 @@ public class Texts : ITexts
 {
     [Required]
     [MinLength(1)]
-    public Dictionary<string, string> CommandMenuDescriptions { get; init; } = null!;
+    public Dictionary<string, string> MenuDescriptions { get; init; } = null!;
 
     [Required]
     public MessageTemplateText StartFormat { get; init; } = null!;
@@ -27,5 +27,5 @@ public class Texts : ITexts
     [Required]
     public MessageTemplateText CommandDescriptionFormat { get; init; } = null!;
 
-    public string? TryGetCommandDescription(string command) => CommandMenuDescriptions.GetValueOrDefault(command);
+    public string? TryGetMenuDescription(string command) => MenuDescriptions.GetValueOrDefault(command);
 }
