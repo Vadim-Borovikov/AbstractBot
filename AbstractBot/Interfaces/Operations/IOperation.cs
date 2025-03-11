@@ -24,5 +24,5 @@ public interface IOperation
 
     Task<ExecutionResult> TryExecuteAsync(Message message, User from, string? callbackQueryData);
 
-    MessageTemplateText? GetHelpDescriptionFor(User user);
+    MessageTemplateText? GetHelpDescriptionFor(long userId);
 }

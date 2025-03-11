@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Modules.Context.Localization;
 using JetBrains.Annotations;
-using Telegram.Bot.Types;
 
 namespace AbstractBot.Modules.TextProviders;
 
@@ -26,11 +24,9 @@ public class Localization<TTexts, TUserState, TUserStateData> : ITextsProvider<T
         _userStates = userStates;
     }
 
-    public TTexts GetTextsFor(User user)
+    public TTexts GetTextsFor(long userId)
     {
-        string languageCode = _userStates.GetValueOrDefault(user.Id)?.LanguageCode
-                              ?? user.LanguageCode
-                              ?? DefaultLanguageCode;
+        string languageCode = _userStates.GetValueOrDefault(userId)?.LanguageCode ?? DefaultLanguageCode;
 
         return GetTexts(languageCode);
     }
@@ -45,8 +41,6 @@ public class Localization<TTexts, TUserState, TUserStateData> : ITextsProvider<T
 
         return AllTexts[languageCode];
     }
-
-    public IEnumerable<User> GetUsers() => _userStates.Keys.Select(id => new User { Id = id } );
 
     private readonly Dictionary<long, TUserState> _userStates;
 }

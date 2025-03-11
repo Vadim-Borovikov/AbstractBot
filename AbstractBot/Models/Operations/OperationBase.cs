@@ -31,7 +31,7 @@ public abstract class OperationBase : IOperation
         return query.StartsWith(typeName, StringComparison.InvariantCulture) ? query.Substring(typeName.Length) : null;
     }
 
-    public virtual MessageTemplateText? GetHelpDescriptionFor(User user) => null;
+    public virtual MessageTemplateText? GetHelpDescriptionFor(long userId) => null;
 
     protected AccessData.Status CheckAccess(long userId) => _accesses.GetAccess(userId).CheckAgainst(AccessRequired);
 

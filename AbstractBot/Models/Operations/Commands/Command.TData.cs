@@ -24,9 +24,9 @@ public abstract class Command<TData> : Operation<TData>, ICommand
         BotCommandExtended = new BotCommandExtended(command, menuDescription, selfUsername, textsProvider, showInMenu);
     }
 
-    public override MessageTemplateText? GetHelpDescriptionFor(User user)
+    public override MessageTemplateText? GetHelpDescriptionFor(long userId)
     {
-        return BotCommandExtended.GetHelpDescriptionFor(user);
+        return BotCommandExtended.GetHelpDescriptionFor(userId);
     }
 
     protected override bool IsInvokingBy(Message message, User from, out TData? data)

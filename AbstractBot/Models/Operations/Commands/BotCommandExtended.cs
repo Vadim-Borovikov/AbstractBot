@@ -42,9 +42,9 @@ public sealed class BotCommandExtended : BotCommand
         return splitted.First().Equals(trigger, StringComparison.InvariantCultureIgnoreCase) ? splitted.Skip(1) : null;
     }
 
-    public MessageTemplateText? GetHelpDescriptionFor(User user)
+    public MessageTemplateText? GetHelpDescriptionFor(long userId)
     {
-        ITexts texts = _textsProvider.GetTextsFor(user);
+        ITexts texts = _textsProvider.GetTextsFor(userId);
         string? description = texts.TryGetMenuDescription(Command);
         return description is null ? null : texts.CommandDescriptionFormat.Format(Command, description);
     }

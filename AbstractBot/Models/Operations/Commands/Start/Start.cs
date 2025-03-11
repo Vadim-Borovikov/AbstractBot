@@ -11,19 +11,23 @@ namespace AbstractBot.Models.Operations.Commands.Start;
 public sealed class Start : Command, IStartCommand
 {
     public Start(IAccesses accesses, IUpdateSender updateSender, ICommands commands,
-        ITextsProvider<ITexts> textsProvider, string selfUsername, IGreeter greeter)
+        ITextsProvider<ITexts> textsProvider, string selfUsername, IGreeter greeter,
+        IUserRegistrator? userRegistrator = null)
         : base(accesses, updateSender, "start", textsProvider, selfUsername)
     {
         _commands = commands;
         _greeter = greeter;
+        _userRegistrator = userRegistrator;
     }
 
     protected override async Task ExecuteAsync(Message message, User from)
     {
-        await _commands.UpdateFor(from);
+        _userRegistrator?.RegistrerUser(from);
+        await _commands.UpdateFor(from.Id);
         await _greeter.Greet(message, from);
     }
 
     private readonly ICommands _commands;
     private readonly IGreeter _greeter;
+    private readonly IUserRegistrator? _userRegistrator;
 }

@@ -10,7 +10,6 @@ using AbstractBot.Models.Operations.Commands.Start;
 using AbstractBot.Modules;
 using AbstractBot.Modules.Context.Localization;
 using AbstractBot.Modules.TextProviders;
-using AbstractBot.Modules.UserProviders;
 using GoogleSheetsManager.Documents;
 using GryphonUtilities.Save;
 // ReSharper disable NotAccessedField.Local
@@ -63,13 +62,14 @@ internal sealed class ExampleBot : Bot, IDisposable
         Localization<Texts, ExampleUserState, LocalizationUserStateData> localization =
             new(config.AllTexts, config.DefaultLanguageCode, userStates);
 
-        AccessBasedUserProvider userProvider = new(core.Accesses);
+        LocalizationUserRegistrator<ExampleUserState, LocalizationUserStateData> registrator = new(userStates);
 
-        ICommands commands = new Commands(core.Client, core.Accesses, core.UpdateReceiver, localization, userProvider);
+        ICommands commands = new Commands(core.Client, core.Accesses, core.UpdateReceiver, localization);
 
         Texts defaultTexts = localization.GetDefaultTexts();
         Greeter greeter = new(core.UpdateSender, defaultTexts.StartFormat);
-        Start start = new(core.Accesses, core.UpdateSender, commands, localization, core.SelfUsername, greeter);
+        Start start =
+            new(core.Accesses, core.UpdateSender, commands, localization, core.SelfUsername, greeter, registrator);
 
         Help help = new(core.Accesses, core.UpdateSender, core.UpdateReceiver, localization, core.SelfUsername);
 

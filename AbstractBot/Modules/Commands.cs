@@ -17,20 +17,21 @@ namespace AbstractBot.Modules;
 public class Commands : ICommands
 {
     public Commands(TelegramBotClient client, IAccesses accesses, IUpdateReceiver updateReceiver,
-        ITextsProvider<ITexts> textsProvider, IUserProvider users)
+        ITextsProvider<ITexts> textsProvider, IEnumerable<long>? additionalUsers = null)
     {
         _client = client;
         _accesses = accesses;
         _updateReceiver = updateReceiver;
         _textsProvider = textsProvider;
-        _users = users;
+
+        _userIds = additionalUsers is null ? accesses.Ids.Distinct() : accesses.Ids.Concat(additionalUsers).Distinct();
     }
 
-    public Task UpdateFor(User user, CancellationToken cancellationToken = default)
+    public Task UpdateFor(long userId, CancellationToken cancellationToken = default)
     {
-        ITexts texts = _textsProvider.GetTextsFor(user);
-        IEnumerable<BotCommand> commands = GetMenuCommands(_accesses.GetAccess(user.Id), texts);
-        return _client.SetMyCommands(commands, BotCommandScope.Chat(user.Id), cancellationToken: cancellationToken);
+        ITexts texts = _textsProvider.GetTextsFor(userId);
+        IEnumerable<BotCommand> commands = GetMenuCommands(_accesses.GetAccess(userId), texts);
+        return _client.SetMyCommands(commands, BotCommandScope.Chat(userId), cancellationToken: cancellationToken);
     }
 
     public async Task UpdateForAll(CancellationToken cancellationToken = default)
@@ -44,9 +45,9 @@ public class Commands : ICommands
         await _client.SetMyCommands(GetMenuCommands(AccessData.Default, defaultTexts),
             BotCommandScope.AllPrivateChats(), cancellationToken: cancellationToken);
 
-        foreach (User user in _users.GetUsers())
+        foreach (long id in _userIds)
         {
-            await UpdateFor(user, cancellationToken);
+            await UpdateFor(id, cancellationToken);
         }
     }
 
@@ -73,5 +74,5 @@ public class Commands : ICommands
     private readonly IAccesses _accesses;
     private readonly IUpdateReceiver _updateReceiver;
     private readonly ITextsProvider<ITexts> _textsProvider;
-    private readonly IUserProvider _users;
+    private readonly IEnumerable<long> _userIds;
 }

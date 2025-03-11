@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using JetBrains.Annotations;
-using Telegram.Bot.Types;
 
 namespace AbstractBot.Modules.TextProviders;
 
@@ -13,9 +10,8 @@ public class Common<TTexts> : ITextsProvider<TTexts>
 {
     public Common(TTexts texts) => _texts = texts;
 
-    public TTexts GetTextsFor(User user) => _texts;
+    public TTexts GetTextsFor(long userId) => _texts;
     public TTexts GetDefaultTexts() => _texts;
 
     private readonly TTexts _texts;
-    public IEnumerable<User> GetUsers() => Enumerable.Empty<User>();
 }

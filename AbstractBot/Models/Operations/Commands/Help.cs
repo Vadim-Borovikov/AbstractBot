@@ -24,14 +24,14 @@ public sealed class Help : Command
 
     protected override Task ExecuteAsync(Message message, User sender)
     {
-        ITexts texts = _textsProvider.GetTextsFor(sender);
+        ITexts texts = _textsProvider.GetTextsFor(sender.Id);
 
         AccessData access = _accesses.GetAccess(sender.Id);
 
         List<MessageTemplateText> descriptions =
             _updateReceiver.Operations
                            .Where(o => access.IsSufficientAgainst(o.AccessRequired))
-                           .Select(o => o.GetHelpDescriptionFor(sender))
+                           .Select(o => o.GetHelpDescriptionFor(sender.Id))
                            .SkipNulls()
                            .ToList();
 
