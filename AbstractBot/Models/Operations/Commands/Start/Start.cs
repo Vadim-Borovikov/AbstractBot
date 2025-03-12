@@ -15,19 +15,16 @@ public sealed class Start : Command, IStartCommand
         IUserRegistrator? userRegistrator = null)
         : base(accesses, updateSender, "start", textsProvider, selfUsername)
     {
-        _commands = commands;
+        _startCommon = new StartCommon(commands, userRegistrator);
         _greeter = greeter;
-        _userRegistrator = userRegistrator;
     }
 
     protected override async Task ExecuteAsync(Message message, User from)
     {
-        _userRegistrator?.RegistrerUser(from);
-        await _commands.UpdateFor(from.Id);
+        await _startCommon.ExecuteAsync(from);
         await _greeter.Greet(message, from);
     }
 
-    private readonly ICommands _commands;
+    private readonly StartCommon _startCommon;
     private readonly IGreeter _greeter;
-    private readonly IUserRegistrator? _userRegistrator;
 }
