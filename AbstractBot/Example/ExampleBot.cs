@@ -66,8 +66,7 @@ internal sealed class ExampleBot : Bot, IDisposable
 
         ICommands commands = new Commands(core.Client, core.Accesses, core.UpdateReceiver, localization);
 
-        Texts defaultTexts = localization.GetDefaultTexts();
-        Greeter greeter = new(core.UpdateSender, defaultTexts.StartFormat);
+        Greeter greeter = new(core.UpdateSender, localization);
         Start start =
             new(core.Accesses, core.UpdateSender, commands, localization, core.SelfUsername, greeter, registrator);
 
