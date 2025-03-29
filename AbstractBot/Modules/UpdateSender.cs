@@ -113,7 +113,6 @@ public class UpdateSender : IUpdateSender
 
     public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
     {
-        _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.Delete, messageId);
         return _client.DeleteMessage(chat.Id, messageId, cancellationToken);
     }
