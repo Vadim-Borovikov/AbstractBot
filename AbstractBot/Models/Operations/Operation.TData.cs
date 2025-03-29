@@ -14,11 +14,11 @@ public abstract class Operation<TData> : OperationBase
     protected Operation(IAccesses accesses, IUpdateSender updateSender) : base(accesses, updateSender) { }
 
     public override async Task<IOperation.ExecutionResult> TryExecuteAsync(Message message, User from,
-        string? callbackQueryData)
+        CallbackQuery? callbackQuery)
     {
         TData? data;
         string? callbackQueryDataCore = null;
-        if (callbackQueryData is null)
+        if (callbackQuery?.Data is null)
         {
             if (!IsInvokingBy(message, from, out data))
             {
@@ -27,7 +27,7 @@ public abstract class Operation<TData> : OperationBase
         }
         else
         {
-            callbackQueryDataCore = TryGetQueryCore(callbackQueryData);
+            callbackQueryDataCore = TryGetQueryCore(callbackQuery.Data);
             if (callbackQueryDataCore is null)
             {
                 return IOperation.ExecutionResult.UnsuitableOperation;
@@ -37,6 +37,11 @@ public abstract class Operation<TData> : OperationBase
             {
                 return IOperation.ExecutionResult.UnsuitableOperation;
             }
+        }
+
+        if (callbackQuery is not null)
+        {
+            await UpdateSender.AnswerCallbackQueryAsync(callbackQuery.Id);
         }
 
         AccessData.Status status = CheckAccess(from.Id);

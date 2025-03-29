@@ -66,20 +66,20 @@ public class UpdateReceiver : IUpdateReceiver
             throw new Exception("CallbackQuery update with null Data");
         }
 
-        return UpdateAsync(callbackQuery.Message, callbackQuery.From, callbackQuery.Data);
+        return UpdateAsync(callbackQuery.Message, callbackQuery.From, callbackQuery);
     }
 
     protected virtual Task UpdateAsync(PreCheckoutQuery _) => Task.CompletedTask;
 
     protected virtual async Task<IOperation?> UpdateAsync(Message message, User from,
-        string? callbackQueryData = null)
+        CallbackQuery? callbackQuery = null)
     {
         if (from.Id == _selfId)
         {
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(callbackQueryData))
+        if (callbackQuery is null)
         {
             _logger.LogUpdate(message.Chat, LoggerExtended.UpdateType.ReceiveMessage, message.MessageId,
                 $"{message.Text}{message.Caption}");
@@ -87,7 +87,7 @@ public class UpdateReceiver : IUpdateReceiver
         else
         {
             _logger.LogUpdate(message.Chat, LoggerExtended.UpdateType.ReceiveCallback, message.MessageId,
-                callbackQueryData);
+                callbackQuery.Data);
         }
 
         // ReSharper disable once LoopCanBePartlyConvertedToQuery
@@ -103,7 +103,7 @@ public class UpdateReceiver : IUpdateReceiver
                 continue;
             }
 
-            IOperation.ExecutionResult result = await operation.TryExecuteAsync(message, from, callbackQueryData);
+            IOperation.ExecutionResult result = await operation.TryExecuteAsync(message, from, callbackQuery);
             switch (result)
             {
                 case IOperation.ExecutionResult.UnsuitableOperation: continue;

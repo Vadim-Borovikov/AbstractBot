@@ -119,4 +119,7 @@ public interface IUpdateSender
         string? startParameter = default, int? messageThreadId = default, bool disableNotification = default,
         bool protectContent = default, string? messageEffectId = default, bool allowPaidBroadcast = default,
         CancellationToken cancellationToken = default);
+
+    public Task AnswerCallbackQueryAsync(string callbackQueryId, string? text = null, bool showAlert = false,
+        string? url = null, int? cacheTime = null, CancellationToken cancellationToken = default);
 }

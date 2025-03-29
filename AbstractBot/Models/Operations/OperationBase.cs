@@ -23,7 +23,7 @@ public abstract class OperationBase : IOperation
     }
 
     public abstract Task<IOperation.ExecutionResult> TryExecuteAsync(Message message, User from,
-        string? callbackQueryData);
+        CallbackQuery? callbackQuery);
 
     protected string? TryGetQueryCore(string query)
     {

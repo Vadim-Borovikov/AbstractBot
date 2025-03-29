@@ -368,6 +368,12 @@ public class UpdateSender : IUpdateSender
             messageEffectId, allowPaidBroadcast, cancellationToken);
     }
 
+    public Task AnswerCallbackQueryAsync(string callbackQueryId, string? text = null, bool showAlert = false,
+        string? url = null, int? cacheTime = null, CancellationToken cancellationToken = default)
+    {
+        return _client.AnswerCallbackQuery(callbackQueryId, text, showAlert, url, cacheTime, cancellationToken);
+    }
+
     private readonly TelegramBotClient _client;
     private readonly IFileStorage _fileStorage;
     private readonly ICooldown _cooldown;
