@@ -53,6 +53,14 @@ public class MessageTemplateText : MessageTemplate
             keyboard, BusinessConnectionId, CancellationToken);
     }
 
+    public Task<Message> EditMessageCaptionWithSelfAsync(IUpdateSender updateSender, Chat chat,
+        bool showCaptionAboveMedia, int messageId)
+    {
+        InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
+        return updateSender.EditMessageCaptionAsync(chat, messageId, TextJoined, ParseMode, Entities,
+            showCaptionAboveMedia, keyboard, BusinessConnectionId, CancellationToken);
+    }
+
     public override Task<Message> SendAsync(IUpdateSender updateSender, Chat chat)
     {
         return updateSender.SendTextMessageAsync(chat, TextJoined, KeyboardProvider, ParseMode, ReplyParameters,
