@@ -55,22 +55,22 @@ public class UpdateSender : IUpdateSender
             businessConnectionId, cancellationToken);
     }
 
-    public async Task<Message> EditMessageMediaAsync(Chat chat, int messageId, string path,
-        InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
-        CancellationToken cancellationToken = default)
+    public async Task<Message> EditMessageMediaAsync(Chat chat, int messageId, string path, string newCaption = "",
+        ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = default,
+        string? businessConnectionId = default, CancellationToken cancellationToken = default)
     {
         InputFile? photo = _fileStorage.TryGetInputFileId(path);
         if (photo is not null)
         {
-            return await EditMessageMediaAsync(chat, messageId, photo, replyMarkup, businessConnectionId,
-                cancellationToken);
+            return await EditMessageMediaAsync(chat, messageId, photo, newCaption, parseMode, replyMarkup,
+                businessConnectionId, cancellationToken);
         }
 
         await using (FileStream stream = File.OpenRead(path))
         {
             photo = stream.ToInputFileStream();
-            Message message = await EditMessageMediaAsync(chat, messageId, photo, replyMarkup, businessConnectionId,
-                cancellationToken);
+            Message message = await EditMessageMediaAsync(chat, messageId, photo, newCaption, parseMode, replyMarkup,
+                businessConnectionId, cancellationToken);
 
             PhotoSize? file = message.Photo.Largest();
             if (file is not null)
@@ -82,11 +82,15 @@ public class UpdateSender : IUpdateSender
         }
     }
 
-    public Task<Message> EditMessageMediaAsync(Chat chat, int messageId, InputFile file,
-        InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
-        CancellationToken cancellationToken = default)
+    public Task<Message> EditMessageMediaAsync(Chat chat, int messageId, InputFile file, string newCaption = "",
+        ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = default,
+        string? businessConnectionId = default, CancellationToken cancellationToken = default)
     {
-        InputMediaPhoto media = new(file);
+        InputMediaPhoto media = new(file)
+        {
+            Caption = newCaption,
+            ParseMode = parseMode
+        };
         return EditMessageMediaAsync(chat, messageId, media, replyMarkup, businessConnectionId, cancellationToken);
     }
 

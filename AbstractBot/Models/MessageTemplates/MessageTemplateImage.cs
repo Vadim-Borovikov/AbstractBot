@@ -60,8 +60,8 @@ public class MessageTemplateImage : MessageTemplate
     public Task<Message> EditMessageMediaWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return updateSender.EditMessageMediaAsync(chat, messageId, ImagePath, keyboard, BusinessConnectionId,
-            CancellationToken);
+        return updateSender.EditMessageMediaAsync(chat, messageId, ImagePath, TextJoined, ParseMode, keyboard,
+            BusinessConnectionId, CancellationToken);
     }
 
     public Task<Message> EditMessageCaptionWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)

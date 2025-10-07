@@ -27,13 +27,13 @@ public interface IUpdateSender
         InlineKeyboardMarkup? replyMarkup = null, string? businessConnectionId = null,
         CancellationToken cancellationToken = default);
 
-    Task<Message> EditMessageMediaAsync(Chat chat, int messageId, string path,
-        InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
-        CancellationToken cancellationToken = default);
+    Task<Message> EditMessageMediaAsync(Chat chat, int messageId, string path, string newCaption = "",
+        ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = default,
+        string? businessConnectionId = default, CancellationToken cancellationToken = default);
 
-    Task<Message> EditMessageMediaAsync(Chat chat, int messageId, InputFile file,
-        InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
-        CancellationToken cancellationToken = default);
+    Task<Message> EditMessageMediaAsync(Chat chat, int messageId, InputFile file, string newCaption = "",
+        ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = default,
+        string? businessConnectionId = default, CancellationToken cancellationToken = default);
 
     Task<Message> EditMessageMediaAsync(Chat chat, int messageId, InputMedia media,
         InlineKeyboardMarkup? replyMarkup = default, string? businessConnectionId = default,
