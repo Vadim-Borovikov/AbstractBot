@@ -21,11 +21,13 @@ public class UpdateSender : IUpdateSender
 {
     public KeyboardProvider DefaultKeyboardProvider { get; set; } = KeyboardProvider.Remove;
 
-    public UpdateSender(TelegramBotClient client, IFileStorage fileStorage, ICooldown cooldown, LoggerExtended logger)
+    public UpdateSender(TelegramBotClient client, IFileStorage fileStorage, ICooldown cooldown, IBatcher batcher,
+        LoggerExtended logger)
     {
         _client = client;
         _fileStorage = fileStorage;
         _cooldown = cooldown;
+        _batcher = batcher;
         _logger = logger;
     }
 
@@ -121,6 +123,36 @@ public class UpdateSender : IUpdateSender
         return _client.DeleteMessage(chat.Id, messageId, cancellationToken);
     }
 
+    public Task DeleteMessagesAsync(Chat chat, IList<int> messageIds, CancellationToken cancellationToken = default)
+    {
+        return _batcher.DoForChunksAsync(messageIds, ids => DeleteMessageBatchAsync(chat, ids, cancellationToken));
+    }
+
+    public Task<MessageId> CopyMessageAsync(Chat chat, ChatId fromChatId, int messageId, string? caption = null,
+        ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null,
+        ReplyMarkup? replyMarkup = null, int? messageThreadId = null,
+        IEnumerable<MessageEntity>? captionEntities = null, bool showCaptionAboveMedia = false,
+        bool disableNotification = false, bool protectContent = false, bool allowPaidBroadcast = false,
+        int? videoStartTimestamp = null, CancellationToken cancellationToken = default)
+    {
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Copy, data: $"message {messageId} from {fromChatId}");
+        return _client.CopyMessage(chat.Id, fromChatId, messageId, caption, parseMode, replyParameters, replyMarkup,
+            messageThreadId, captionEntities, showCaptionAboveMedia, disableNotification, protectContent,
+            allowPaidBroadcast, videoStartTimestamp, cancellationToken);
+    }
+
+    public async Task<MessageId[]> CopyMessagesAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
+        bool removeCaption = false, int? messageThreadId = null, bool disableNotification = false,
+        bool protectContent = false, CancellationToken cancellationToken = default)
+    {
+        IEnumerable<MessageId> newIds =
+            await _batcher.DoForChunksAsync(messageIds,
+                ids => CopyMessageBatchAsync(chat, fromChatId, ids, removeCaption, messageThreadId,
+                    disableNotification, protectContent, cancellationToken).ToIEnumerable());
+        return newIds.ToArray();
+    }
+
     public Task<Message> ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId, int? messageThreadId = null,
         bool disableNotification = false, bool protectContent = false, int? videoStartTimestamp = null,
         CancellationToken cancellationToken = default)
@@ -129,6 +161,17 @@ public class UpdateSender : IUpdateSender
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.Forward, data: $"message {messageId} from {fromChatId}");
         return _client.ForwardMessage(chat.Id, fromChatId, messageId, messageThreadId, disableNotification,
             protectContent, videoStartTimestamp, cancellationToken);
+    }
+
+    public async Task<MessageId[]> ForwardMessagesAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
+        int? messageThreadId = null, bool disableNotification = false, bool protectContent = false,
+        CancellationToken cancellationToken = default)
+    {
+        IEnumerable<MessageId> newIds =
+            await _batcher.DoForChunksAsync(messageIds,
+                ids => ForwardMessageBatchAsync(chat, fromChatId, ids, messageThreadId, disableNotification,
+                    protectContent, cancellationToken).ToIEnumerable());
+        return newIds.ToArray();
     }
 
     public async Task<Message[]> SendMediaGroupAsync(Chat chat, IList<string> paths, string? caption = null,
@@ -377,8 +420,39 @@ public class UpdateSender : IUpdateSender
         return _client.AnswerCallbackQuery(callbackQueryId, text, showAlert, url, cacheTime, cancellationToken);
     }
 
+    private Task DeleteMessageBatchAsync(Chat chat, IList<int> messageIds,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Delete, data: $"messages {string.Join(", ", messageIds)}");
+        return _client.DeleteMessages(chat.Id, messageIds, cancellationToken);
+    }
+
+    private Task<MessageId[]> CopyMessageBatchAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
+        bool removeCaption = false, int? messageThreadId = null, bool disableNotification = false,
+        bool protectContent = false, CancellationToken cancellationToken = default)
+    {
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Copy,
+            data: $"messages {string.Join(", ", messageIds)} from {fromChatId}");
+        return _client.CopyMessages(chat.Id, fromChatId, messageIds, removeCaption, messageThreadId,
+            disableNotification, protectContent, cancellationToken);
+    }
+
+    private Task<MessageId[]> ForwardMessageBatchAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
+        int? messageThreadId = null, bool disableNotification = false, bool protectContent = false,
+        CancellationToken cancellationToken = default)
+    {
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Forward,
+            data: $"messages {string.Join(", ", messageIds)} from {fromChatId}");
+
+        return _client.ForwardMessages(chat.Id, fromChatId, messageIds, messageThreadId, disableNotification,
+            protectContent, cancellationToken);
+    }
+
     private readonly TelegramBotClient _client;
     private readonly IFileStorage _fileStorage;
     private readonly ICooldown _cooldown;
+    private readonly IBatcher _batcher;
     private readonly LoggerExtended _logger;
 }

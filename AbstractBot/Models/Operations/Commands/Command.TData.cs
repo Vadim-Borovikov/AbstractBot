@@ -29,9 +29,15 @@ public abstract class Command<TData> : Operation<TData>, ICommand
         return BotCommandExtended.GetHelpDescriptionFor(userId);
     }
 
-    protected override bool IsInvokingBy(Message message, User from, out TData? data)
+    protected override bool IsInvokingBy(Message message, User? from, out TData? data)
     {
         data = null;
+
+        if (from is null)
+        {
+            return false;
+        }
+
         IEnumerable<string>? parameters = BotCommandExtended.TryGetParameters(message);
         if (parameters is not null)
         {

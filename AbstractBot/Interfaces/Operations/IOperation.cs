@@ -22,7 +22,7 @@ public interface IOperation
     bool EnabledInGroups { get; }
     bool EnabledInChannels { get; }
 
-    Task<ExecutionResult> TryExecuteAsync(Message message, User from, CallbackQuery? callbackQuery);
+    Task<ExecutionResult> TryExecuteAsync(Message message, User? from, CallbackQuery? callbackQuery);
 
     MessageTemplateText? GetHelpDescriptionFor(long userId);
 }

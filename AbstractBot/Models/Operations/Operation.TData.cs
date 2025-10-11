@@ -13,7 +13,7 @@ public abstract class Operation<TData> : OperationBase
 {
     protected Operation(IAccesses accesses, IUpdateSender updateSender) : base(accesses, updateSender) { }
 
-    public override async Task<IOperation.ExecutionResult> TryExecuteAsync(Message message, User from,
+    public override async Task<IOperation.ExecutionResult> TryExecuteAsync(Message message, User? from,
         CallbackQuery? callbackQuery)
     {
         TData? data;
@@ -42,6 +42,33 @@ public abstract class Operation<TData> : OperationBase
         if (callbackQuery is not null)
         {
             await UpdateSender.AnswerCallbackQueryAsync(callbackQuery.Id);
+        }
+
+        if (from is null)
+        {
+            if (callbackQueryDataCore is null)
+            {
+                if (data is null)
+                {
+                    await ExecuteAsync(message);
+                }
+                else
+                {
+                    await ExecuteAsync(data, message);
+                }
+            }
+            else
+            {
+                if (data is null)
+                {
+                    await ExecuteAsync(message, callbackQueryDataCore);
+                }
+                else
+                {
+                    await ExecuteAsync(data, message, callbackQueryDataCore);
+                }
+            }
+            return IOperation.ExecutionResult.Success;
         }
 
         AccessData.Status status = CheckAccess(from.Id);
@@ -77,20 +104,34 @@ public abstract class Operation<TData> : OperationBase
         }
     }
 
-    protected virtual bool IsInvokingBy(Message message, User from, out TData? data)
+    protected virtual bool IsInvokingBy(Message message, User? from, out TData? data)
     {
         data = null;
         return false;
     }
 
-    protected virtual bool IsInvokingBy(Message message, User from, string callbackQueryDataCore, out TData? data)
+    protected virtual bool IsInvokingBy(Message message, User? from, string callbackQueryDataCore, out TData? data)
     {
         data = null;
         return false;
     }
 
+    /*
     protected virtual Task ExecuteAsync(TData data, Message message, User from) => Task.CompletedTask;
 
+    protected virtual Task ExecuteAsync(TData data, Message message, User from, string callbackQueryDataCore)
+    {
+        return ExecuteAsync(data, message, from);
+    }
+     */
+
+    protected virtual Task ExecuteAsync(TData data, Message message) => Task.CompletedTask;
+    protected virtual Task ExecuteAsync(TData data, Message message, User from) => ExecuteAsync(data, message);
+
+    protected virtual Task ExecuteAsync(TData data, Message message, string callbackQueryDataCore)
+    {
+        return ExecuteAsync(data, message);
+    }
     protected virtual Task ExecuteAsync(TData data, Message message, User from, string callbackQueryDataCore)
     {
         return ExecuteAsync(data, message, from);

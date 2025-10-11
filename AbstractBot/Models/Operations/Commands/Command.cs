@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using AbstractBot.Interfaces.Modules;
+﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands;
 using AbstractBot.Models.MessageTemplates;
@@ -27,9 +26,8 @@ public abstract class Command : Operation, ICommand
         return BotCommandExtended.GetHelpDescriptionFor(userId);
     }
 
-    protected override bool IsInvokingBy(Message message, User from)
+    protected override bool IsInvokingBy(Message message, User? from)
     {
-        IEnumerable<string>? parameters = BotCommandExtended.TryGetParameters(message);
-        return parameters is not null;
+        return from is not null && BotCommandExtended.TryGetParameters(message) is not null;
     }
 }

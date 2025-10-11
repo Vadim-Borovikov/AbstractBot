@@ -16,6 +16,7 @@ public sealed class LoggerExtended : Logger
         EditMedia,
         Delete,
         Forward,
+        Copy,
         SendPhoto,
         SendSticker,
         Pin,

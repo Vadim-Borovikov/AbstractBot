@@ -48,6 +48,12 @@ public class Config : IConfig
     [Range(double.Epsilon, double.MaxValue)]
     public double TickIntervalSeconds { get; set; }
 
+    [Required]
+    public byte MaxMessagesInBatch { get; set; }
+
+    [Required]
+    public long ReportsDefaultChatId { get; set; }
+
     public string? Host { get; set; }
 
     public Dictionary<long, int> Accesses { get; set; } = new();

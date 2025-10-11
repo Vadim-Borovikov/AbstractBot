@@ -24,6 +24,10 @@ public interface IConfig
 
     double TickIntervalSeconds { get; }
 
+    byte MaxMessagesInBatch { get; }
+
+    public long ReportsDefaultChatId { get; }
+
     string? Host { get; }
 
     Dictionary<long, int> Accesses { get; }

@@ -22,7 +22,7 @@ public abstract class OperationBase : IOperation
         UpdateSender = updateSender;
     }
 
-    public abstract Task<IOperation.ExecutionResult> TryExecuteAsync(Message message, User from,
+    public abstract Task<IOperation.ExecutionResult> TryExecuteAsync(Message message, User? from,
         CallbackQuery? callbackQuery);
 
     protected string? TryGetQueryCore(string query)
@@ -35,11 +35,13 @@ public abstract class OperationBase : IOperation
 
     protected AccessData.Status CheckAccess(long userId) => _accesses.GetAccess(userId).CheckAgainst(AccessRequired);
 
-    protected virtual Task ExecuteAsync(Message message, User from) => Task.CompletedTask;
+    protected virtual Task ExecuteAsync(Message message) => Task.CompletedTask;
+    protected virtual Task ExecuteAsync(Message message, User from) => ExecuteAsync(message);
 
+    protected virtual Task ExecuteAsync(Message message, string callbackQueryDataCore) => Task.CompletedTask;
     protected virtual Task ExecuteAsync(Message message, User from, string callbackQueryDataCore)
     {
-        return Task.CompletedTask;
+        return ExecuteAsync(message, callbackQueryDataCore);
     }
 
     protected readonly IUpdateSender UpdateSender;

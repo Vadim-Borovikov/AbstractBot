@@ -19,6 +19,8 @@ public interface IBotCore
     public User Self { get; }
     public string SelfUsername { get; }
 
+    public Chat ReportsDefault { get; }
+
     public IConnection Connection { get; }
 
     public ILogging Logging { get; }

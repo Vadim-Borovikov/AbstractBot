@@ -20,13 +20,14 @@ public class UpdateReceiver : IUpdateReceiver
     public List<IOperation> Operations { get; }
 
     public UpdateReceiver(InputFileId dontUnderstandSticker, InputFileId forbiddenSticker, long selfId,
-        IUpdateSender sender, LoggerExtended logger)
+        Chat reportsDefault, IUpdateSender sender, LoggerExtended logger)
     {
         _dontUnderstandSticker = dontUnderstandSticker;
         _forbiddenSticker = forbiddenSticker;
         _selfId = selfId;
         _logger = logger;
         _updatesSender = sender;
+        _reportsDefault = reportsDefault;
         Operations = new List<IOperation>();
     }
 
@@ -36,6 +37,7 @@ public class UpdateReceiver : IUpdateReceiver
     {
         return update.Type switch
         {
+            UpdateType.ChannelPost   => UpdateAsync(update.ChannelPost.Denull(nameof(update.ChannelPost)), null),
             UpdateType.Message       => UpdateAsync(update.Message.Denull(nameof(update.Message))),
             UpdateType.CallbackQuery => UpdateAsync(update.CallbackQuery.Denull(nameof(update.CallbackQuery))),
             UpdateType.PreCheckoutQuery =>
@@ -71,10 +73,10 @@ public class UpdateReceiver : IUpdateReceiver
 
     protected virtual Task UpdateAsync(PreCheckoutQuery _) => Task.CompletedTask;
 
-    protected virtual async Task<IOperation?> UpdateAsync(Message message, User from,
+    protected virtual async Task<IOperation?> UpdateAsync(Message message, User? from,
         CallbackQuery? callbackQuery = null)
     {
-        if (from.Id == _selfId)
+        if (from?.Id == _selfId)
         {
             return null;
         }
@@ -108,9 +110,17 @@ public class UpdateReceiver : IUpdateReceiver
             {
                 case IOperation.ExecutionResult.UnsuitableOperation: continue;
                 case IOperation.ExecutionResult.AccessInsufficent:
-                    await ProcessInsufficientAccess(message, from, operation);
+                    if (from is null)
+                    {
+                        throw new Exception("Operation returned AccessInsufficient with null From");
+                    }
+                    await ProcessInsufficientAccessAsync(message, from, operation);
                     return operation;
                 case IOperation.ExecutionResult.AccessExpired:
+                    if (from is null)
+                    {
+                        throw new Exception("Operation returned AccessExpired with null From");
+                    }
                     await ProcessExpiredAccess(message, from, operation);
                     return operation;
                 case IOperation.ExecutionResult.Success: return operation;
@@ -118,29 +128,36 @@ public class UpdateReceiver : IUpdateReceiver
             }
         }
 
-        await ProcessUnclearOperation(message, from);
+        await ProcessUnclearOperationAsync(message, from);
         return null;
     }
 
-    protected virtual Task ProcessUnclearOperation(Message message, User _)
+    protected virtual Task ProcessUnclearOperationAsync(Message message, User? _)
     {
-        ReplyParameters rp = new() { MessageId = message.MessageId };
-        return message.Chat.IsGroup()
-            ? Task.CompletedTask
-            : _updatesSender.SendStickerAsync(message.Chat, _dontUnderstandSticker, rp);
+        return SendStickerAsync(message, _dontUnderstandSticker);
     }
 
-    protected virtual Task ProcessInsufficientAccess(Message message, User _, IOperation __)
+    protected virtual Task ProcessInsufficientAccessAsync(Message message, User _, IOperation __)
     {
-        ReplyParameters rp = new() { MessageId = message.MessageId };
-        return message.Chat.IsGroup()
-            ? Task.CompletedTask
-            : _updatesSender.SendStickerAsync(message.Chat, _forbiddenSticker, rp);
+        return SendStickerAsync(message, _forbiddenSticker);
     }
 
     protected virtual Task ProcessExpiredAccess(Message message, User _, IOperation __)
     {
-        return ProcessInsufficientAccess(message, _, __);
+        return ProcessInsufficientAccessAsync(message, _, __);
+    }
+
+    private Task SendStickerAsync(Message message, InputFile sticker)
+    {
+        Chat chat = message.Chat;
+        ReplyParameters rp = new() { MessageId = message.MessageId };
+        if (message.Chat.IsGroup() || (message.Chat.Type == ChatType.Channel))
+        {
+            chat = _reportsDefault;
+            rp.ChatId = message.Chat.Id;
+        }
+
+        return _updatesSender.SendStickerAsync(chat, sticker, rp);
     }
 
     private readonly LoggerExtended _logger;
@@ -148,4 +165,5 @@ public class UpdateReceiver : IUpdateReceiver
     private readonly InputFileId _dontUnderstandSticker;
     private readonly InputFileId _forbiddenSticker;
     private readonly long _selfId;
+    private readonly Chat _reportsDefault;
 }

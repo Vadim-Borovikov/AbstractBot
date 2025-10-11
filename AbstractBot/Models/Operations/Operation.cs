@@ -12,7 +12,7 @@ public abstract class Operation : OperationBase
 {
     protected Operation(IAccesses accesses, IUpdateSender updateSender) : base(accesses, updateSender) { }
 
-    public override async Task<IOperation.ExecutionResult> TryExecuteAsync(Message message, User from,
+    public override async Task<IOperation.ExecutionResult> TryExecuteAsync(Message message, User? from,
         CallbackQuery? callbackQuery)
     {
         string? callbackQueryDataCore = null;
@@ -42,6 +42,19 @@ public abstract class Operation : OperationBase
             await UpdateSender.AnswerCallbackQueryAsync(callbackQuery.Id);
         }
 
+        if (from is null)
+        {
+            if (callbackQueryDataCore is null)
+            {
+                await ExecuteAsync(message);
+            }
+            else
+            {
+                await ExecuteAsync(message, callbackQueryDataCore);
+            }
+            return IOperation.ExecutionResult.Success;
+        }
+
         AccessData.Status status = CheckAccess(from.Id);
         switch (status)
         {
@@ -61,7 +74,7 @@ public abstract class Operation : OperationBase
         }
     }
 
-    protected virtual bool IsInvokingBy(Message message, User from) => false;
+    protected virtual bool IsInvokingBy(Message message, User? from) => false;
 
-    protected virtual bool IsInvokingBy(Message message, User from, string callbackQueryDataCore) => false;
+    protected virtual bool IsInvokingBy(Message message, User? from, string callbackQueryDataCore) => false;
 }

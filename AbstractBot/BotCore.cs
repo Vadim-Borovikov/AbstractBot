@@ -1,21 +1,22 @@
-using System;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using AbstractBot.Interfaces.Modules.Servicies;
+using AbstractBot.Interfaces;
 using AbstractBot.Interfaces.Modules;
+using AbstractBot.Interfaces.Modules.Config;
+using AbstractBot.Interfaces.Modules.Servicies;
 using AbstractBot.Modules;
 using AbstractBot.Modules.Servicies;
+using AbstractBot.Modules.Servicies.Logging;
 using AbstractBot.Utilities.Extensions;
 using AbstractBot.Utilities.Ngrok;
 using GryphonUtilities.Time;
 using GryphonUtilities.Time.Json;
 using JetBrains.Annotations;
+using System;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using AbstractBot.Interfaces;
-using AbstractBot.Interfaces.Modules.Config;
-using AbstractBot.Modules.Servicies.Logging;
+using Telegram.Bot.Types.Enums;
 
 namespace AbstractBot;
 
@@ -28,6 +29,8 @@ public class BotCore : IBotCore, IDisposable
 
     public User Self { get; }
     public string SelfUsername { get; }
+
+    public Chat ReportsDefault { get; }
 
     public IConnection Connection { get; }
 
@@ -43,7 +46,7 @@ public class BotCore : IBotCore, IDisposable
 
     public BotCore(TelegramBotClient client, Clock clock, SerializerOptionsProvider jsonSerializerOptionsProvider,
         User self, string selfUsername, IConnection connection, IUpdateSender updateSender,
-        IUpdateReceiver updateReceiver, IAccesses accesses, IConfig config, LoggerExtended logger)
+        IUpdateReceiver updateReceiver, IAccesses accesses, IConfig config, Chat reportsDefault, LoggerExtended logger)
     {
         Client = client;
         Clock = clock;
@@ -55,6 +58,7 @@ public class BotCore : IBotCore, IDisposable
         UpdateReceiver = updateReceiver;
         Accesses = accesses;
         Config = config;
+        ReportsDefault = reportsDefault;
 
         TimeSpan tickInterval = TimeSpan.FromSeconds(config.TickIntervalSeconds);
         Logging = new Logging(logger, tickInterval);
@@ -91,15 +95,23 @@ public class BotCore : IBotCore, IDisposable
         TimeSpan sendMessagePeriodGroup = TimeSpan.FromMinutes(1.0 / config.UpdatesPerMinuteLimitGroup);
 
         Cooldown cooldown = new(sendMessagePeriodPrivate, sendMessagePeriodGlobal, sendMessagePeriodGroup);
+        Batcher batcher = new(config.MaxMessagesInBatch);
 
-        UpdateSender updateSender = new(client, fileStorage, cooldown, logger);
+        UpdateSender updateSender = new(client, fileStorage, cooldown, batcher, logger);
 
         InputFileId dontUnderstandSticker = new(config.DontUnderstandStickerFileId);
         InputFileId forbiddenSticker = new(config.ForbiddenStickerFileId);
 
-        UpdateReceiver updateReceiver = new(dontUnderstandSticker, forbiddenSticker, self.Id, updateSender, logger);
+        Chat reportsDefault = new()
+        {
+            Id = config.ReportsDefaultChatId,
+            Type = ChatType.Private
+        };
+
+        UpdateReceiver updateReceiver =
+            new(dontUnderstandSticker, forbiddenSticker, self.Id, reportsDefault, updateSender, logger);
 
         return new BotCore(client, clock, jsonSerializerOptionsProvider, self, self.Username, connection, updateSender,
-            updateReceiver, accesses, config, logger);
+            updateReceiver, accesses, config, reportsDefault, logger);
     }
 }

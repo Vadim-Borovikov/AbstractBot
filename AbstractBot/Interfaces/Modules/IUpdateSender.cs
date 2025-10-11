@@ -46,8 +46,25 @@ public interface IUpdateSender
 
     Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default);
 
+    Task DeleteMessagesAsync(Chat chat, IList<int> messageIds, CancellationToken cancellationToken = default);
+
+    Task<MessageId> CopyMessageAsync(Chat chat, ChatId fromChatId, int messageId, string? caption = null,
+        ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null, ReplyMarkup? replyMarkup = null,
+        int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
+        bool showCaptionAboveMedia = false, bool disableNotification = false, bool protectContent = false,
+        bool allowPaidBroadcast = false, int? videoStartTimestamp = null,
+        CancellationToken cancellationToken = default);
+
+    Task<MessageId[]> CopyMessagesAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
+        bool removeCaption = false, int? messageThreadId = null, bool disableNotification = false,
+        bool protectContent = false, CancellationToken cancellationToken = default);
+
     Task<Message> ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId, int? messageThreadId = null,
         bool disableNotification = false, bool protectContent = false, int? videoStartTimestamp = null,
+        CancellationToken cancellationToken = default);
+
+    Task<MessageId[]> ForwardMessagesAsync(Chat chat, ChatId fromChatId, IList<int> messageId,
+        int? messageThreadId = null, bool disableNotification = false, bool protectContent = false,
         CancellationToken cancellationToken = default);
 
     Task<Message[]> SendMediaGroupAsync(Chat chat, IList<string> paths, string? caption = null,
