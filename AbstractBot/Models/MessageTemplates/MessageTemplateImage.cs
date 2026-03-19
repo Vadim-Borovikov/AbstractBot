@@ -7,61 +7,27 @@ using AbstractBot.Interfaces.Modules;
 namespace AbstractBot.Models.MessageTemplates;
 
 [PublicAPI]
-public class MessageTemplateImage : MessageTemplate
+public abstract class MessageTemplateImage : MessageTemplate
 {
-    public string ImagePath { get; init; } = null!;
-
     public bool ShowCaptionAboveMedia;
     public bool HasSpoiler;
 
-    public MessageTemplateImage() { }
+    protected MessageTemplateImage() { }
 
-    public MessageTemplateImage(string text, string imagePath, bool markdownV2 = false) : base(text, markdownV2)
-    {
-        ImagePath = imagePath;
-    }
+    protected MessageTemplateImage(string text, bool markdownV2 = false) : base(text, markdownV2) { }
 
-    public MessageTemplateImage(MessageTemplate prototype, string imagePath) : base(prototype)
-    {
-        ImagePath = imagePath;
-    }
+    protected MessageTemplateImage(MessageTemplate prototype) : base(prototype) { }
 
-    public MessageTemplateImage(MessageTemplateImage prototype) : base(prototype)
+    protected MessageTemplateImage(MessageTemplateImage prototype) : base(prototype)
     {
-        ImagePath = prototype.ImagePath;
+        ShowCaptionAboveMedia = prototype.ShowCaptionAboveMedia;
         HasSpoiler = prototype.HasSpoiler;
-    }
-
-    public override MessageTemplateImage Format(params object?[] args)
-    {
-        MessageTemplateFormatInfo info = PrepareFormat(args);
-
-        return new MessageTemplateImage(this)
-        {
-            MarkdownV2 = info.MarkdownV2,
-            TextJoined = info.Text
-        };
-    }
-
-    public override Task<Message> SendAsync(IUpdateSender updateSender, Chat chat)
-    {
-        return updateSender.SendPhotoAsync(chat, ImagePath, KeyboardProvider, TextJoined, ParseMode,
-            ReplyParameters, MessageThreadId, Entities, ShowCaptionAboveMedia, HasSpoiler, DisableNotification,
-            ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, DirectMessagesTopicId,
-            SuggestedPostParameters, CancellationToken);
     }
 
     public Task<Message> EditMessageTextWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
         return updateSender.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, keyboard, null, Entities,
-            BusinessConnectionId, CancellationToken);
-    }
-
-    public Task<Message> EditMessageMediaWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)
-    {
-        InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return updateSender.EditMessageMediaAsync(chat, messageId, ImagePath, TextJoined, ParseMode, keyboard,
             BusinessConnectionId, CancellationToken);
     }
 
