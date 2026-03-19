@@ -12,7 +12,7 @@ namespace AbstractBot.Models.Operations.Commands.Start;
 public sealed class Start<TData> : Command<TData>, IStartCommand
     where TData : class, ICommandData<TData>
 {
-    internal Start(IAccesses accesses, IUpdateSender updateSender, ICommands commands,
+    public Start(IAccesses accesses, IUpdateSender updateSender, ICommands commands,
         ITextsProvider<ITexts> textsProvider, string selfUsername, IGreeter<TData> greeter,
         IUserRegistrator? userRegistrator = null)
         : base(accesses, updateSender, "start", textsProvider, selfUsername)
