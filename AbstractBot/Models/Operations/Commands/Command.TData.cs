@@ -11,7 +11,7 @@ namespace AbstractBot.Models.Operations.Commands;
 
 [PublicAPI]
 public abstract class Command<TData> : Operation<TData>, ICommand
-    where TData : class, ICommandData<TData>
+    where TData : ICommandData<TData>
 {
     public BotCommandExtended BotCommandExtended { get; }
 
@@ -31,7 +31,7 @@ public abstract class Command<TData> : Operation<TData>, ICommand
 
     protected override bool IsInvokingBy(Message message, User? from, out TData? data)
     {
-        data = null;
+        data = default;
 
         if (from is null)
         {

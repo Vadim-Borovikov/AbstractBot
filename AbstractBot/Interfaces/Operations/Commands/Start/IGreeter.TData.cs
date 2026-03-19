@@ -6,7 +6,7 @@ namespace AbstractBot.Interfaces.Operations.Commands.Start;
 
 [PublicAPI]
 public interface IGreeter<in TData>
-    where TData : class, ICommandData<TData>
+    where TData : ICommandData<TData>
 {
     Task GreetAsync(Message message, User from, TData data);
 }

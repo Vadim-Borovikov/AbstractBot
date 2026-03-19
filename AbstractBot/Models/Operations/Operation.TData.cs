@@ -9,7 +9,6 @@ namespace AbstractBot.Models.Operations;
 
 [PublicAPI]
 public abstract class Operation<TData> : OperationBase
-    where TData : class
 {
     protected Operation(IAccesses accesses, IUpdateSender updateSender) : base(accesses, updateSender) { }
 
@@ -106,13 +105,13 @@ public abstract class Operation<TData> : OperationBase
 
     protected virtual bool IsInvokingBy(Message message, User? from, out TData? data)
     {
-        data = null;
+        data = default;
         return false;
     }
 
     protected virtual bool IsInvokingBy(Message message, User? from, string callbackQueryDataCore, out TData? data)
     {
-        data = null;
+        data = default;
         return false;
     }
 
