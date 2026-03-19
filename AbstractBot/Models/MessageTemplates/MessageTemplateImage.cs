@@ -47,13 +47,14 @@ public class MessageTemplateImage : MessageTemplate
     {
         return updateSender.SendPhotoAsync(chat, ImagePath, KeyboardProvider, TextJoined, ParseMode,
             ReplyParameters, MessageThreadId, Entities, ShowCaptionAboveMedia, HasSpoiler, DisableNotification,
-            ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
+            ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, DirectMessagesTopicId,
+            SuggestedPostParameters, CancellationToken);
     }
 
     public Task<Message> EditMessageTextWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return updateSender.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, Entities, null, keyboard,
+        return updateSender.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, keyboard, null, Entities,
             BusinessConnectionId, CancellationToken);
     }
 
@@ -67,7 +68,7 @@ public class MessageTemplateImage : MessageTemplate
     public Task<Message> EditMessageCaptionWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return updateSender.EditMessageCaptionAsync(chat, messageId, TextJoined, ParseMode, Entities,
-            ShowCaptionAboveMedia, keyboard, BusinessConnectionId, CancellationToken);
+        return updateSender.EditMessageCaptionAsync(chat, messageId, TextJoined, ParseMode, keyboard, Entities,
+            ShowCaptionAboveMedia, BusinessConnectionId, CancellationToken);
     }
 }

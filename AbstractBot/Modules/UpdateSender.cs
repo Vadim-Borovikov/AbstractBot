@@ -36,6 +36,7 @@ public class UpdateSender : IUpdateSender
         LinkPreviewOptions? linkPreviewOptions = null, int? messageThreadId = null,
         IEnumerable<MessageEntity>? entities = null, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= DefaultKeyboardProvider;
@@ -43,17 +44,18 @@ public class UpdateSender : IUpdateSender
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendText, data: text);
         return _client.SendMessage(chat.Id, text, parseMode, replyParameters, keyboardProvider.Keyboard,
             linkPreviewOptions, messageThreadId, entities, disableNotification, protectContent, messageEffectId,
-            businessConnectionId, allowPaidBroadcast, cancellationToken);
+            businessConnectionId, allowPaidBroadcast, directMessagesTopicId, suggestedPostParameters,
+            cancellationToken);
     }
 
     public Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text,
-        ParseMode parseMode = ParseMode.None, IEnumerable<MessageEntity>? entities = null,
-        LinkPreviewOptions? linkPreviewOptions = null, InlineKeyboardMarkup? replyMarkup = null,
+        ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = null,
+        LinkPreviewOptions? linkPreviewOptions = null, IEnumerable<MessageEntity>? entities = null,
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId, text);
-        return _client.EditMessageText(chat.Id, messageId, text, parseMode, entities, linkPreviewOptions, replyMarkup,
+        return _client.EditMessageText(chat.Id, messageId, text, parseMode, replyMarkup, linkPreviewOptions, entities,
             businessConnectionId, cancellationToken);
     }
 
@@ -107,14 +109,16 @@ public class UpdateSender : IUpdateSender
     }
 
     public Task<Message> EditMessageCaptionAsync(Chat chat, int messageId, string? caption,
-        ParseMode parseMode = ParseMode.None, IEnumerable<MessageEntity>? captionEntities = null,
-        bool showCaptionAboveMedia = false, InlineKeyboardMarkup? replyMarkup = null,
+        ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = null,
+        IEnumerable<MessageEntity>? captionEntities = null, bool showCaptionAboveMedia = false,
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId);
-        return _client.EditMessageCaption(chat.Id, messageId, caption, parseMode, captionEntities,
-            showCaptionAboveMedia, replyMarkup, businessConnectionId, cancellationToken);
+        return _client.EditMessageCaption(chat.Id, messageId, caption, parseMode, replyMarkup, captionEntities,
+            showCaptionAboveMedia, businessConnectionId, cancellationToken);
+        /*return _client.EditMessageCaption(chat.Id, messageId, caption, parseMode, captionEntities,
+            showCaptionAboveMedia, replyMarkup, businessConnectionId, cancellationToken);*/
     }
 
     public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
@@ -133,51 +137,56 @@ public class UpdateSender : IUpdateSender
         ReplyMarkup? replyMarkup = null, int? messageThreadId = null,
         IEnumerable<MessageEntity>? captionEntities = null, bool showCaptionAboveMedia = false,
         bool disableNotification = false, bool protectContent = false, bool allowPaidBroadcast = false,
-        int? videoStartTimestamp = null, CancellationToken cancellationToken = default)
+        int? videoStartTimestamp = null, long? directMessagesTopicId = null,
+        SuggestedPostParameters? suggestedPostParameters = null, string? messageEffectId = null,
+        CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.Copy, data: $"message {messageId} from {fromChatId}");
         return _client.CopyMessage(chat.Id, fromChatId, messageId, caption, parseMode, replyParameters, replyMarkup,
             messageThreadId, captionEntities, showCaptionAboveMedia, disableNotification, protectContent,
-            allowPaidBroadcast, videoStartTimestamp, cancellationToken);
+            allowPaidBroadcast, videoStartTimestamp, directMessagesTopicId, suggestedPostParameters, messageEffectId,
+            cancellationToken);
     }
 
     public async Task<MessageId[]> CopyMessagesAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
         bool removeCaption = false, int? messageThreadId = null, bool disableNotification = false,
-        bool protectContent = false, CancellationToken cancellationToken = default)
+        bool protectContent = false, long? directMessagesTopicId = null, CancellationToken cancellationToken = default)
     {
         IEnumerable<MessageId> newIds =
             await _batcher.DoForChunksAsync(messageIds,
                 ids => CopyMessageBatchAsync(chat, fromChatId, ids, removeCaption, messageThreadId,
-                    disableNotification, protectContent, cancellationToken).ToIEnumerable());
+                    disableNotification, protectContent, directMessagesTopicId, cancellationToken).ToIEnumerable());
         return newIds.ToArray();
     }
 
     public Task<Message> ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId, int? messageThreadId = null,
         bool disableNotification = false, bool protectContent = false, int? videoStartTimestamp = null,
-        CancellationToken cancellationToken = default)
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
+        string? messageEffectId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.Forward, data: $"message {messageId} from {fromChatId}");
         return _client.ForwardMessage(chat.Id, fromChatId, messageId, messageThreadId, disableNotification,
-            protectContent, videoStartTimestamp, cancellationToken);
+            protectContent, videoStartTimestamp, directMessagesTopicId, suggestedPostParameters, messageEffectId,
+            cancellationToken);
     }
 
     public async Task<MessageId[]> ForwardMessagesAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
         int? messageThreadId = null, bool disableNotification = false, bool protectContent = false,
-        CancellationToken cancellationToken = default)
+        long? directMessagesTopicId = null, CancellationToken cancellationToken = default)
     {
         IEnumerable<MessageId> newIds =
             await _batcher.DoForChunksAsync(messageIds,
                 ids => ForwardMessageBatchAsync(chat, fromChatId, ids, messageThreadId, disableNotification,
-                    protectContent, cancellationToken).ToIEnumerable());
+                    protectContent, directMessagesTopicId, cancellationToken).ToIEnumerable());
         return newIds.ToArray();
     }
 
     public async Task<Message[]> SendMediaGroupAsync(Chat chat, IList<string> paths, string? caption = null,
         ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null, int? messageThreadId = null,
         bool disableNotification = false, bool protectContent = false, string? messageEffectId = null,
-        string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        string? businessConnectionId = null, bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
         CancellationToken cancellationToken = default)
     {
         List<FileStream> streams = new();
@@ -197,7 +206,7 @@ public class UpdateSender : IUpdateSender
 
         Message[] messages = await SendMediaGroupAsync(chat, inputFiles, caption, parseMode, replyParameters,
             messageThreadId, disableNotification, protectContent, messageEffectId, businessConnectionId,
-            allowPaidBroadcast, cancellationToken);
+            allowPaidBroadcast, directMessagesTopicId, cancellationToken);
 
         foreach (FileStream stream in streams)
         {
@@ -227,7 +236,7 @@ public class UpdateSender : IUpdateSender
     public Task<Message[]> SendMediaGroupAsync(Chat chat, IList<InputFile> inputFiles, string? caption = null,
         ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null, int? messageThreadId = null,
         bool disableNotification = false, bool protectContent = false, string? messageEffectId = null,
-        string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        string? businessConnectionId = null, bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
         CancellationToken cancellationToken = default)
     {
         List<InputMediaPhoto> media = new();
@@ -243,13 +252,14 @@ public class UpdateSender : IUpdateSender
         }
 
         return SendMediaGroupAsync(chat, media, replyParameters, messageThreadId, disableNotification, protectContent,
-            messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
+            messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId, cancellationToken);
     }
 
     public Task<Message[]> SendMediaGroupAsync(Chat chat, IEnumerable<IAlbumInputMedia> media,
         ReplyParameters? replyParameters = null, int? messageThreadId = null, bool disableNotification = false,
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
-        bool allowPaidBroadcast = false, CancellationToken cancellationToken = default)
+        bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
+        CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         List<IAlbumInputMedia> all = new(media);
@@ -257,7 +267,8 @@ public class UpdateSender : IUpdateSender
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendFiles, data: captions);
 
         return _client.SendMediaGroup(chat.Id, all, replyParameters, messageThreadId, disableNotification,
-            protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
+            protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId,
+            cancellationToken);
     }
 
     public async Task<Message> SendPhotoAsync(Chat chat, string path, KeyboardProvider? keyboardProvider = null,
@@ -265,14 +276,16 @@ public class UpdateSender : IUpdateSender
         int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool showCaptionAboveMedia = false, bool hasSpoiler = false, bool disableNotification = false,
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
-        bool allowPaidBroadcast = false, CancellationToken cancellationToken = default)
+        bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
+        SuggestedPostParameters? suggestedPostParameters = null, CancellationToken cancellationToken = default)
     {
         InputFile? photo = _fileStorage.TryGetInputFileId(path);
         if (photo is not null)
         {
             return await SendPhotoAsync(chat, photo, keyboardProvider, caption, parseMode, replyParameters,
                 messageThreadId, captionEntities, showCaptionAboveMedia, hasSpoiler, disableNotification,
-                protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
+                protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId,
+                suggestedPostParameters, cancellationToken);
         }
 
         await using (FileStream stream = File.OpenRead(path))
@@ -280,7 +293,8 @@ public class UpdateSender : IUpdateSender
             photo = stream.ToInputFileStream();
             Message message = await SendPhotoAsync(chat, photo, keyboardProvider, caption, parseMode, replyParameters,
                 messageThreadId, captionEntities, showCaptionAboveMedia, hasSpoiler, disableNotification,
-                protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
+                protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId,
+                suggestedPostParameters, cancellationToken);
 
             PhotoSize? file = message.Photo.Largest();
             if (file is not null)
@@ -297,7 +311,8 @@ public class UpdateSender : IUpdateSender
         int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool showCaptionAboveMedia = false, bool hasSpoiler = false, bool disableNotification = false,
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
-        bool allowPaidBroadcast = false, CancellationToken cancellationToken = default)
+        bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
+        SuggestedPostParameters? suggestedPostParameters = null, CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
@@ -305,7 +320,8 @@ public class UpdateSender : IUpdateSender
 
         return _client.SendPhoto(chat.Id, photo, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
             messageThreadId, captionEntities, showCaptionAboveMedia, hasSpoiler, disableNotification, protectContent,
-            messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
+            messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId, suggestedPostParameters,
+            cancellationToken);
     }
 
     public async Task<Message> SendDocumentAsync(Chat chat, string path, KeyboardProvider? keyboardProvider = null,
@@ -313,6 +329,7 @@ public class UpdateSender : IUpdateSender
         InputFile? thumbnail = null, int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool disableContentTypeDetection = false, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default)
     {
         InputFile? file = _fileStorage.TryGetInputFileId(path);
@@ -320,7 +337,8 @@ public class UpdateSender : IUpdateSender
         {
             return await SendDocumentAsync(chat, file, keyboardProvider, caption, parseMode, replyParameters,
                 thumbnail, messageThreadId, captionEntities, disableContentTypeDetection, disableNotification,
-                protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
+                protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId,
+                suggestedPostParameters, cancellationToken);
         }
 
         await using (FileStream stream = File.OpenRead(path))
@@ -329,7 +347,7 @@ public class UpdateSender : IUpdateSender
             Message message = await SendDocumentAsync(chat, file, keyboardProvider, caption, parseMode,
                 replyParameters, thumbnail, messageThreadId, captionEntities, disableContentTypeDetection,
                 disableNotification, protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast,
-                cancellationToken);
+                directMessagesTopicId, suggestedPostParameters, cancellationToken);
 
             if (message.Document is not null)
             {
@@ -345,6 +363,7 @@ public class UpdateSender : IUpdateSender
         InputFile? thumbnail = null, int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool disableContentTypeDetection = false, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= DefaultKeyboardProvider;
@@ -353,13 +372,15 @@ public class UpdateSender : IUpdateSender
 
         return _client.SendDocument(chat.Id, document, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
             thumbnail, messageThreadId, captionEntities, disableContentTypeDetection, disableNotification, protectContent,
-            messageEffectId, businessConnectionId, allowPaidBroadcast, cancellationToken);
+            messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId, suggestedPostParameters,
+            cancellationToken);
     }
 
     public Task<Message> SendStickerAsync(Chat chat, InputFile sticker, ReplyParameters? replyParameters = null,
         KeyboardProvider? keyboardProvider = null, int? messageThreadId = null, string? emoji = null,
         bool disableNotification = false, bool protectContent = false, string? messageEffectId = null,
         string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= DefaultKeyboardProvider;
@@ -368,7 +389,7 @@ public class UpdateSender : IUpdateSender
 
         return _client.SendSticker(chat.Id, sticker, replyParameters, keyboardProvider.Keyboard, emoji, messageThreadId,
             disableNotification, protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast,
-            cancellationToken);
+            directMessagesTopicId, suggestedPostParameters, cancellationToken);
     }
 
     public Task PinChatMessageAsync(Chat chat, int messageId, bool disableNotification = false,
@@ -403,6 +424,7 @@ public class UpdateSender : IUpdateSender
         ReplyParameters? replyParameters = default, InlineKeyboardMarkup? replyMarkup = default,
         string? startParameter = default, int? messageThreadId = default, bool disableNotification = default,
         bool protectContent = default, string? messageEffectId = default, bool allowPaidBroadcast = default,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
@@ -411,7 +433,7 @@ public class UpdateSender : IUpdateSender
             maxTipAmount, suggestedTipAmounts, photoUrl, photoSize, photoWidth, photoHeight, needName, needPhoneNumber,
             needEmail, needShippingAddress, sendPhoneNumberToProvider, sendEmailToProvider, isFlexible,
             replyParameters, replyMarkup, startParameter, messageThreadId, disableNotification, protectContent,
-            messageEffectId, allowPaidBroadcast, cancellationToken);
+            messageEffectId, allowPaidBroadcast, directMessagesTopicId, suggestedPostParameters, cancellationToken);
     }
 
     public Task AnswerCallbackQueryAsync(string callbackQueryId, string? text = null, bool showAlert = false,
@@ -429,25 +451,25 @@ public class UpdateSender : IUpdateSender
 
     private Task<MessageId[]> CopyMessageBatchAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
         bool removeCaption = false, int? messageThreadId = null, bool disableNotification = false,
-        bool protectContent = false, CancellationToken cancellationToken = default)
+        bool protectContent = false, long? directMessagesTopicId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.Copy,
             data: $"messages {string.Join(", ", messageIds)} from {fromChatId}");
         return _client.CopyMessages(chat.Id, fromChatId, messageIds, removeCaption, messageThreadId,
-            disableNotification, protectContent, cancellationToken);
+            disableNotification, protectContent, directMessagesTopicId, cancellationToken);
     }
 
     private Task<MessageId[]> ForwardMessageBatchAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
         int? messageThreadId = null, bool disableNotification = false, bool protectContent = false,
-        CancellationToken cancellationToken = default)
+        long? directMessagesTopicId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.Forward,
             data: $"messages {string.Join(", ", messageIds)} from {fromChatId}");
 
         return _client.ForwardMessages(chat.Id, fromChatId, messageIds, messageThreadId, disableNotification,
-            protectContent, cancellationToken);
+            protectContent, directMessagesTopicId, cancellationToken);
     }
 
     private readonly TelegramBotClient _client;

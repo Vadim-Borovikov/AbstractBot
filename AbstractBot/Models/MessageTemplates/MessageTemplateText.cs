@@ -49,22 +49,23 @@ public class MessageTemplateText : MessageTemplate
     public Task<Message> EditMessageWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return updateSender.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, Entities, LinkPreviewOptions,
-            keyboard, BusinessConnectionId, CancellationToken);
+        return updateSender.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, keyboard, LinkPreviewOptions,
+            Entities, BusinessConnectionId, CancellationToken);
     }
 
     public Task<Message> EditMessageCaptionWithSelfAsync(IUpdateSender updateSender, Chat chat,
         bool showCaptionAboveMedia, int messageId)
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
-        return updateSender.EditMessageCaptionAsync(chat, messageId, TextJoined, ParseMode, Entities,
-            showCaptionAboveMedia, keyboard, BusinessConnectionId, CancellationToken);
+        return updateSender.EditMessageCaptionAsync(chat, messageId, TextJoined, ParseMode, keyboard, Entities,
+            showCaptionAboveMedia, BusinessConnectionId, CancellationToken);
     }
 
     public override Task<Message> SendAsync(IUpdateSender updateSender, Chat chat)
     {
         return updateSender.SendTextMessageAsync(chat, TextJoined, KeyboardProvider, ParseMode, ReplyParameters,
             LinkPreviewOptions, MessageThreadId, Entities, DisableNotification, ProtectContent, MessageEffectId,
-            BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
+            BusinessConnectionId, AllowPaidBroadcast, DirectMessagesTopicId, SuggestedPostParameters,
+            CancellationToken);
     }
 }

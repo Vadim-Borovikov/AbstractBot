@@ -20,11 +20,12 @@ public interface IUpdateSender
         LinkPreviewOptions? linkPreviewOptions = null, int? messageThreadId = null,
         IEnumerable<MessageEntity>? entities = null, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default);
 
     Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text, ParseMode parseMode = ParseMode.None,
-        IEnumerable<MessageEntity>? entities = null, LinkPreviewOptions? linkPreviewOptions = null,
-        InlineKeyboardMarkup? replyMarkup = null, string? businessConnectionId = null,
+        InlineKeyboardMarkup? replyMarkup = null, LinkPreviewOptions? linkPreviewOptions = null,
+        IEnumerable<MessageEntity>? entities = null, string? businessConnectionId = null,
         CancellationToken cancellationToken = default);
 
     Task<Message> EditMessageMediaAsync(Chat chat, int messageId, string path, string newCaption = "",
@@ -40,8 +41,8 @@ public interface IUpdateSender
         CancellationToken cancellationToken = default);
 
     Task<Message> EditMessageCaptionAsync(Chat chat, int messageId, string? caption,
-        ParseMode parseMode = ParseMode.None, IEnumerable<MessageEntity>? captionEntities = null,
-        bool showCaptionAboveMedia = false, InlineKeyboardMarkup? replyMarkup = null,
+        ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = null,
+        IEnumerable<MessageEntity>? captionEntities = null, bool showCaptionAboveMedia = false,
         string? businessConnectionId = null, CancellationToken cancellationToken = default);
 
     Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default);
@@ -49,60 +50,68 @@ public interface IUpdateSender
     Task DeleteMessagesAsync(Chat chat, IList<int> messageIds, CancellationToken cancellationToken = default);
 
     Task<MessageId> CopyMessageAsync(Chat chat, ChatId fromChatId, int messageId, string? caption = null,
-        ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null, ReplyMarkup? replyMarkup = null,
-        int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
-        bool showCaptionAboveMedia = false, bool disableNotification = false, bool protectContent = false,
-        bool allowPaidBroadcast = false, int? videoStartTimestamp = null,
+        ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null,
+        ReplyMarkup? replyMarkup = null, int? messageThreadId = null,
+        IEnumerable<MessageEntity>? captionEntities = null, bool showCaptionAboveMedia = false,
+        bool disableNotification = false, bool protectContent = false, bool allowPaidBroadcast = false,
+        int? videoStartTimestamp = null, long? directMessagesTopicId = null,
+        SuggestedPostParameters? suggestedPostParameters = null, string? messageEffectId = null,
         CancellationToken cancellationToken = default);
 
     Task<MessageId[]> CopyMessagesAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
         bool removeCaption = false, int? messageThreadId = null, bool disableNotification = false,
-        bool protectContent = false, CancellationToken cancellationToken = default);
+        bool protectContent = false, long? directMessagesTopicId = null,
+        CancellationToken cancellationToken = default);
 
     Task<Message> ForwardMessageAsync(Chat chat, ChatId fromChatId, int messageId, int? messageThreadId = null,
         bool disableNotification = false, bool protectContent = false, int? videoStartTimestamp = null,
-        CancellationToken cancellationToken = default);
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
+        string? messageEffectId = null, CancellationToken cancellationToken = default);
 
-    Task<MessageId[]> ForwardMessagesAsync(Chat chat, ChatId fromChatId, IList<int> messageId,
+    Task<MessageId[]> ForwardMessagesAsync(Chat chat, ChatId fromChatId, IList<int> messageIds,
         int? messageThreadId = null, bool disableNotification = false, bool protectContent = false,
-        CancellationToken cancellationToken = default);
+        long? directMessagesTopicId = null, CancellationToken cancellationToken = default);
 
     Task<Message[]> SendMediaGroupAsync(Chat chat, IList<string> paths, string? caption = null,
         ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null, int? messageThreadId = null,
         bool disableNotification = false, bool protectContent = false, string? messageEffectId = null,
-        string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        string? businessConnectionId = null, bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
         CancellationToken cancellationToken = default);
 
     Task<Message[]> SendMediaGroupAsync(Chat chat, IList<InputFile> inputFiles, string? caption = null,
         ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null, int? messageThreadId = null,
         bool disableNotification = false, bool protectContent = false, string? messageEffectId = null,
-        string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        string? businessConnectionId = null, bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
         CancellationToken cancellationToken = default);
 
     Task<Message[]> SendMediaGroupAsync(Chat chat, IEnumerable<IAlbumInputMedia> media,
         ReplyParameters? replyParameters = null, int? messageThreadId = null, bool disableNotification = false,
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
-        bool allowPaidBroadcast = false, CancellationToken cancellationToken = default);
+        bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
+        CancellationToken cancellationToken = default);
 
     Task<Message> SendPhotoAsync(Chat chat, string path, KeyboardProvider? keyboardProvider = null,
         string? caption = null, ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null,
         int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool showCaptionAboveMedia = false, bool hasSpoiler = false, bool disableNotification = false,
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
-        bool allowPaidBroadcast = false, CancellationToken cancellationToken = default);
+        bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
+        SuggestedPostParameters? suggestedPostParameters = null, CancellationToken cancellationToken = default);
 
     Task<Message> SendPhotoAsync(Chat chat, InputFile photo, KeyboardProvider? keyboardProvider = null,
         string? caption = null, ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null,
         int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool showCaptionAboveMedia = false, bool hasSpoiler = false, bool disableNotification = false,
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
-        bool allowPaidBroadcast = false, CancellationToken cancellationToken = default);
+        bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
+        SuggestedPostParameters? suggestedPostParameters = null, CancellationToken cancellationToken = default);
 
     Task<Message> SendDocumentAsync(Chat chat, string path, KeyboardProvider? keyboardProvider = null,
         string? caption = null, ParseMode parseMode = ParseMode.None, ReplyParameters? replyParameters = null,
         InputFile? thumbnail = null, int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool disableContentTypeDetection = false, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default);
 
     Task<Message> SendDocumentAsync(Chat chat, InputFile document, KeyboardProvider? keyboardProvider = null,
@@ -110,12 +119,14 @@ public interface IUpdateSender
         InputFile? thumbnail = null, int? messageThreadId = null, IEnumerable<MessageEntity>? captionEntities = null,
         bool disableContentTypeDetection = false, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default);
 
     Task<Message> SendStickerAsync(Chat chat, InputFile sticker, ReplyParameters? replyParameters = null,
         KeyboardProvider? keyboardProvider = null, int? messageThreadId = null, string? emoji = null,
         bool disableNotification = false, bool protectContent = false, string? messageEffectId = null,
         string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default);
 
     Task PinChatMessageAsync(Chat chat, int messageId, bool disableNotification = false,
@@ -135,6 +146,7 @@ public interface IUpdateSender
         ReplyParameters? replyParameters = default, InlineKeyboardMarkup? replyMarkup = default,
         string? startParameter = default, int? messageThreadId = default, bool disableNotification = default,
         bool protectContent = default, string? messageEffectId = default, bool allowPaidBroadcast = default,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default);
 
     public Task AnswerCallbackQueryAsync(string callbackQueryId, string? text = null, bool showAlert = false,

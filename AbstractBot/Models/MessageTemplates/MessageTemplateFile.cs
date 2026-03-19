@@ -45,8 +45,9 @@ public class MessageTemplateFile : MessageTemplate
 
     public override Task<Message> SendAsync(IUpdateSender updateSender, Chat chat)
     {
-        return updateSender.SendDocumentAsync(chat, FilePath, KeyboardProvider, TextJoined, ParseMode,
-            ReplyParameters, Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification,
-            ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, CancellationToken);
+        return updateSender.SendDocumentAsync(chat, FilePath, KeyboardProvider, TextJoined, ParseMode, ReplyParameters,
+            Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification, ProtectContent,
+            MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, DirectMessagesTopicId, SuggestedPostParameters,
+            CancellationToken);
     }
 }

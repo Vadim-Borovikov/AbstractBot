@@ -33,6 +33,8 @@ public abstract class MessageTemplate
     public string? MessageEffectId;
     public string? BusinessConnectionId;
     public bool AllowPaidBroadcast;
+    public long? DirectMessagesTopicId;
+    public SuggestedPostParameters? SuggestedPostParameters;
     public CancellationToken CancellationToken;
 
     protected MessageTemplate() { }
