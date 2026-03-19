@@ -227,7 +227,7 @@ public class UpdateSender : IUpdateSender
         }
         else
         {
-            _logger.LogError("Wrong MediaGroup size", $"Recieved {messages.Length} after {paths.Count} paths");
+            _logger.Errors.Log("Wrong MediaGroup size", $"Recieved {messages.Length} after {paths.Count} paths", true);
         }
 
         return messages;

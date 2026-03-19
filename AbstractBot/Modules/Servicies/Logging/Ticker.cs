@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules.Servicies;
 using GryphonUtilities;
+using GryphonUtilities.Logging;
 
 namespace AbstractBot.Modules.Servicies.Logging;
 
@@ -27,7 +28,7 @@ internal sealed class Ticker : IDisposable, IService
 
     private Task TickAsync(CancellationToken _)
     {
-        _logger.LogTimedMessage("Tick");
+        _logger.Messages.Log("Tick", false);
         return Task.CompletedTask;
     }
 

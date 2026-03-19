@@ -1,5 +1,5 @@
 ﻿using System;
-using GryphonUtilities;
+using GryphonUtilities.Logging;
 using GryphonUtilities.Time;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
@@ -34,13 +34,13 @@ public sealed class LoggerExtended : Logger
         string? data = null)
     {
         string log = GetUpdateLog(chat, type, messageId, data);
-        LogTimedMessage($"Refuse to {log}");
+        Messages.Log($"Refuse to {log}", false);
     }
 
     public void LogUpdate(Chat chat, Enum type, int? messageId = null, string? data = null)
     {
         string log = GetUpdateLog(chat, type, messageId, data);
-        LogTimedMessage(log);
+        Messages.Log($"Refuse to {log}", false);
     }
 
     private static string GetUpdateLog(Chat chat, Enum type, int? messageId = null, string? data = null)

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules.Servicies;
 using GryphonUtilities;
+using GryphonUtilities.Logging;
 using JetBrains.Annotations;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
@@ -38,13 +39,13 @@ public sealed class Connection : IConnection
 
     public async Task ReconnectAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogTimedMessage("Reconnecting to Telegram...");
+        _logger.Messages.Log("Reconnecting to Telegram...", false);
 
         await _client.DeleteWebhook(false, cancellationToken);
 
         await ConnectAsync(cancellationToken);
 
-        _logger.LogTimedMessage("...connected.");
+        _logger.Messages.Log("...connected.", false);
     }
 
     public Task DisconnectAsync(CancellationToken cancellationToken)

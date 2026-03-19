@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using AbstractBot.Interfaces.Operations;
-using GryphonUtilities;
+using GryphonUtilities.Logging;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
