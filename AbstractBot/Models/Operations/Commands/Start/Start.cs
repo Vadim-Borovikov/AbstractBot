@@ -22,7 +22,7 @@ public sealed class Start : Command, IStartCommand
     protected override async Task ExecuteAsync(Message message, User from)
     {
         await _startCommon.ExecuteAsync(from);
-        await _greeter.Greet(message, from);
+        await _greeter.GreetAsync(message, from);
     }
 
     private readonly StartCommon _startCommon;

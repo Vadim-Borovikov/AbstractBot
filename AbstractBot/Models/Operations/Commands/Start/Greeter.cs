@@ -16,7 +16,7 @@ public sealed class Greeter: IGreeter
         _textsProvider = textsProvider;
     }
 
-    public Task Greet(Message message, User from)
+    public Task GreetAsync(Message message, User from)
     {
         ITexts texts = _textsProvider.GetTextsFor(from.Id);
         return texts.StartFormat.SendAsync(_updateSender, message.Chat);

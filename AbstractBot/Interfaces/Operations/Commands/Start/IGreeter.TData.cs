@@ -8,5 +8,5 @@ namespace AbstractBot.Interfaces.Operations.Commands.Start;
 public interface IGreeter<in TData>
     where TData : class, ICommandData<TData>
 {
-    Task Greet(Message message, User from, TData data);
+    Task GreetAsync(Message message, User from, TData data);
 }

@@ -24,7 +24,7 @@ public sealed class Start<TData> : Command<TData>, IStartCommand
     protected override async Task ExecuteAsync(TData data, Message message, User from)
     {
         await _startCommon.ExecuteAsync(from);
-        await _greeter.Greet(message, from, data);
+        await _greeter.GreetAsync(message, from, data);
     }
 
     protected override async Task ExecuteAsync(Message message, User from)
@@ -34,7 +34,7 @@ public sealed class Start<TData> : Command<TData>, IStartCommand
         // ReSharper disable once SuspiciousTypeConversion.Global
         if (_greeter is IGreeter s)
         {
-            await s.Greet(message, from);
+            await s.GreetAsync(message, from);
         }
     }
 
