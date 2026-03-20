@@ -40,7 +40,7 @@ public sealed class LoggerExtended : Logger
     public void LogUpdate(Chat chat, Enum type, int? messageId = null, string? data = null)
     {
         string log = GetUpdateLog(chat, type, messageId, data);
-        Messages.Log($"Refuse to {log}", false);
+        Messages.Log($"{log}", false);
     }
 
     private static string GetUpdateLog(Chat chat, Enum type, int? messageId = null, string? data = null)
