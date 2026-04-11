@@ -16,17 +16,18 @@ public class LocalizationUserRegistrator<TLocalizationUserState, TLocalizationUs
         _userStates = userStates;
     }
 
-    public virtual void RegistrerUser(User user)
+    public virtual bool RegistrerUser(User user)
     {
         if (_userStates.ContainsKey(user.Id))
         {
-            return;
+            return false;
         }
 
         _userStates[user.Id] = new TLocalizationUserState
         {
             LanguageCode = user.LanguageCode
         };
+        return true;
     }
 
     private readonly Dictionary<long, TLocalizationUserState> _userStates;

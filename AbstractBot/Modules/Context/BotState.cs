@@ -8,7 +8,7 @@ namespace AbstractBot.Modules.Context;
 
 [PublicAPI]
 public class BotState<TBotStateData, TUserState, TUserStateData> : IBotState<TBotStateData, TUserState, TUserStateData>
-    where TUserState : IStateful<TUserStateData>, new()
+    where TUserState : IStatefulReloadable<TUserStateData>, new()
     where TBotStateData : IBotStateData<TUserStateData>, new()
 {
     public Dictionary<long, TUserState> UserStates { get; init; }

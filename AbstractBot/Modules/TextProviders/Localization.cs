@@ -24,10 +24,14 @@ public class Localization<TTexts, TUserState, TUserStateData> : ITextsProvider<T
         _userStates = userStates;
     }
 
+    public string GetLanguageCodeFor(long userId)
+    {
+        return _userStates.GetValueOrDefault(userId)?.LanguageCode ?? DefaultLanguageCode;
+    }
+
     public TTexts GetTextsFor(long userId)
     {
-        string languageCode = _userStates.GetValueOrDefault(userId)?.LanguageCode ?? DefaultLanguageCode;
-
+        string languageCode = GetLanguageCodeFor(userId);
         return GetTexts(languageCode);
     }
 
