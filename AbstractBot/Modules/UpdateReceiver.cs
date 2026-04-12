@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Operations;
 using AbstractBot.Utilities.Extensions;
@@ -8,6 +5,10 @@ using GryphonUtilities;
 using GryphonUtilities.Extensions;
 using GryphonUtilities.Logging;
 using JetBrains.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.Payments;
@@ -30,9 +31,17 @@ public class UpdateReceiver : IUpdateReceiver
         _updatesSender = sender;
         _reportsDefault = reportsDefault;
         Operations = new List<IOperation>();
-    }
 
-    public void Update(Update update) => Invoker.FireAndForget(_ => UpdateAsync(update), Logger);
+        UnboundedChannelOptions options = new()
+        {
+            SingleReader = true,
+            SingleWriter = false,
+            AllowSynchronousContinuations = false
+        };
+        _updates = Channel.CreateUnbounded<Update>(options);
+
+        Invoker.FireAndForget(_ => ProcessQueueAsync(), _logger);
+    }
 
     protected virtual Task UpdateAsync(Update update)
     {
@@ -148,6 +157,30 @@ public class UpdateReceiver : IUpdateReceiver
         return ProcessInsufficientAccessAsync(message, _, __);
     }
 
+    public void Update(Update update)
+    {
+        bool written = _updates.Writer.TryWrite(update);
+        if (!written)
+        {
+            throw new InvalidOperationException("Failed to enqueue update.");
+        }
+    }
+
+    private async Task ProcessQueueAsync()
+    {
+        await foreach (Update update in _updates.Reader.ReadAllAsync())
+        {
+            try
+            {
+                await UpdateAsync(update);
+            }
+            catch (Exception ex)
+            {
+                Logger.Errors.Log(ex);
+            }
+        }
+    }
+
     private Task SendStickerAsync(Message message, InputFile sticker)
     {
         Chat chat = message.Chat;
@@ -161,6 +194,7 @@ public class UpdateReceiver : IUpdateReceiver
         return _updatesSender.SendStickerAsync(chat, sticker, rp);
     }
 
+    private readonly Channel<Update> _updates;
     private readonly LoggerExtended _logger;
     private readonly IUpdateSender _updatesSender;
     private readonly InputFileId _dontUnderstandSticker;
