@@ -1,14 +1,17 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands;
 using AbstractBot.Models;
 using AbstractBot.Models.Operations.Commands;
 using JetBrains.Annotations;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using AbstractBot.Utilities;
+using GryphonUtilities.Logging;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 
 namespace AbstractBot.Modules;
@@ -17,12 +20,13 @@ namespace AbstractBot.Modules;
 public class Commands : ICommands
 {
     public Commands(TelegramBotClient client, IAccesses accesses, IUpdateReceiver updateReceiver,
-        ITextsProvider<ITexts> textsProvider, IEnumerable<long>? additionalUsers = null)
+        ITextsProvider<ITexts> textsProvider, Logger logger, IEnumerable<long>? additionalUsers = null)
     {
         _client = client;
         _accesses = accesses;
         _updateReceiver = updateReceiver;
         _textsProvider = textsProvider;
+        _logger = logger;
 
         _userIds = additionalUsers is null ? accesses.Ids.Distinct() : accesses.Ids.Concat(additionalUsers).Distinct();
     }
@@ -47,7 +51,14 @@ public class Commands : ICommands
 
         foreach (long id in _userIds)
         {
-            await UpdateFor(id, cancellationToken);
+            try
+            {
+                await UpdateFor(id, cancellationToken);
+            }
+            catch (ApiRequestException ex) when (ErrorHelper.IsChatNotFoundError(ex))
+            {
+                _logger.Errors.Log(ex);
+            }
         }
     }
 
@@ -74,5 +85,6 @@ public class Commands : ICommands
     private readonly IAccesses _accesses;
     private readonly IUpdateReceiver _updateReceiver;
     private readonly ITextsProvider<ITexts> _textsProvider;
+    private readonly Logger _logger;
     private readonly IEnumerable<long> _userIds;
 }

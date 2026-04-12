@@ -64,7 +64,8 @@ internal sealed class ExampleBot : Bot, IDisposable
 
         LocalizationUserRegistrator<ExampleUserState, LocalizationUserStateData> registrator = new(userStates);
 
-        ICommands commands = new Commands(core.Client, core.Accesses, core.UpdateReceiver, localization);
+        ICommands commands =
+            new Commands(core.Client, core.Accesses, core.UpdateReceiver, localization, core.Logging.Logger);
 
         Greeter greeter = new(core.UpdateSender, localization);
         Start start =
