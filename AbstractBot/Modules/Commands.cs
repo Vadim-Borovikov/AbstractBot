@@ -57,7 +57,7 @@ public class Commands : ICommands
             }
             catch (ApiRequestException ex) when (ErrorHelper.IsChatNotFoundError(ex))
             {
-                _logger.Errors.Log(ex);
+                _logger.Errors.Log($"Exception caught: {ex.Message}", true);
             }
         }
     }
