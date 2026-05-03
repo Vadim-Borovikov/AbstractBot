@@ -24,7 +24,7 @@ public class Localization<TTexts, TUserState, TUserStateData> : ITextsProvider<T
         _userStates = userStates;
     }
 
-    public string GetLanguageCodeFor(long userId)
+    public virtual string GetLanguageCodeFor(long userId)
     {
         return _userStates.GetValueOrDefault(userId)?.LanguageCode ?? DefaultLanguageCode;
     }
