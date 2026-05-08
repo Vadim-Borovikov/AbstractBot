@@ -52,7 +52,7 @@ public sealed class AccessData
         return Status.Sufficient;
     }
 
-    private static bool IsSufficient(int provided, int required) => (provided & required) != 0;
+    private static bool IsSufficient(int provided, int required) => (provided & required) == required;
 
     private static int ToInt(Enum access) => Convert.ToInt32(access);
 
