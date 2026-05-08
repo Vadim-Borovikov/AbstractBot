@@ -115,15 +115,6 @@ public abstract class Operation<TData> : OperationBase
         return false;
     }
 
-    /*
-    protected virtual Task ExecuteAsync(TData data, Message message, User from) => Task.CompletedTask;
-
-    protected virtual Task ExecuteAsync(TData data, Message message, User from, string callbackQueryDataCore)
-    {
-        return ExecuteAsync(data, message, from);
-    }
-     */
-
     protected virtual Task ExecuteAsync(TData data, Message message) => Task.CompletedTask;
     protected virtual Task ExecuteAsync(TData data, Message message, User from) => ExecuteAsync(data, message);
 

@@ -38,10 +38,10 @@ public abstract class OperationBase : IOperation
     protected virtual Task ExecuteAsync(Message message) => Task.CompletedTask;
     protected virtual Task ExecuteAsync(Message message, User from) => ExecuteAsync(message);
 
-    protected virtual Task ExecuteAsync(Message message, string callbackQueryDataCore) => Task.CompletedTask;
+    protected virtual Task ExecuteAsync(Message message, string callbackQueryDataCore) => ExecuteAsync(message);
     protected virtual Task ExecuteAsync(Message message, User from, string callbackQueryDataCore)
     {
-        return ExecuteAsync(message, callbackQueryDataCore);
+        return ExecuteAsync(message, from);
     }
 
     protected readonly IUpdateSender UpdateSender;
