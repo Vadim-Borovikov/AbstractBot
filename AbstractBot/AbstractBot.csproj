@@ -4,7 +4,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>preview</LangVersion>
-    <Version>88.1.1-a02</Version>
+    <Version>88.1.1-a03</Version>
     <Authors>Vadim Borovikov</Authors>
     <Company>Care Space</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

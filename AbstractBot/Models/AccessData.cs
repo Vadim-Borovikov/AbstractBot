@@ -45,7 +45,7 @@ public sealed class AccessData
             DateTimeFull now = DateTimeFull.CreateNow(_until.Value.TimeZoneInfo);
             if (_until.Value < now)
             {
-                return Status.Expired;
+                return IsSufficient(DefaultAccess, required) ? Status.Sufficient : Status.Expired;
             }
         }
 
