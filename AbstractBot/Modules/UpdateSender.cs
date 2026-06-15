@@ -103,7 +103,7 @@ public class UpdateSender : IUpdateSender
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditMedia, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditMedia, messageId, media.Caption);
         return _client.EditMessageMedia(chat.Id, messageId, media, replyMarkup, businessConnectionId,
             cancellationToken);
     }
@@ -117,8 +117,6 @@ public class UpdateSender : IUpdateSender
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId);
         return _client.EditMessageCaption(chat.Id, messageId, caption, parseMode, replyMarkup, captionEntities,
             showCaptionAboveMedia, businessConnectionId, cancellationToken);
-        /*return _client.EditMessageCaption(chat.Id, messageId, caption, parseMode, captionEntities,
-            showCaptionAboveMedia, replyMarkup, businessConnectionId, cancellationToken);*/
     }
 
     public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
