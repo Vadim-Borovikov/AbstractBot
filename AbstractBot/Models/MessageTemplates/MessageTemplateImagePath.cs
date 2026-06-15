@@ -13,7 +13,7 @@ public class MessageTemplateImagePath : MessageTemplateImage
 
     public MessageTemplateImagePath() { }
 
-    public MessageTemplateImagePath(string text, string imagePath, bool markdownV2 = false) : base(text, markdownV2)
+    public MessageTemplateImagePath(string text, string imagePath, bool escaped = false) : base(text, escaped)
     {
         ImagePath = imagePath;
     }
@@ -39,7 +39,7 @@ public class MessageTemplateImagePath : MessageTemplateImage
 
         return new MessageTemplateImagePath(this)
         {
-            MarkdownV2 = info.MarkdownV2,
+            Escaped = info.Escaped,
             TextJoined = info.Text
         };
     }

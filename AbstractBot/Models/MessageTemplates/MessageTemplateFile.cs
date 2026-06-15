@@ -15,7 +15,7 @@ public class MessageTemplateFile : MessageTemplate
 
     public MessageTemplateFile() { }
 
-    public MessageTemplateFile(string text, string filePath, bool markdownV2 = false) : base(text, markdownV2)
+    public MessageTemplateFile(string text, string filePath, bool escaped = false) : base(text, escaped)
     {
         FilePath = filePath;
     }
@@ -38,7 +38,7 @@ public class MessageTemplateFile : MessageTemplate
 
         return new MessageTemplateFile(this)
         {
-            MarkdownV2 = info.MarkdownV2,
+            Escaped = info.Escaped,
             TextJoined = info.Text
         };
     }

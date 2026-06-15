@@ -15,7 +15,7 @@ public class MessageTemplateText : MessageTemplate
 
     public MessageTemplateText() { }
 
-    public MessageTemplateText(string text, bool markdownV2 = false) : base(text, markdownV2) { }
+    public MessageTemplateText(string text, bool escaped = false) : base(text, escaped) { }
 
     public MessageTemplateText(MessageTemplate prototype) : base(prototype) { }
 
@@ -26,12 +26,12 @@ public class MessageTemplateText : MessageTemplate
 
     public static MessageTemplateText JoinTexts(IList<MessageTemplateText> elements)
     {
-        bool shouldEscape = elements.Any(e => e.MarkdownV2);
+        bool shouldEscape = elements.Any(e => e.Escaped);
         IEnumerable<string> lines = elements.Select(e => shouldEscape ? e.EscapeIfNeeded() : e.TextJoined);
         return new MessageTemplateText
         {
             TextJoined = GryphonUtilities.Helpers.Text.JoinLines(lines),
-            MarkdownV2 = shouldEscape
+            Escaped = shouldEscape
         };
     }
 
@@ -41,7 +41,7 @@ public class MessageTemplateText : MessageTemplate
 
         return new MessageTemplateText(this)
         {
-            MarkdownV2 = info.MarkdownV2,
+            Escaped = info.Escaped,
             TextJoined = info.Text
         };
     }

@@ -13,8 +13,7 @@ public class MessageTemplateImageInputFile : MessageTemplateImage
 
     public MessageTemplateImageInputFile() { }
 
-    public MessageTemplateImageInputFile(string text, InputFile inputFile, bool markdownV2 = false)
-        : base(text, markdownV2)
+    public MessageTemplateImageInputFile(string text, InputFile inputFile, bool escaped = false) : base(text, escaped)
     {
         InputFile = inputFile;
     }
@@ -40,7 +39,7 @@ public class MessageTemplateImageInputFile : MessageTemplateImage
 
         return new MessageTemplateImageInputFile(this)
         {
-            MarkdownV2 = info.MarkdownV2,
+            Escaped = info.Escaped,
             TextJoined = info.Text
         };
     }

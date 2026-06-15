@@ -14,7 +14,7 @@ public abstract class MessageTemplateImage : MessageTemplate
 
     protected MessageTemplateImage() { }
 
-    protected MessageTemplateImage(string text, bool markdownV2 = false) : base(text, markdownV2) { }
+    protected MessageTemplateImage(string text, bool escaped = false) : base(text, escaped) { }
 
     protected MessageTemplateImage(MessageTemplate prototype) : base(prototype) { }
 

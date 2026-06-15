@@ -22,7 +22,7 @@ public abstract class MessageTemplate
         }
     }
 
-    public bool MarkdownV2 { get; init; }
+    public bool Escaped { get; init; }
 
     public KeyboardProvider? KeyboardProvider;
     public int? MessageThreadId;
@@ -39,16 +39,16 @@ public abstract class MessageTemplate
 
     protected MessageTemplate() { }
 
-    protected MessageTemplate(string text, bool markdownV2 = false)
+    protected MessageTemplate(string text, bool escaped = false)
     {
         TextJoined = text;
-        MarkdownV2 = markdownV2;
+        Escaped = escaped;
     }
 
     protected MessageTemplate(MessageTemplate prototype)
     {
         TextJoined = prototype.TextJoined;
-        MarkdownV2 = prototype.MarkdownV2;
+        Escaped = prototype.Escaped;
         KeyboardProvider = prototype.KeyboardProvider;
         MessageThreadId = prototype.MessageThreadId;
         Entities = prototype.Entities;
@@ -60,9 +60,9 @@ public abstract class MessageTemplate
 
     protected string TextJoined { get; init; } = null!;
 
-    protected string EscapeIfNeeded() => MarkdownV2 ? TextJoined : TextJoined.Escape();
+    protected string EscapeIfNeeded() => Escaped ? TextJoined : TextJoined.Escape();
 
-    protected ParseMode ParseMode => MarkdownV2 ? ParseMode.MarkdownV2 : ParseMode.None;
+    protected ParseMode ParseMode => Escaped ? ParseMode.MarkdownV2 : ParseMode.None;
 
     public abstract Task<Message> SendAsync(IUpdateSender updateSender, Chat chat);
 
@@ -70,20 +70,20 @@ public abstract class MessageTemplate
 
     protected MessageTemplateFormatInfo PrepareFormat(params object?[] args)
     {
-        bool markdownV2 = MarkdownV2;
+        bool escaped = Escaped;
         string text = TextJoined;
 
         // ReSharper disable once MergeIntoPattern
-        if (!markdownV2 && args.Any(a => a is MessageTemplate mt && mt.MarkdownV2))
+        if (!escaped && args.Any(a => a is MessageTemplate mt && mt.Escaped))
         {
-            markdownV2 = true;
+            escaped = true;
             text = text.Escape(false);
         }
 
-        args = args.Select(a => markdownV2 ? EscapeIfNeeded(a) : ExtractText(a)).ToArray();
+        args = args.Select(a => escaped ? EscapeIfNeeded(a) : ExtractText(a)).ToArray();
         text = string.Format(text, args);
 
-        return new MessageTemplateFormatInfo(markdownV2, text);
+        return new MessageTemplateFormatInfo(escaped, text);
     }
 
     private static object? EscapeIfNeeded(object? o)
