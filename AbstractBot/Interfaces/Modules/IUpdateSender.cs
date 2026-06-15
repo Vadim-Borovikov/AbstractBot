@@ -23,10 +23,16 @@ public interface IUpdateSender
         long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
         CancellationToken cancellationToken = default);
 
+    Task<Message> SendRichMessageAsync(Chat chat, InputRichMessage richText, KeyboardProvider? keyboardProvider = null,
+        ReplyParameters? replyParameters = null, int? messageThreadId = null, bool disableNotification = false,
+        bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
+        bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
+        SuggestedPostParameters? suggestedPostParameters = null, CancellationToken cancellationToken = default);
+
     Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text, ParseMode parseMode = ParseMode.None,
         InlineKeyboardMarkup? replyMarkup = null, LinkPreviewOptions? linkPreviewOptions = null,
-        IEnumerable<MessageEntity>? entities = null, string? businessConnectionId = null,
-        CancellationToken cancellationToken = default);
+        IEnumerable<MessageEntity>? entities = null, InputRichMessage? richMessage = null,
+        string? businessConnectionId = null, CancellationToken cancellationToken = default);
 
     Task<Message> EditMessageMediaAsync(Chat chat, int messageId, string path, string newCaption = "",
         ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = default,

@@ -48,15 +48,31 @@ public class UpdateSender : IUpdateSender
             cancellationToken);
     }
 
+    public Task<Message> SendRichMessageAsync(Chat chat, InputRichMessage richText,
+        KeyboardProvider? keyboardProvider = null, ReplyParameters? replyParameters = null,
+        int? messageThreadId = null, bool disableNotification = false, bool protectContent = false,
+        string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
+        long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
+        CancellationToken cancellationToken = default)
+    {
+        keyboardProvider ??= DefaultKeyboardProvider;
+        _cooldown.DelayIfNeeded(chat, cancellationToken);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendText, data: richText.Markdown ?? richText.Html);
+        return _client.SendRichMessage(chat.Id, richText, replyParameters, keyboardProvider.Keyboard, messageThreadId,
+            disableNotification, protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast,
+            directMessagesTopicId, suggestedPostParameters, cancellationToken);
+    }
+
     public Task<Message> EditMessageTextAsync(Chat chat, int messageId, string text,
         ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = null,
         LinkPreviewOptions? linkPreviewOptions = null, IEnumerable<MessageEntity>? entities = null,
-        string? businessConnectionId = null, CancellationToken cancellationToken = default)
+        InputRichMessage? richMessage = null, string? businessConnectionId = null,
+        CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId, text);
         return _client.EditMessageText(chat.Id, messageId, text, parseMode, replyMarkup, linkPreviewOptions, entities,
-            businessConnectionId, cancellationToken);
+            richMessage, businessConnectionId, cancellationToken);
     }
 
     public async Task<Message> EditMessageMediaAsync(Chat chat, int messageId, string path, string newCaption = "",
@@ -103,7 +119,7 @@ public class UpdateSender : IUpdateSender
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditMedia, messageId, media.Caption);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditMedia, messageId);
         return _client.EditMessageMedia(chat.Id, messageId, media, replyMarkup, businessConnectionId,
             cancellationToken);
     }

@@ -50,7 +50,7 @@ public class MessageTemplateText : MessageTemplate
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
         return updateSender.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, keyboard, LinkPreviewOptions,
-            Entities, BusinessConnectionId, CancellationToken);
+            Entities, null, BusinessConnectionId, CancellationToken);
     }
 
     public Task<Message> EditMessageCaptionWithSelfAsync(IUpdateSender updateSender, Chat chat,

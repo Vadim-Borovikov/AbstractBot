@@ -28,7 +28,7 @@ public abstract class MessageTemplateImage : MessageTemplate
     {
         InlineKeyboardMarkup? keyboard = KeyboardProvider?.Keyboard as InlineKeyboardMarkup;
         return updateSender.EditMessageTextAsync(chat, messageId, TextJoined, ParseMode, keyboard, null, Entities,
-            BusinessConnectionId, CancellationToken);
+            null, BusinessConnectionId, CancellationToken);
     }
 
     public Task<Message> EditMessageCaptionWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)
