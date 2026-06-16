@@ -7,7 +7,7 @@ using AbstractBot.Interfaces.Modules;
 namespace AbstractBot.Models.MessageTemplates;
 
 [PublicAPI]
-public abstract class MessageTemplateImage : MessageTemplate
+public abstract class MessageTemplateImage : MessageTemplateMarkdownV2
 {
     public bool ShowCaptionAboveMedia;
     public bool HasSpoiler;

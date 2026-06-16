@@ -9,7 +9,7 @@ using AbstractBot.Interfaces.Modules;
 namespace AbstractBot.Models.MessageTemplates;
 
 [PublicAPI]
-public class MessageTemplateText : MessageTemplate
+public class MessageTemplateText : MessageTemplateMarkdownV2
 {
     public LinkPreviewOptions? LinkPreviewOptions;
 
@@ -24,13 +24,14 @@ public class MessageTemplateText : MessageTemplate
         LinkPreviewOptions = prototype.LinkPreviewOptions;
     }
 
-    public static MessageTemplateText JoinTexts(IList<MessageTemplateText> elements)
+    public static MessageTemplateText JoinTexts(IReadOnlyCollection<MessageTemplateText> elements,
+        string separator = "\n")
     {
         bool shouldEscape = elements.Any(e => e.Escaped);
-        IEnumerable<string> lines = elements.Select(e => shouldEscape ? e.EscapeIfNeeded() : e.TextJoined);
+        IEnumerable<string> parts = elements.Select(e => shouldEscape ? e.EscapeIfNeeded() : e.TextJoined);
         return new MessageTemplateText
         {
-            TextJoined = GryphonUtilities.Helpers.Text.JoinLines(lines),
+            TextJoined = string.Join(separator, parts),
             Escaped = shouldEscape
         };
     }

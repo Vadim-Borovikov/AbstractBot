@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using AbstractBot.Utilities.Extensions;
 using AbstractBot.Interfaces.Modules;
 
@@ -18,7 +17,7 @@ public abstract class MessageTemplate
         get => Enumerable.Empty<string>();
         init
         {
-            TextJoined = GryphonUtilities.Helpers.Text.JoinLines(value);
+            TextJoined = string.Join("\n", value);
         }
     }
 
@@ -26,7 +25,6 @@ public abstract class MessageTemplate
 
     public KeyboardProvider? KeyboardProvider;
     public int? MessageThreadId;
-    public IEnumerable<MessageEntity>? Entities;
     public bool DisableNotification;
     public bool ProtectContent;
     public ReplyParameters? ReplyParameters;
@@ -51,7 +49,6 @@ public abstract class MessageTemplate
         Escaped = prototype.Escaped;
         KeyboardProvider = prototype.KeyboardProvider;
         MessageThreadId = prototype.MessageThreadId;
-        Entities = prototype.Entities;
         DisableNotification = prototype.DisableNotification;
         ProtectContent = prototype.ProtectContent;
         ReplyParameters = prototype.ReplyParameters;
@@ -61,8 +58,6 @@ public abstract class MessageTemplate
     protected string TextJoined { get; init; } = null!;
 
     protected string EscapeIfNeeded() => Escaped ? TextJoined : TextJoined.Escape();
-
-    protected ParseMode ParseMode => Escaped ? ParseMode.MarkdownV2 : ParseMode.None;
 
     public abstract Task<Message> SendAsync(IUpdateSender updateSender, Chat chat);
 

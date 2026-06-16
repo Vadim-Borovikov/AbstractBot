@@ -6,7 +6,7 @@ using Telegram.Bot.Types;
 namespace AbstractBot.Models.MessageTemplates;
 
 [PublicAPI]
-public class MessageTemplateFile : MessageTemplate
+public class MessageTemplateFile : MessageTemplateMarkdownV2
 {
     public string FilePath { get; init; } = null!;
 
