@@ -1,57 +1,55 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Threading;
-using JetBrains.Annotations;
-using Telegram.Bot.Types;
+﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Models.MessageTemplates;
-using AbstractBot.Interfaces.Modules;
+using GryphonUtilities.Extensions;
+using JetBrains.Annotations;
+using System;
+using System.Threading.Tasks;
+using Telegram.Bot.Types;
 
 namespace AbstractBot.Models;
 
 [PublicAPI]
 public class StatusMessage : IAsyncDisposable
 {
-    public static Task<StatusMessage> CreateAsync(IUpdateSender updateSender, Chat chat,
-        MessageTemplateText messageText, MessageTemplateText startFormat, MessageTemplateText endFormat,
-        MessageTemplateText postfix)
+    public static Task<StatusMessage> CreateAsync(IUpdateSender updateSender, Chat chat, string messageText,
+        string startFormat, string endFormat, string postfix)
     {
         return CreateAsync(updateSender, chat, messageText, startFormat, endFormat, () => postfix);
     }
 
-    public static async Task<StatusMessage> CreateAsync(IUpdateSender updateSender, Chat chat,
-        MessageTemplateText messageText, MessageTemplateText startFormat, MessageTemplateText endFormat,
-        Func<MessageTemplateText>? postfixProvider = null)
+    public static async Task<StatusMessage> CreateAsync(IUpdateSender updateSender, Chat chat, string messageText,
+        string startFormat, string endFormat, Func<string>? postfixProvider = null)
     {
-        MessageTemplateText formatted = startFormat.Format(messageText);
-        formatted.KeyboardProvider = KeyboardProvider.Same;
-        Message message = await formatted.SendAsync(updateSender, chat);
-        return new StatusMessage(updateSender, message, formatted, endFormat, postfixProvider,
-            messageText.CancellationToken);
+        string formatted = startFormat.Format(messageText);
+        MessageTemplateText template = new(formatted)
+        {
+            KeyboardProvider = KeyboardProvider.Same
+        };
+        Message message = await template.SendAsync(updateSender, chat);
+        return new StatusMessage(updateSender, message, formatted, endFormat, postfixProvider);
     }
 
     public async ValueTask DisposeAsync()
     {
-        MessageTemplateText? postfix = _postfixProvider?.Invoke();
-        MessageTemplateText formatted = _endFormat.Format(_template, postfix);
-        formatted.CancellationToken = _cancellationToken;
-        await formatted.EditMessageWithSelfAsync(_bot, _message.Chat, _message.MessageId);
+        string? postfix = _postfixProvider?.Invoke();
+        string formatted = _endFormat.Format(_formatted, postfix);
+        MessageTemplateText template = new(formatted);
+        await template.EditMessageWithSelfAsync(_bot, _message.Chat, _message.MessageId);
     }
 
-    private StatusMessage(IUpdateSender bot, Message message, MessageTemplateText template,
-        MessageTemplateText endFormat, Func<MessageTemplateText>? postfixProvider, CancellationToken cancellationToken)
+    private StatusMessage(IUpdateSender bot, Message message, string formatted, string endFormat,
+        Func<string>? postfixProvider)
     {
         _bot = bot;
         _message = message;
         _endFormat = endFormat;
-        _template = template;
+        _formatted = formatted;
         _postfixProvider = postfixProvider;
-        _cancellationToken = cancellationToken;
     }
 
     private readonly IUpdateSender _bot;
-    private readonly MessageTemplateText _endFormat;
-    private readonly MessageTemplateText _template;
+    private readonly string _endFormat;
+    private readonly string _formatted;
     private readonly Message _message;
-    private readonly Func<MessageTemplateText>? _postfixProvider;
-    private readonly CancellationToken _cancellationToken;
+    private readonly Func<string>? _postfixProvider;
 }

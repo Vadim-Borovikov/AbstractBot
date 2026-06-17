@@ -1,6 +1,7 @@
-﻿using System;
+﻿using GryphonUtilities.Extensions;
 using GryphonUtilities.Helpers;
 using JetBrains.Annotations;
+using System;
 using Telegram.Bot.Types;
 
 namespace AbstractBot.Models;
@@ -20,11 +21,8 @@ public class TelegramUser
     public string ShortDescriptor => Login ?? FullName;
     public string? Login => GetLogin(Username);
 
-    public static Uri? GetUri(string? username)
-    {
-        return username is null ? null : new Uri(string.Format(UriFormat, username));
-    }
-    public static string? GetLogin(string? username) => username is null ? null : string.Format(LoginFormat, username);
+    public static Uri? GetUri(string? username) => username is null ? null : new Uri(UriFormat.Format(username));
+    public static string? GetLogin(string? username) => username is null ? null : LoginFormat.Format(username);
 
     public static string? GetUsername(string? login)
     {

@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
-using AbstractBot.Interfaces.Modules;
-using AbstractBot.Models.MessageTemplates;
 using AbstractBot.Utilities.Extensions;
 using JetBrains.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -42,7 +41,7 @@ public sealed class BotCommandExtended : BotCommand
         return splitted.First().Equals(trigger, StringComparison.InvariantCultureIgnoreCase) ? splitted.Skip(1) : null;
     }
 
-    public MessageTemplateText? GetHelpDescriptionFor(long userId)
+    public string? GetHelpDescriptionFor(long userId)
     {
         ITexts texts = _textsProvider.GetTextsFor(userId);
         string? description = texts.TryGetMenuDescription(Command);

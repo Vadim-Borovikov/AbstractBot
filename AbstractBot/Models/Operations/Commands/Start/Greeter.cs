@@ -1,8 +1,9 @@
-﻿using System.Threading.Tasks;
-using AbstractBot.Interfaces.Modules;
+﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands.Start;
+using AbstractBot.Models.MessageTemplates;
 using JetBrains.Annotations;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
 namespace AbstractBot.Models.Operations.Commands.Start;
@@ -19,7 +20,8 @@ public sealed class Greeter: IGreeter
     public Task GreetAsync(Message message, User from)
     {
         ITexts texts = _textsProvider.GetTextsFor(from.Id);
-        return texts.StartFormat.SendAsync(_updateSender, message.Chat);
+        MessageTemplateText template = new(texts.StartFormat.ToString());
+        return template.SendAsync(_updateSender, message.Chat);
     }
 
     private readonly IUpdateSender _updateSender;

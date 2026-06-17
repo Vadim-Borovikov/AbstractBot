@@ -1,9 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using AbstractBot.Interfaces.Modules;
+﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Operations;
-using AbstractBot.Models.MessageTemplates;
 using JetBrains.Annotations;
+using System;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
 namespace AbstractBot.Models.Operations;
@@ -31,7 +30,7 @@ public abstract class OperationBase : IOperation
         return query.StartsWith(typeName, StringComparison.InvariantCulture) ? query.Substring(typeName.Length) : null;
     }
 
-    public virtual MessageTemplateText? GetHelpDescriptionFor(long userId) => null;
+    public virtual string? GetHelpDescriptionFor(long userId) => null;
 
     protected AccessData.Status CheckAccess(long userId) => _accesses.GetAccess(userId).CheckAgainst(AccessRequired);
 

@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AbstractBot.Interfaces.Modules;
+﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Models.MessageTemplates;
 using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
 namespace AbstractBot.Models.Operations.Commands;
@@ -28,20 +28,17 @@ public sealed class Help : Command
 
         AccessData access = _accesses.GetAccess(sender.Id);
 
-        List<MessageTemplateText> descriptions =
-            _updateReceiver.Operations
-                           .Where(o => access.IsSufficientAgainst(o.AccessRequired))
-                           .Select(o => o.GetHelpDescriptionFor(sender.Id))
-                           .SkipNulls()
-                           .ToList();
-
-        MessageTemplateText template = MessageTemplateText.JoinTexts(descriptions);
-        MessageTemplateText? format = texts.HelpFormat;
-        if (format is not null)
+        IEnumerable<string> descriptions = _updateReceiver.Operations
+                                                          .Where(o => access.IsSufficientAgainst(o.AccessRequired))
+                                                          .Select(o => o.GetHelpDescriptionFor(sender.Id))
+                                                          .SkipNulls();
+        string joined = descriptions.JoinLines();
+        if (texts.HelpFormat is not null)
         {
-            template = format.Format(template);
+            joined = texts.HelpFormat.Format(joined);
         }
 
+        MessageTemplateText template = new(joined);
         return template.SendAsync(UpdateSender, message.Chat);
     }
 

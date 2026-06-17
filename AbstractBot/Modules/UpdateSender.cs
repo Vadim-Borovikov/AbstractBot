@@ -277,7 +277,7 @@ public class UpdateSender : IUpdateSender
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         List<IAlbumInputMedia> all = new(media);
-        string captions = string.Join(", ", all.OfType<InputMedia>().Select(m => m.Caption).SkipNulls());
+        string captions = all.OfType<InputMedia>().Select(m => m.Caption).SkipNulls().Join(", ");
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendFiles, data: captions);
 
         return _client.SendMediaGroup(chat.Id, all, replyParameters, messageThreadId, disableNotification,

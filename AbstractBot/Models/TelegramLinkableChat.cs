@@ -1,5 +1,6 @@
-﻿using System;
+﻿using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
+using System;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -21,12 +22,12 @@ public class TelegramLinkableChat
 
         Chat = new Chat
         {
-            Id = long.Parse(string.Format(ChatIdFormat, id)),
+            Id = long.Parse(ChatIdFormat.Format(id)),
             Type = type,
             Username = username
         };
 
-        _messageUriPrefix = string.Format(ChatUriFormat, username);
+        _messageUriPrefix = ChatUriFormat.Format(username);
         ChatUri = new Uri(_messageUriPrefix);
     }
 
@@ -36,17 +37,17 @@ public class TelegramLinkableChat
 
         Chat = new Chat
         {
-            Id = long.Parse(string.Format(ChatIdFormat, id)),
+            Id = long.Parse(ChatIdFormat.Format(id)),
             Type = type
         };
 
-        string privateChatUsername = string.Format(PrivateChatUsernameFormat, id);
-        _messageUriPrefix = string.Format(ChatUriFormat, privateChatUsername);
+        string privateChatUsername = PrivateChatUsernameFormat.Format(id);
+        _messageUriPrefix = ChatUriFormat.Format(privateChatUsername);
 
         ChatUri = inviteUri;
     }
 
-    public Uri GetMesageUri(int messageId) => new(string.Format(MessageUriFormat, _messageUriPrefix, messageId));
+    public Uri GetMesageUri(int messageId) => new(MessageUriFormat.Format(_messageUriPrefix, messageId));
 
     private const string ChatIdFormat = "-100{0}";
     private const string ChatUriFormat = "https://t.me/{0}";

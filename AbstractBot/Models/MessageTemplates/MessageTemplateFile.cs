@@ -1,30 +1,21 @@
-using System.Threading.Tasks;
 using AbstractBot.Interfaces.Modules;
 using JetBrains.Annotations;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace AbstractBot.Models.MessageTemplates;
 
 [PublicAPI]
 public class MessageTemplateFile : MessageTemplateMarkdownV2
 {
-    public string FilePath { get; init; } = null!;
+    public string FilePath { get; init; }
 
     public InputFile? Thumbnail;
     public bool DisableContentTypeDetection;
 
-    public MessageTemplateFile() { }
-
-    public MessageTemplateFile(string text, string filePath, bool escaped = false) : base(text, escaped)
-    {
-        FilePath = filePath;
-    }
-
-    public MessageTemplateFile(MessageTemplate prototype, string filePath) : base(prototype)
-    {
-        FilePath = filePath;
-    }
-
+    public MessageTemplateFile(string text, string filePath) : base(text) => FilePath = filePath;
+    public MessageTemplateFile(MessageTemplate prototype, string filePath) : base(prototype) => FilePath = filePath;
     public MessageTemplateFile(MessageTemplateFile prototype) : base(prototype)
     {
         FilePath = prototype.FilePath;
@@ -32,22 +23,11 @@ public class MessageTemplateFile : MessageTemplateMarkdownV2
         DisableContentTypeDetection = prototype.DisableContentTypeDetection;
     }
 
-    public override MessageTemplateFile Format(params object?[] args)
-    {
-        MessageTemplateFormatInfo info = PrepareFormat(args);
-
-        return new MessageTemplateFile(this)
-        {
-            Escaped = info.Escaped,
-            TextJoined = info.Text
-        };
-    }
-
     public override Task<Message> SendAsync(IUpdateSender updateSender, Chat chat)
     {
-        return updateSender.SendDocumentAsync(chat, FilePath, KeyboardProvider, TextJoined, ParseMode, ReplyParameters,
-            Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification, ProtectContent,
-            MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, DirectMessagesTopicId, SuggestedPostParameters,
-            CancellationToken);
+        return updateSender.SendDocumentAsync(chat, FilePath, KeyboardProvider, Text, ParseMode.MarkdownV2,
+            ReplyParameters, Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification,
+            ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, DirectMessagesTopicId,
+            SuggestedPostParameters, CancellationToken);
     }
 }

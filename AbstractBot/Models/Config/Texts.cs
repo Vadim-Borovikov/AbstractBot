@@ -1,8 +1,7 @@
+using AbstractBot.Interfaces.Modules.Config;
+using JetBrains.Annotations;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using AbstractBot.Interfaces.Modules.Config;
-using AbstractBot.Models.MessageTemplates;
-using JetBrains.Annotations;
 
 namespace AbstractBot.Models.Config;
 
@@ -14,18 +13,18 @@ public class Texts : ITexts
     public Dictionary<string, string> MenuDescriptions { get; init; } = null!;
 
     [Required]
-    public MessageTemplateText StartFormat { get; init; } = null!;
+    public TextContent StartFormat { get; init; } = null!;
 
-    public MessageTemplateText? HelpFormat { get; init; }
-
-    [Required]
-    public MessageTemplateText StatusMessageStartFormat { get; init; } = null!;
+    public TextContent? HelpFormat { get; init; }
 
     [Required]
-    public MessageTemplateText StatusMessageEndFormat { get; init; } = null!;
+    public TextContent StatusMessageStartFormat { get; init; } = null!;
 
     [Required]
-    public MessageTemplateText CommandDescriptionFormat { get; init; } = null!;
+    public TextContent StatusMessageEndFormat { get; init; } = null!;
+
+    [Required]
+    public TextContent CommandDescriptionFormat { get; init; } = null!;
 
     public string? TryGetMenuDescription(string command) => MenuDescriptions.GetValueOrDefault(command);
 }

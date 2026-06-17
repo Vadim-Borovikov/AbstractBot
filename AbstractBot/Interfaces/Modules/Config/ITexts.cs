@@ -1,4 +1,4 @@
-using AbstractBot.Models.MessageTemplates;
+using AbstractBot.Models.Config;
 using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
 
@@ -7,15 +7,15 @@ namespace AbstractBot.Interfaces.Modules.Config;
 [PublicAPI]
 public interface ITexts
 {
-    MessageTemplateText StartFormat { get; }
+    TextContent StartFormat { get; }
 
-    MessageTemplateText? HelpFormat { get; }
+    TextContent? HelpFormat { get; }
 
-    MessageTemplateText StatusMessageStartFormat { get; }
+    TextContent StatusMessageStartFormat { get; }
 
-    MessageTemplateText StatusMessageEndFormat { get; }
+    TextContent StatusMessageEndFormat { get; }
 
-    MessageTemplateText CommandDescriptionFormat { get; }
+    TextContent CommandDescriptionFormat { get; }
 
     string? TryGetMenuDescription(string command);
 

@@ -1,7 +1,6 @@
 ﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands;
-using AbstractBot.Models.MessageTemplates;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -21,7 +20,7 @@ public abstract class Command : Operation, ICommand
         BotCommandExtended = new BotCommandExtended(command, menuDescription, selfUsername, textsProvider, showInMenu);
     }
 
-    public override MessageTemplateText? GetHelpDescriptionFor(long userId)
+    public override string? GetHelpDescriptionFor(long userId)
     {
         return BotCommandExtended.GetHelpDescriptionFor(userId);
     }

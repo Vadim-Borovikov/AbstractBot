@@ -1,45 +1,17 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using JetBrains.Annotations;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 using AbstractBot.Interfaces.Modules;
+using JetBrains.Annotations;
+using System.Threading.Tasks;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AbstractBot.Models.MessageTemplates;
 
 [PublicAPI]
 public class MessageTemplateRichText : MessageTemplate
 {
-    public MessageTemplateRichText() { }
-
-    public MessageTemplateRichText(string text, bool escaped = false) : base(text, escaped) { }
-
+    public MessageTemplateRichText(string text) : base(text) { }
     public MessageTemplateRichText(MessageTemplate prototype) : base(prototype) { }
-
-    public static MessageTemplateRichText JoinTexts(IReadOnlyCollection<MessageTemplateRichText> elements,
-        string separator = "\n")
-    {
-        bool shouldEscape = elements.Any(e => e.Escaped);
-        IEnumerable<string> parts = elements.Select(e => shouldEscape ? e.EscapeIfNeeded() : e.TextJoined);
-        return new MessageTemplateRichText
-        {
-            TextJoined = string.Join(separator, parts),
-            Escaped = shouldEscape
-        };
-    }
-
-    public override MessageTemplateRichText Format(params object?[] args)
-    {
-        MessageTemplateFormatInfo info = PrepareFormat(args);
-
-        return new MessageTemplateRichText(this)
-        {
-            Escaped = info.Escaped,
-            TextJoined = info.Text
-        };
-    }
 
     public Task<Message> EditMessageWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)
     {
@@ -55,5 +27,5 @@ public class MessageTemplateRichText : MessageTemplate
             AllowPaidBroadcast, DirectMessagesTopicId, SuggestedPostParameters, CancellationToken);
     }
 
-    private InputRichMessage GetRichMessage() => new() { Markdown = EscapeIfNeeded() };
+    private InputRichMessage GetRichMessage() => new() { Markdown = Text };
 }
