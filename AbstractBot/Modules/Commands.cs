@@ -31,14 +31,35 @@ public class Commands : ICommands
         _userIds = additionalUsers is null ? accesses.Ids.Distinct() : accesses.Ids.Concat(additionalUsers).Distinct();
     }
 
-    public Task UpdateFor(long userId, CancellationToken cancellationToken = default)
+    public async Task UpdateFor(long userId, CancellationToken cancellationToken = default)
     {
         ITexts texts = _textsProvider.GetTextsFor(userId);
         IEnumerable<BotCommand> commands = GetMenuCommands(_accesses.GetAccess(userId), texts);
-        return _client.SetMyCommands(commands, BotCommandScope.Chat(userId), cancellationToken: cancellationToken);
+        try
+        {
+            await _client.SetMyCommands(commands, BotCommandScope.Chat(userId), cancellationToken: cancellationToken);
+        }
+        catch (ApiRequestException ex) when (ErrorHelper.IsChatNotFoundError(ex))
+        {
+            _logger.Errors.Log($"Exception caught: {ex.Message}", true);
+        }
+    }
+
+    public async Task UpdateForUsers(CancellationToken cancellationToken = default)
+    {
+        foreach (long id in _userIds)
+        {
+            await UpdateFor(id, cancellationToken);
+        }
     }
 
     public async Task UpdateForAll(CancellationToken cancellationToken = default)
+    {
+        await ResetForAll(cancellationToken);
+        await UpdateForUsers(cancellationToken);
+    }
+
+    public async Task ResetForAll(CancellationToken cancellationToken = default)
     {
         await _client.DeleteMyCommands(cancellationToken: cancellationToken);
         await _client.DeleteMyCommands(BotCommandScope.AllGroupChats(), cancellationToken: cancellationToken);
@@ -48,18 +69,6 @@ public class Commands : ICommands
         ITexts defaultTexts = _textsProvider.GetDefaultTexts();
         await _client.SetMyCommands(GetMenuCommands(AccessData.Default, defaultTexts),
             BotCommandScope.AllPrivateChats(), cancellationToken: cancellationToken);
-
-        foreach (long id in _userIds)
-        {
-            try
-            {
-                await UpdateFor(id, cancellationToken);
-            }
-            catch (ApiRequestException ex) when (ErrorHelper.IsChatNotFoundError(ex))
-            {
-                _logger.Errors.Log($"Exception caught: {ex.Message}", true);
-            }
-        }
     }
 
     private IEnumerable<BotCommand> GetMenuCommands(AccessData accessLevel, ITexts texts)

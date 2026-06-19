@@ -8,6 +8,7 @@ namespace AbstractBot.Interfaces.Modules;
 public interface ICommands
 {
     Task UpdateFor(long userId, CancellationToken cancellationToken = default);
-
+    Task UpdateForUsers(CancellationToken cancellationToken = default);
     Task UpdateForAll(CancellationToken cancellationToken = default);
+    Task ResetForAll(CancellationToken cancellationToken = default);
 }
