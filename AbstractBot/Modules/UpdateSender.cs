@@ -70,7 +70,8 @@ public class UpdateSender : IUpdateSender
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId, text);
+        string? textForLog = string.IsNullOrWhiteSpace(text) ? richMessage?.Markdown ?? richMessage?.Html : text;
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId, textForLog);
         return _client.EditMessageText(chat.Id, messageId, text, parseMode, replyMarkup, linkPreviewOptions, entities,
             richMessage, businessConnectionId, cancellationToken);
     }
