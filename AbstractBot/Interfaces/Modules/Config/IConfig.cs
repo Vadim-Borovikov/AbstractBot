@@ -10,10 +10,6 @@ public interface IConfig
 
     string SystemTimeZoneIdLogs { get; }
 
-    string DontUnderstandStickerFileId { get; }
-
-    string ForbiddenStickerFileId { get; }
-
     double UpdatesPerSecondLimitPrivate { get; }
 
     double UpdatesPerMinuteLimitGroup { get; }

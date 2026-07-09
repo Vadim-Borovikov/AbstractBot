@@ -66,7 +66,8 @@ public class BotCore : IBotCore, IDisposable
 
     public void Dispose() => Logging.Dispose();
 
-    public static async Task<BotCore?> TryCreateAsync(IConfig config, CancellationToken cancellationToken)
+    public static async Task<BotCore?> TryCreateAsync(IConfig config, IWrongOperationProcessor wrongOperationProcessor,
+        CancellationToken cancellationToken)
     {
         TelegramBotClient client = new(config.Token);
         User self = await client.GetMe(cancellationToken);
@@ -99,17 +100,13 @@ public class BotCore : IBotCore, IDisposable
 
         UpdateSender updateSender = new(client, fileStorage, cooldown, batcher, logger);
 
-        InputFileId dontUnderstandSticker = new(config.DontUnderstandStickerFileId);
-        InputFileId forbiddenSticker = new(config.ForbiddenStickerFileId);
-
         Chat reportsDefault = new()
         {
             Id = config.ReportsDefaultChatId,
             Type = ChatType.Private
         };
 
-        UpdateReceiver updateReceiver =
-            new(dontUnderstandSticker, forbiddenSticker, self.Id, reportsDefault, updateSender, logger);
+        UpdateReceiver updateReceiver = new(wrongOperationProcessor, updateSender, self.Id, logger);
 
         return new BotCore(client, clock, jsonSerializerOptionsProvider, self, self.Username, connection, updateSender,
             updateReceiver, accesses, config, reportsDefault, logger);

@@ -51,7 +51,9 @@ internal sealed class ExampleBot : Bot, IDisposable
     // ReSharper disable once UnusedMember.Global
     public static async Task<ExampleBot?> TryCreateAsync(ExampleConfig config, CancellationToken cancellationToken)
     {
-        BotCore? core = await BotCore.TryCreateAsync(config, cancellationToken);
+        StickerWrongOperationProcessor processor = new(DontUnderstandStickerFileId, ForbiddenStickerFileId);
+
+        BotCore? core = await BotCore.TryCreateAsync(config, processor, cancellationToken);
         if (core is null)
         {
             return null;
@@ -80,4 +82,10 @@ internal sealed class ExampleBot : Bot, IDisposable
     private readonly SaveManager<ExampleBotState, ExampleStateData> _saveManager;
     private readonly Manager _sheetsManager;
     private readonly ExampleBotState _state;
+
+    private const string DontUnderstandStickerFileId =
+        "CAACAgIAAxkBAAIkSWAAAQwzQcPi974AAaHQi3a6oIGhDrAAAgQAA4o3OAABcdDTag5yZuEeBA";
+    private const string ForbiddenStickerFileId =
+        "CAACAgIAAxkBAAIkTWAAAQxqeVFFAAGLMnjCtZB3AAGrleSEAAICAANpWrcOtvz2MN-s2RQeBA";
+
 }
