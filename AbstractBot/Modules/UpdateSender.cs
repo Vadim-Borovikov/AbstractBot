@@ -71,7 +71,7 @@ public class UpdateSender : IUpdateSender
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         string? textForLog = string.IsNullOrWhiteSpace(text) ? richMessage?.Markdown ?? richMessage?.Html : text;
-        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId, textForLog);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, null, messageId, textForLog);
         return _client.EditMessageText(chat.Id, messageId, text, parseMode, replyMarkup, linkPreviewOptions, entities,
             richMessage, businessConnectionId, cancellationToken);
     }
@@ -120,7 +120,7 @@ public class UpdateSender : IUpdateSender
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditMedia, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditMedia, null, messageId);
         return _client.EditMessageMedia(chat.Id, messageId, media, replyMarkup, businessConnectionId,
             cancellationToken);
     }
@@ -131,14 +131,14 @@ public class UpdateSender : IUpdateSender
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.EditText, null, messageId);
         return _client.EditMessageCaption(chat.Id, messageId, caption, parseMode, replyMarkup, captionEntities,
             showCaptionAboveMedia, businessConnectionId, cancellationToken);
     }
 
     public Task DeleteMessageAsync(Chat chat, int messageId, CancellationToken cancellationToken = default)
     {
-        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Delete, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Delete, null, messageId);
         return _client.DeleteMessage(chat.Id, messageId, cancellationToken);
     }
 
@@ -411,7 +411,7 @@ public class UpdateSender : IUpdateSender
         string? businessConnectionId = null, CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Pin, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Pin, null, messageId);
         return _client.PinChatMessage(chat.Id, messageId, disableNotification, businessConnectionId, cancellationToken);
     }
 
@@ -419,7 +419,7 @@ public class UpdateSender : IUpdateSender
         CancellationToken cancellationToken = default)
     {
         _cooldown.DelayIfNeeded(chat, cancellationToken);
-        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Unpin, messageId);
+        _logger.LogUpdate(chat, LoggerExtended.UpdateType.Unpin, null, messageId);
         return _client.UnpinChatMessage(chat.Id, messageId, businessConnectionId, cancellationToken);
     }
 

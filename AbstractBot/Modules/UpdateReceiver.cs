@@ -91,13 +91,13 @@ public class UpdateReceiver : IUpdateReceiver
 
         if (callbackQuery is null)
         {
-            _logger.LogUpdate(message.Chat, LoggerExtended.UpdateType.ReceiveMessage, message.MessageId,
-                $"{message.Text}{message.Caption}");
+            _logger.LogUpdate(message.Chat, LoggerExtended.UpdateType.ReceiveMessage, from?.Username,
+                message.MessageId, $"{message.Text}{message.Caption}");
         }
         else
         {
-            _logger.LogUpdate(message.Chat, LoggerExtended.UpdateType.ReceiveCallback, message.MessageId,
-                callbackQuery.Data);
+            _logger.LogUpdate(message.Chat, LoggerExtended.UpdateType.ReceiveCallback, from?.Username,
+                message.MessageId, callbackQuery.Data);
         }
 
         // ReSharper disable once LoopCanBePartlyConvertedToQuery
