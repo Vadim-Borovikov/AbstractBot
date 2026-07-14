@@ -1,6 +1,7 @@
 ﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Models.MessageTemplates;
+using AbstractBot.Utilities.Extensions;
 using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
 using System.Collections.Generic;
@@ -34,7 +35,7 @@ public sealed class Help : Command
                                                           .SkipNulls()
                                                           .OrderBy(info => info.Index)
                                                           .Select(info => info.Description);
-        string joined = descriptions.JoinLines();
+        string joined = descriptions.JoinLines().Escape();
         if (texts.HelpFormat is not null)
         {
             joined = texts.HelpFormat.Format(joined);
