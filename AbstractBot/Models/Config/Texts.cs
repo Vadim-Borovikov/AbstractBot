@@ -10,7 +10,7 @@ public class Texts : ITexts
 {
     [Required]
     [MinLength(1)]
-    public Dictionary<string, string> MenuDescriptions { get; init; } = null!;
+    public List<CommandMenuInfo> MenuDescriptions { get; init; } = null!;
 
     [Required]
     public TextContent StartFormat { get; init; } = null!;
@@ -26,5 +26,9 @@ public class Texts : ITexts
     [Required]
     public TextContent CommandDescriptionFormat { get; init; } = null!;
 
-    public string? TryGetMenuDescription(string command) => MenuDescriptions.GetValueOrDefault(command);
+    public MenuOperationInfo? GetMenuOperationInfo(string command)
+    {
+        int index = MenuDescriptions.FindIndex(d => d.Command == command);
+        return index < 0 ? null : new MenuOperationInfo(index, MenuDescriptions[index].Description);
+    }
 }

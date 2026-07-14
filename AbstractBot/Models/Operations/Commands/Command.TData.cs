@@ -1,6 +1,7 @@
 ﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands;
+using AbstractBot.Models.Config;
 using JetBrains.Annotations;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,10 @@ public abstract class Command<TData> : Operation<TData>, ICommand
         BotCommandExtended = new BotCommandExtended(command, menuDescription, selfUsername, textsProvider, showInMenu);
     }
 
-    public override string? GetHelpDescriptionFor(long userId) => BotCommandExtended.GetHelpDescriptionFor(userId);
+    public override MenuOperationInfo? GetHelpOperationInfoFor(long userId)
+    {
+        return BotCommandExtended.GetHelpOperationInfoFor(userId);
+    }
 
     protected override bool IsInvokingBy(Message message, User? from, out TData? data)
     {

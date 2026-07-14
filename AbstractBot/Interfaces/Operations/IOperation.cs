@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using AbstractBot.Models.Config;
+using JetBrains.Annotations;
 using System;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
@@ -23,5 +24,5 @@ public interface IOperation
 
     Task<ExecutionResult> TryExecuteAsync(Message message, User? from, CallbackQuery? callbackQuery);
 
-    string? GetHelpDescriptionFor(long userId);
+    MenuOperationInfo? GetHelpOperationInfoFor(long userId);
 }

@@ -1,5 +1,6 @@
 ﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
+using AbstractBot.Models.Config;
 using AbstractBot.Utilities.Extensions;
 using JetBrains.Annotations;
 using System;
@@ -41,11 +42,14 @@ public sealed class BotCommandExtended : BotCommand
         return splitted.First().Equals(trigger, StringComparison.InvariantCultureIgnoreCase) ? splitted.Skip(1) : null;
     }
 
-    public string? GetHelpDescriptionFor(long userId)
+    public MenuOperationInfo? GetHelpOperationInfoFor(long userId)
     {
         ITexts texts = _textsProvider.GetTextsFor(userId);
-        string? description = texts.TryGetMenuDescription(Command);
-        return description is null ? null : texts.CommandDescriptionFormat.Format(Command, description);
+        MenuOperationInfo? info = texts.GetMenuOperationInfo(Command);
+        return info is null
+            ? null
+            : new MenuOperationInfo(info.Value.Index,
+                texts.CommandDescriptionFormat.Format(Command, info.Value.Description));
     }
 
     private readonly string _selfUsername;

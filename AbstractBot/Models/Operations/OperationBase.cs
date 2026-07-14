@@ -1,5 +1,6 @@
 ﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Operations;
+using AbstractBot.Models.Config;
 using JetBrains.Annotations;
 using System;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ public abstract class OperationBase : IOperation
         return query.StartsWith(typeName, StringComparison.InvariantCulture) ? query.Substring(typeName.Length) : null;
     }
 
-    public virtual string? GetHelpDescriptionFor(long userId) => null;
+    public virtual MenuOperationInfo? GetHelpOperationInfoFor(long userId) => null;
 
     protected AccessData.Status CheckAccess(long userId) => _accesses.GetAccess(userId).CheckAgainst(AccessRequired);
 

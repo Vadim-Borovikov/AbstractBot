@@ -30,8 +30,10 @@ public sealed class Help : Command
 
         IEnumerable<string> descriptions = _updateReceiver.Operations
                                                           .Where(o => access.IsSufficientAgainst(o.AccessRequired))
-                                                          .Select(o => o.GetHelpDescriptionFor(sender.Id))
-                                                          .SkipNulls();
+                                                          .Select(o => o.GetHelpOperationInfoFor(sender.Id))
+                                                          .SkipNulls()
+                                                          .OrderBy(info => info.Index)
+                                                          .Select(info => info.Description);
         string joined = descriptions.JoinLines();
         if (texts.HelpFormat is not null)
         {

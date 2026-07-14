@@ -1,5 +1,4 @@
 using AbstractBot.Models.Config;
-using GryphonUtilities.Extensions;
 using JetBrains.Annotations;
 
 namespace AbstractBot.Interfaces.Modules.Config;
@@ -17,10 +16,9 @@ public interface ITexts
 
     TextContent CommandDescriptionFormat { get; }
 
-    string? TryGetMenuDescription(string command);
-
+    MenuOperationInfo? GetMenuOperationInfo(string command);
     string GetMenuDescription(string command)
     {
-        return TryGetMenuDescription(command).Denull($"No description for /{command}!");
+        return GetMenuOperationInfo(command)?.Description ?? $"No description for /{command}!";
     }
 }

@@ -2,7 +2,7 @@ using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands;
 using AbstractBot.Models;
-using AbstractBot.Models.Operations.Commands;
+using AbstractBot.Models.Config;
 using JetBrains.Annotations;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,21 +73,22 @@ public class Commands : ICommands
 
     private IEnumerable<BotCommand> GetMenuCommands(AccessData accessLevel, ITexts texts)
     {
-        IEnumerable<BotCommandExtended> commands =
-            _updateReceiver.Operations
-                           .OfType<ICommand>()
-                           .Where(c => c.BotCommandExtended.ShowInMenu
-                                       && accessLevel.IsSufficientAgainst(c.AccessRequired))
-                           .Select(ca => ca.BotCommandExtended);
+        Dictionary<string, MenuOperationInfo> infos = new();
 
-        foreach (BotCommandExtended c in commands)
+        foreach (ICommand command in _updateReceiver.Operations
+                                                    .OfType<ICommand>()
+                                                    .Where(c => c.BotCommandExtended.ShowInMenu
+                                                                && accessLevel.IsSufficientAgainst(c.AccessRequired)))
         {
-            string? description = texts.TryGetMenuDescription(c.Command);
-            if (!string.IsNullOrWhiteSpace(description))
+            MenuOperationInfo? info = texts.GetMenuOperationInfo(command.BotCommandExtended.Command);
+            if (info is not null)
             {
-                yield return new BotCommand(c.Command, description);
+                infos[command.BotCommandExtended.Command] = info.Value;
             }
         }
+
+        return infos.OrderBy(p => p.Value.Index)
+                    .Select(p => new BotCommand(p.Key, p.Value.Description));
     }
 
     private readonly TelegramBotClient _client;

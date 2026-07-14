@@ -1,6 +1,7 @@
 ﻿using AbstractBot.Interfaces.Modules;
 using AbstractBot.Interfaces.Modules.Config;
 using AbstractBot.Interfaces.Operations.Commands;
+using AbstractBot.Models.Config;
 using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
@@ -20,9 +21,9 @@ public abstract class Command : Operation, ICommand
         BotCommandExtended = new BotCommandExtended(command, menuDescription, selfUsername, textsProvider, showInMenu);
     }
 
-    public override string? GetHelpDescriptionFor(long userId)
+    public override MenuOperationInfo? GetHelpOperationInfoFor(long userId)
     {
-        return BotCommandExtended.GetHelpDescriptionFor(userId);
+        return BotCommandExtended.GetHelpOperationInfoFor(userId);
     }
 
     protected override bool IsInvokingBy(Message message, User? from)
