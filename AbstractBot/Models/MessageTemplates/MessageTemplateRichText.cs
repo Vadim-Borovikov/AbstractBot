@@ -1,5 +1,7 @@
 using AbstractBot.Interfaces.Modules;
 using JetBrains.Annotations;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -10,8 +12,22 @@ namespace AbstractBot.Models.MessageTemplates;
 [PublicAPI]
 public class MessageTemplateRichText : MessageTemplate
 {
-    public MessageTemplateRichText(string text) : base(text) { }
-    public MessageTemplateRichText(MessageTemplate prototype) : base(prototype) { }
+    public readonly IDictionary<string, IInputRichMedia>? Media;
+
+    public MessageTemplateRichText(string text, IDictionary<string, IInputRichMedia>? media = null) : base(text)
+    {
+        Media = media;
+    }
+    public MessageTemplateRichText(string text, IDictionary<string, InputFile>? media)
+        : this(text, media?.ToDictionary(p => p.Key, p => new InputMediaPhoto(p.Value) as IInputRichMedia)) { }
+
+    public MessageTemplateRichText(MessageTemplate prototype, IDictionary<string, IInputRichMedia>? media = null) :
+        base(prototype)
+    {
+        Media = media;
+    }
+    public MessageTemplateRichText(MessageTemplate prototype, IDictionary<string, InputFile>? media)
+        : this(prototype, media?.ToDictionary(p => p.Key, p => new InputMediaPhoto(p.Value) as IInputRichMedia)) { }
 
     public Task<Message> EditMessageWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)
     {
@@ -27,5 +43,12 @@ public class MessageTemplateRichText : MessageTemplate
             AllowPaidBroadcast, DirectMessagesTopicId, SuggestedPostParameters, CancellationToken);
     }
 
-    private InputRichMessage GetRichMessage() => new() { Markdown = Text };
+    private InputRichMessage GetRichMessage()
+    {
+        return new InputRichMessage
+        {
+            Markdown = Text,
+            Media = Media?.Select(p => new InputRichMessageMedia { Id = p.Key, Media = p.Value})
+        };
+    }
 }

@@ -37,18 +37,18 @@ public class UpdateSender : IUpdateSender
         IEnumerable<MessageEntity>? entities = null, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
         long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
-        CancellationToken cancellationToken = default)
+        long? receiverUserId = null, string? callbackQueryId = null, CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendText, data: text);
         return _client.SendMessage(chat.Id, text, parseMode, replyParameters, keyboardProvider.Keyboard,
             linkPreviewOptions, messageThreadId, entities, disableNotification, protectContent, messageEffectId,
-            businessConnectionId, allowPaidBroadcast, directMessagesTopicId, suggestedPostParameters,
-            cancellationToken);
+            businessConnectionId, allowPaidBroadcast, directMessagesTopicId, suggestedPostParameters, receiverUserId,
+            callbackQueryId, cancellationToken);
     }
 
-    public Task<Message> SendRichMessageAsync(Chat chat, InputRichMessage richText,
+    public async Task<Message> SendRichMessageAsync(Chat chat, InputRichMessage richText,
         KeyboardProvider? keyboardProvider = null, ReplyParameters? replyParameters = null,
         int? messageThreadId = null, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
@@ -58,7 +58,7 @@ public class UpdateSender : IUpdateSender
         keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendText, data: richText.Markdown ?? richText.Html);
-        return _client.SendRichMessage(chat.Id, richText, replyParameters, keyboardProvider.Keyboard, messageThreadId,
+        return await _client.SendRichMessage(chat.Id, richText, replyParameters, keyboardProvider.Keyboard, messageThreadId,
             disableNotification, protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast,
             directMessagesTopicId, suggestedPostParameters, cancellationToken);
     }
@@ -292,7 +292,8 @@ public class UpdateSender : IUpdateSender
         bool showCaptionAboveMedia = false, bool hasSpoiler = false, bool disableNotification = false,
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
         bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
-        SuggestedPostParameters? suggestedPostParameters = null, CancellationToken cancellationToken = default)
+        SuggestedPostParameters? suggestedPostParameters = null,
+        long? receiverUserId = null, string? callbackQueryId = null, CancellationToken cancellationToken = default)
     {
         InputFile? photo = _fileStorage.TryGetInputFileId(path);
         if (photo is not null)
@@ -300,7 +301,7 @@ public class UpdateSender : IUpdateSender
             return await SendPhotoAsync(chat, photo, keyboardProvider, caption, parseMode, replyParameters,
                 messageThreadId, captionEntities, showCaptionAboveMedia, hasSpoiler, disableNotification,
                 protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId,
-                suggestedPostParameters, cancellationToken);
+                suggestedPostParameters, receiverUserId, callbackQueryId, cancellationToken);
         }
 
         await using (FileStream stream = File.OpenRead(path))
@@ -309,7 +310,7 @@ public class UpdateSender : IUpdateSender
             Message message = await SendPhotoAsync(chat, photo, keyboardProvider, caption, parseMode, replyParameters,
                 messageThreadId, captionEntities, showCaptionAboveMedia, hasSpoiler, disableNotification,
                 protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId,
-                suggestedPostParameters, cancellationToken);
+                suggestedPostParameters, receiverUserId, callbackQueryId, cancellationToken);
 
             PhotoSize? file = message.Photo.Largest();
             if (file is not null)
@@ -327,7 +328,8 @@ public class UpdateSender : IUpdateSender
         bool showCaptionAboveMedia = false, bool hasSpoiler = false, bool disableNotification = false,
         bool protectContent = false, string? messageEffectId = null, string? businessConnectionId = null,
         bool allowPaidBroadcast = false, long? directMessagesTopicId = null,
-        SuggestedPostParameters? suggestedPostParameters = null, CancellationToken cancellationToken = default)
+        SuggestedPostParameters? suggestedPostParameters = null, long? receiverUserId = null,
+        string? callbackQueryId = null, CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
@@ -336,7 +338,7 @@ public class UpdateSender : IUpdateSender
         return _client.SendPhoto(chat.Id, photo, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
             messageThreadId, captionEntities, showCaptionAboveMedia, hasSpoiler, disableNotification, protectContent,
             messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId, suggestedPostParameters,
-            cancellationToken);
+            receiverUserId, callbackQueryId, cancellationToken);
     }
 
     public async Task<Message> SendDocumentAsync(Chat chat, string path, KeyboardProvider? keyboardProvider = null,
@@ -345,7 +347,7 @@ public class UpdateSender : IUpdateSender
         bool disableContentTypeDetection = false, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
         long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
-        CancellationToken cancellationToken = default)
+        long? receiverUserId = null, string? callbackQueryId = null, CancellationToken cancellationToken = default)
     {
         InputFile? file = _fileStorage.TryGetInputFileId(path);
         if (file is not null)
@@ -353,7 +355,7 @@ public class UpdateSender : IUpdateSender
             return await SendDocumentAsync(chat, file, keyboardProvider, caption, parseMode, replyParameters,
                 thumbnail, messageThreadId, captionEntities, disableContentTypeDetection, disableNotification,
                 protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId,
-                suggestedPostParameters, cancellationToken);
+                suggestedPostParameters, receiverUserId, callbackQueryId, cancellationToken);
         }
 
         await using (FileStream stream = File.OpenRead(path))
@@ -362,7 +364,7 @@ public class UpdateSender : IUpdateSender
             Message message = await SendDocumentAsync(chat, file, keyboardProvider, caption, parseMode,
                 replyParameters, thumbnail, messageThreadId, captionEntities, disableContentTypeDetection,
                 disableNotification, protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast,
-                directMessagesTopicId, suggestedPostParameters, cancellationToken);
+                directMessagesTopicId, suggestedPostParameters, receiverUserId, callbackQueryId, cancellationToken);
 
             if (message.Document is not null)
             {
@@ -379,16 +381,16 @@ public class UpdateSender : IUpdateSender
         bool disableContentTypeDetection = false, bool disableNotification = false, bool protectContent = false,
         string? messageEffectId = null, string? businessConnectionId = null, bool allowPaidBroadcast = false,
         long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
-        CancellationToken cancellationToken = default)
+        long? receiverUserId = null, string? callbackQueryId = null, CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
         _logger.LogUpdate(chat, LoggerExtended.UpdateType.SendPhoto, data: caption);
 
         return _client.SendDocument(chat.Id, document, caption, parseMode, replyParameters, keyboardProvider.Keyboard,
-            thumbnail, messageThreadId, captionEntities, disableContentTypeDetection, disableNotification, protectContent,
-            messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId, suggestedPostParameters,
-            cancellationToken);
+            thumbnail, messageThreadId, captionEntities, disableContentTypeDetection, disableNotification,
+            protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast, directMessagesTopicId,
+            suggestedPostParameters, receiverUserId, callbackQueryId, cancellationToken);
     }
 
     public Task<Message> SendStickerAsync(Chat chat, InputFile sticker, ReplyParameters? replyParameters = null,
@@ -396,7 +398,7 @@ public class UpdateSender : IUpdateSender
         bool disableNotification = false, bool protectContent = false, string? messageEffectId = null,
         string? businessConnectionId = null, bool allowPaidBroadcast = false,
         long? directMessagesTopicId = null, SuggestedPostParameters? suggestedPostParameters = null,
-        CancellationToken cancellationToken = default)
+        long? receiverUserId = null, string? callbackQueryId = null, CancellationToken cancellationToken = default)
     {
         keyboardProvider ??= DefaultKeyboardProvider;
         _cooldown.DelayIfNeeded(chat, cancellationToken);
@@ -404,7 +406,7 @@ public class UpdateSender : IUpdateSender
 
         return _client.SendSticker(chat.Id, sticker, replyParameters, keyboardProvider.Keyboard, emoji, messageThreadId,
             disableNotification, protectContent, messageEffectId, businessConnectionId, allowPaidBroadcast,
-            directMessagesTopicId, suggestedPostParameters, cancellationToken);
+            directMessagesTopicId, suggestedPostParameters, receiverUserId, callbackQueryId, cancellationToken);
     }
 
     public Task PinChatMessageAsync(Chat chat, int messageId, bool disableNotification = false,

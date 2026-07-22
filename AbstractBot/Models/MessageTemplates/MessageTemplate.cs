@@ -21,6 +21,8 @@ public abstract class MessageTemplate
     public bool AllowPaidBroadcast;
     public long? DirectMessagesTopicId;
     public SuggestedPostParameters? SuggestedPostParameters;
+    public long? ReceiverUserId;
+    public string? CallbackQueryId;
     public CancellationToken CancellationToken;
 
     protected MessageTemplate(string text) => Text = text;

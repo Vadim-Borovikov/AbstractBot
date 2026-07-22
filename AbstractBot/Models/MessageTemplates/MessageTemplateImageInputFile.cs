@@ -27,7 +27,7 @@ public class MessageTemplateImageInputFile : MessageTemplateImage
         return updateSender.SendPhotoAsync(chat, InputFile, KeyboardProvider, Text, ParseMode.MarkdownV2,
             ReplyParameters, MessageThreadId, Entities, ShowCaptionAboveMedia, HasSpoiler, DisableNotification,
             ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, DirectMessagesTopicId,
-            SuggestedPostParameters, CancellationToken);
+            SuggestedPostParameters, ReceiverUserId, CallbackQueryId, CancellationToken);
     }
 
     public Task<Message> EditMessageMediaWithSelfAsync(IUpdateSender updateSender, Chat chat, int messageId)

@@ -39,6 +39,6 @@ public class MessageTemplateText : MessageTemplateMarkdownV2
         return updateSender.SendTextMessageAsync(chat, Text, KeyboardProvider, ParseMode.MarkdownV2, ReplyParameters,
             LinkPreviewOptions, MessageThreadId, Entities, DisableNotification, ProtectContent, MessageEffectId,
             BusinessConnectionId, AllowPaidBroadcast, DirectMessagesTopicId, SuggestedPostParameters,
-            CancellationToken);
+            ReceiverUserId, CallbackQueryId, CancellationToken);
     }
 }

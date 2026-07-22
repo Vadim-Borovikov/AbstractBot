@@ -28,6 +28,6 @@ public class MessageTemplateFile : MessageTemplateMarkdownV2
         return updateSender.SendDocumentAsync(chat, FilePath, KeyboardProvider, Text, ParseMode.MarkdownV2,
             ReplyParameters, Thumbnail, MessageThreadId, Entities, DisableContentTypeDetection, DisableNotification,
             ProtectContent, MessageEffectId, BusinessConnectionId, AllowPaidBroadcast, DirectMessagesTopicId,
-            SuggestedPostParameters, CancellationToken);
+            SuggestedPostParameters, ReceiverUserId, CallbackQueryId, CancellationToken);
     }
 }
