@@ -38,7 +38,7 @@ public class Cooldown : ICooldown
             if (maxDelay.HasValue)
             {
                 Task.Delay(maxDelay.Value, cancellationToken).Wait(cancellationToken);
-                now += maxDelay.Value;
+                now = DateTimeFull.CreateUtcNow();
             }
 
             _lastUpdateGlobal = now;
