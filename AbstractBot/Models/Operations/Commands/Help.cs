@@ -12,7 +12,7 @@ using Telegram.Bot.Types;
 namespace AbstractBot.Models.Operations.Commands;
 
 [PublicAPI]
-public sealed class Help : Command
+public class Help : Command
 {
     public Help(IAccesses accesses, IUpdateSender updateSender, IUpdateReceiver updateReceiver,
         ITextsProvider<ITexts> textsProvider, string selfUsername)
@@ -21,6 +21,12 @@ public sealed class Help : Command
         _accesses = accesses;
         _updateReceiver = updateReceiver;
         _textsProvider = textsProvider;
+    }
+
+    protected virtual MessageTemplate GetHelpTemplate(ITexts texts, string descriptions)
+    {
+        string text = texts.HelpFormat is null ? descriptions : texts.HelpFormat.Format(descriptions);
+        return new MessageTemplateText(text);
     }
 
     protected override Task ExecuteAsync(Message message, User sender)
@@ -35,13 +41,7 @@ public sealed class Help : Command
                                                           .SkipNulls()
                                                           .OrderBy(info => info.Index)
                                                           .Select(info => info.Description);
-        string joined = descriptions.JoinLines().Escape();
-        if (texts.HelpFormat is not null)
-        {
-            joined = texts.HelpFormat.Format(joined);
-        }
-
-        MessageTemplateText template = new(joined);
+        MessageTemplate template = GetHelpTemplate(texts, descriptions.JoinLines().Escape());
         return template.SendAsync(UpdateSender, message.Chat);
     }
 
